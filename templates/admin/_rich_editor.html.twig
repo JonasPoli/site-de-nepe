@@ -11,7 +11,52 @@
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 
-<div id="quill-{{ field_id }}" style="height:{{ _height }}px; background:#fff; border-radius:0 0 6px 6px;"></div>
+<style>
+/* ── Quill editor — forçar cores independente do tema admin ── */
+#quill-{{ field_id }} {
+    background: #ffffff !important;
+    color: #1a1a2e !important;
+    border-radius: 0 0 6px 6px;
+}
+#quill-{{ field_id }} .ql-editor {
+    background: #ffffff !important;
+    color: #1a1a2e !important;
+    font-size: .95rem;
+    line-height: 1.7;
+    min-height: {{ _height }}px;
+    max-height: {{ _height + 200 }}px;
+}
+#quill-{{ field_id }} .ql-editor p,
+#quill-{{ field_id }} .ql-editor h1,
+#quill-{{ field_id }} .ql-editor h2,
+#quill-{{ field_id }} .ql-editor h3,
+#quill-{{ field_id }} .ql-editor li,
+#quill-{{ field_id }} .ql-editor a {
+    color: #1a1a2e !important;
+}
+#quill-{{ field_id }} .ql-editor a { color: #2563eb !important; }
+#quill-{{ field_id }} .ql-editor.ql-blank::before {
+    color: #9ca3af !important;
+}
+/* Toolbar */
+.ql-toolbar.ql-snow {
+    background: #f1f5f9;
+    border-color: var(--border, #334) !important;
+    border-radius: 6px 6px 0 0;
+}
+.ql-container.ql-snow {
+    border-color: var(--border, #334) !important;
+}
+.ql-toolbar .ql-stroke { stroke: #475569 !important; }
+.ql-toolbar .ql-fill   { fill:   #475569 !important; }
+.ql-toolbar .ql-picker-label { color: #475569 !important; }
+.ql-toolbar button:hover .ql-stroke,
+.ql-toolbar button.ql-active .ql-stroke { stroke: #2563eb !important; }
+.ql-toolbar button:hover .ql-fill,
+.ql-toolbar button.ql-active .ql-fill   { fill:   #2563eb !important; }
+</style>
+
+<div id="quill-{{ field_id }}" style="height:{{ _height }}px;"></div>
 <textarea id="{{ field_id }}" name="{{ field_name }}" style="display:none">{{ content|default('')|raw }}</textarea>
 
 <script>
