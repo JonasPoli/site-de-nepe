@@ -52,7 +52,7 @@
             <div class="article-meta">
                 {% if article.publishedAt %}
                     <time datetime="{{ article.publishedAt|date('Y-m-d') }}">
-                        {{ article.publishedAt|date('d \\de F \\de Y') }}
+                        {{ article.publishedAt|date('d/m/Y') }}
                     </time>
                 {% endif %}
             </div>
