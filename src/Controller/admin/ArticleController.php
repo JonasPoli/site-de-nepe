@@ -63,9 +63,30 @@ class ArticleController extends AbstractController
         SluggerInterface $slugger,
     ): Response {
         if ($request->isMethod('POST')) {
+            // ── Detectar mudança de conteúdo ─────────────────────────────────
+            // Se o artigo já possui aprovações e o autor alterar title/conteúdo,
+            // as aprovações são invalidadas e o status volta para Draft.
+            $contentChanged = $this->contentChanged($article, $request);
+
             $this->populateArticle($article, $request, $slugger, $em);
+
+            if ($contentChanged && $article->getApprovals()->count() > 0) {
+                // Remover todas as aprovações existentes
+                foreach ($article->getApprovals() as $approval) {
+                    $em->remove($approval);
+                }
+                // Revogar publicação e voltar para rascunho
+                $article->setStatus(ArticleStatus::Draft);
+                $article->setPublishedAt(null);
+
+                $this->addFlash('warning',
+                    'O conteúdo foi alterado. As aprovações anteriores foram invalidadas e o artigo voltou para rascunho — será necessário enviar novamente para revisão.'
+                );
+            } else {
+                $this->addFlash('success', 'Artigo atualizado.');
+            }
+
             $em->flush();
-            $this->addFlash('success', 'Artigo atualizado.');
             return $this->redirectToRoute('admin_article_index');
         }
         $messages = $em->getRepository(\App\Entity\Message::class)->findByArticleContext($article->getId());
@@ -157,6 +178,29 @@ class ArticleController extends AbstractController
             $this->addFlash('success', 'Artigo removido.');
         }
         return $this->redirectToRoute('admin_article_index');
+    }
+
+    /**
+     * Verifica se os campos de conteúdo relevantes foram alterados.
+     * Compara o estado atual do artigo (banco) com os dados enviados no formulário
+     * ANTES de chamar populateArticle(), enquanto o entity ainda tem os valores originais.
+     */
+    private function contentChanged(Article $article, Request $r): bool
+    {
+        $fields = [
+            'title'            => $article->getTitle(),
+            'shortDescription' => (string) $article->getShortDescription(),
+            'content'          => (string) $article->getContent(),
+        ];
+
+        foreach ($fields as $field => $current) {
+            $submitted = trim((string) $r->request->get($field));
+            if (trim($current) !== $submitted) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function populateArticle(Article $article, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void
