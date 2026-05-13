@@ -1,0 +1,30 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Contato{% endblock %}{% block page_title %}Mensagens de Contato{% endblock %}
+{% block body %}
+<div class="ph"><h1>Mensagens de Contato</h1></div>
+<div class="card"><div class="tw"><table class="at">
+    <thead><tr><th>Nome</th><th>E-mail</th><th>Mensagem</th><th>Data</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for m in messages %}
+    <tr style="{{ not m.isRead ? 'background:rgba(79,110,247,.05)' : '' }}">
+        <td style="font-weight:{{ not m.isRead ? '700' : '400' }}">{{ m.senderName }}</td>
+        <td><a href="mailto:{{ m.senderEmail }}" style="color:var(--primary)">{{ m.senderEmail }}</a></td>
+        <td style="max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.message }}</td>
+        <td>{{ m.createdAt|date('d/m/Y H:i') }}</td>
+        <td><span class="badge {{ m.isRead ? 'bg-neu' : 'bg-inf' }}">{{ m.isRead ? 'Lida' : 'Nova' }}</span></td>
+        <td><div class="ta">
+            {% if not m.isRead %}
+            <form action="{{ path('admin_contact_read', {id: m.id}) }}" method="post">
+                <button class="btn btn-s btn-sm" title="Marcar como lida"><sl-icon name="check-lg"></sl-icon></button>
+            </form>
+            {% endif %}
+            <form action="{{ path('admin_contact_delete', {id: m.id}) }}" method="post" onsubmit="return confirm('Remover?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('del_contact_' ~ m.id) }}">
+                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+            </form>
+        </div></td>
+    </tr>
+    {% else %}<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">Nenhuma mensagem.</td></tr>{% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}

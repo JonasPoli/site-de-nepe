@@ -1,0 +1,37 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Editar Usuário{% endblock %}{% block page_title %}Editar Usuário{% endblock %}
+{% block body %}
+<div class="ph"><h1>{{ user.name }}</h1><a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card">
+    <form action="{{ path('superadmin_user_edit', {id: user.id}) }}" method="post" class="af">
+        <div class="af-row">
+            <div class="af-field"><label>Nome</label><input type="text" name="name" class="ai" value="{{ user.name }}"></div>
+            <div class="af-field"><label>Username</label><input type="text" name="username" class="ai" value="{{ user.username }}"></div>
+        </div>
+        <div class="af-row">
+            <div class="af-field"><label>E-mail</label><input type="email" name="email" class="ai" value="{{ user.email }}"></div>
+            <div class="af-field">
+                <label>Tenant</label>
+                <select name="tenant" class="as">
+                    <option value="">— Super Admin —</option>
+                    {% for t in tenants %}
+                        <option value="{{ t.id }}" {{ user.tenant and user.tenant.id == t.id ? 'selected' }}>{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>Função</label>
+                <select name="workGroup" class="as">
+                    <option value="0" {{ user.workGroup == 0 ? 'selected' }}>Admin</option>
+                    <option value="1" {{ user.workGroup == 1 ? 'selected' }}>Editor</option>
+                    <option value="2" {{ user.workGroup == 2 ? 'selected' }}>Revisor</option>
+                </select>
+            </div>
+            <div class="af-field"><label>Nova senha <span class="af-hint">(deixe em branco para manter)</span></label><input type="password" name="password" class="ai" minlength="8"></div>
+        </div>
+        <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button><a href="{{ path('superadmin_dash') }}" class="btn btn-g">Cancelar</a></div>
+    </form>
+</div>
+{% endblock %}

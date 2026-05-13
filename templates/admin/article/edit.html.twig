@@ -1,0 +1,74 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% import 'admin/article/_form.html.twig' as forms %}
+{% block title %}Editar: {{ article.title }}{% endblock %}
+{% block page_title %}Editar Artigo{% endblock %}
+
+{% block body %}
+<div class="ph">
+    <h1>{{ article.title }}</h1>
+    <div style="display:flex;gap:.75rem">
+        <span class="badge {{ article.status.value == 'published' ? 'bg-ok' : (article.status.value == 'pending' ? 'bg-warn' : 'bg-neu') }}">
+            {{ article.status.label() }}
+        </span>
+        <a href="{{ path('admin_article_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+    </div>
+</div>
+<div class="card">
+    {{ forms.article_form(article, categories, path('admin_article_edit', {id: article.id}), 'POST') }}
+</div>
+
+{% if messages|length > 0 %}
+<div class="card" style="margin-top: 2rem;">
+    <h3 style="margin-bottom: 1rem; font-size: 1.2rem; font-weight: 700;">Feedback e Revisões</h3>
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for conv in messages %}
+            {% set contact = (conv.sender == app.user) ? conv.recipient : conv.sender %}
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg3); display: flex; gap: 1rem; align-items: center; cursor: pointer;" onclick="openMessageModal({{ conv.id }})">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                    {{ contact.name|first }}
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <strong style="font-size: 0.95rem;">{{ conv.subject ?: 'Sem assunto' }}</strong>
+                        <span style="font-size: 0.75rem; color: var(--muted);">{{ conv.sentAt|date('d/m/Y H:i') }}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px;">
+                        {{ conv.content }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# Modal de Chat #}
+<dialog id="message-modal" style="padding: 0; border: none; border-radius: var(--radius); background: transparent; width: 100%; max-width: 600px;" onclick="if(event.target===this) this.close()">
+    <div id="message-modal-content" style="background: var(--bg2); min-height: 200px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;">
+        <sl-spinner style="font-size: 2rem;"></sl-spinner>
+    </div>
+</dialog>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function autoSlug(v){
+    document.getElementById('slug-field').value=v.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+
+function openMessageModal(id) {
+    const dialog = document.getElementById('message-modal');
+    const content = document.getElementById('message-modal-content');
+    dialog.showModal();
+    content.innerHTML = '<div style="padding: 3rem; display: flex; justify-content: center;"><sl-spinner style="font-size: 2rem;"></sl-spinner></div>';
+
+    fetch('/admin/message/' + id)
+        .then(res => res.text())
+        .then(html => { content.innerHTML = html; })
+        .catch(err => { content.innerHTML = '<div style="padding: 2rem; color: var(--danger);">Erro ao carregar a conversa.</div>'; });
+}
+</script>
+{% endblock %}

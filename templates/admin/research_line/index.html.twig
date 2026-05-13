@@ -1,0 +1,53 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Linhas de Pesquisa{% endblock %}{% block page_title %}Linhas de Pesquisa{% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>Linhas de Pesquisa</h1>
+    <a href="{{ path('admin_research_line_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Linha</a>
+</div>
+<div class="card">
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem"><sl-icon name="grip-vertical"></sl-icon> Arraste para reordenar</p>
+    <ul class="sortable-list" id="sortable-lines">
+        {% for line in lines %}
+        <li class="sortable-item" data-id="{{ line.id }}">
+            <span class="drag-h"><sl-icon name="grip-vertical"></sl-icon></span>
+            <span style="font-weight:600">{{ line.title }}</span>
+            <span style="color:var(--muted);font-size:.85rem">{{ line.description|striptags|slice(0,60) }}{% if line.description|length > 60 %}…{% endif %}</span>
+            <div class="ta" style="margin-left:auto">
+                <a href="{{ path('admin_research_line_edit', {id: line.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+                <form action="{{ path('admin_research_line_delete', {id: line.id}) }}" method="post" onsubmit="return confirm('Remover?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('del_rl_' ~ line.id) }}">
+                    <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+                </form>
+            </div>
+        </li>
+        {% else %}
+        <li style="padding:2rem;text-align:center;color:var(--muted)">Nenhuma linha cadastrada.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.sortable-list{list-style:none;padding:0;margin:0}
+.sortable-item{display:flex;align-items:center;gap:1rem;padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);transition:background var(--ease)}
+.sortable-item:hover{background:rgba(255,255,255,.03)}
+.sortable-item:last-child{border-bottom:none}
+</style>{% endblock %}
+{% block javascripts %}{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+<script>
+Sortable.create(document.getElementById('sortable-lines'), {
+    handle: '.drag-h',
+    ghostClass: 'sortable-ghost',
+    animation: 150,
+    onEnd() {
+        const ids = [...document.querySelectorAll('#sortable-lines [data-id]')].map(el => el.dataset.id);
+        fetch('{{ path('admin_research_line_reorder') }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ids})
+        });
+    }
+});
+</script>
+{% endblock %}

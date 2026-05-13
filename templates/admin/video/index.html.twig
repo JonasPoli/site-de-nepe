@@ -1,0 +1,26 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Vídeos{% endblock %}{% block page_title %}Vídeos{% endblock %}
+{% block body %}
+<div class="ph"><h1>Vídeos de Apoio</h1><a href="{{ path('admin_video_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Novo Vídeo</a></div>
+<div class="card"><div class="tw"><table class="at">
+    <thead><tr><th>Thumb</th><th>Título</th><th>Categoria</th><th>YouTube ID</th><th>Data</th><th></th></tr></thead>
+    <tbody>
+    {% for v in videos %}
+    <tr>
+        <td><img src="{{ v.thumbnailUrl }}" alt="" style="width:80px;height:45px;object-fit:cover;border-radius:4px"></td>
+        <td style="font-weight:600;max-width:220px">{{ v.title }}</td>
+        <td>{{ v.category ? v.category.name : '—' }}</td>
+        <td><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:4px;font-size:.8rem">{{ v.youtubeId }}</code></td>
+        <td>{{ v.createdAt|date('d/m/Y') }}</td>
+        <td><div class="ta">
+            <a href="{{ path('admin_video_edit', {id: v.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+            <form action="{{ path('admin_video_delete', {id: v.id}) }}" method="post" onsubmit="return confirm('Remover?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('del_video_' ~ v.id) }}">
+                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+            </form>
+        </div></td>
+    </tr>
+    {% else %}<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">Nenhum vídeo.</td></tr>{% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}

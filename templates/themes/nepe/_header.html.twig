@@ -1,0 +1,72 @@
+<header class="nepe-header" id="site-header">
+    <div class="container header-inner">
+        {# Logo #}
+        <a href="{{ path('pub_home') }}" class="header-logo" aria-label="Página inicial">
+            {% if currentTenant and currentTenant.logo %}
+                <img src="{{ vich_uploader_asset(currentTenant, 'logoFile') }}"
+                     alt="{{ currentTenant.name }}"
+                     style="max-height:52px;width:auto;max-width:200px;object-fit:contain;display:block">
+            {% else %}
+                <span class="logo-text">{{ currentTenant ? currentTenant.name : 'NEPE Brasil' }}</span>
+            {% endif %}
+        </a>
+
+        {# Nav #}
+        <nav class="header-nav" aria-label="Navegação principal">
+            {% if headerPages is defined %}
+                {% for page in headerPages %}
+                    <a href="{{ path('pub_page_show', {slug: page.slug}) }}" class="nav-link">{{ page.title }}</a>
+                {% endfor %}
+            {% endif %}
+            <a href="{{ path('pub_articles') }}" class="nav-link">Notícias</a>
+            <a href="{{ path('pub_videos') }}"   class="nav-link">Vídeos</a>
+            <a href="{{ path('pub_home') }}#contato" class="nav-link">Contato</a>
+        </nav>
+
+        {# Mobile toggle #}
+        <button class="nav-toggle" aria-label="Abrir menu" onclick="document.querySelector('.header-nav').classList.toggle('open')">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</header>
+
+<style>
+.nepe-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,.07);
+    box-shadow: 0 2px 20px rgba(0,0,0,.06);
+}
+.header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 72px; gap: 2rem;
+}
+.header-logo { display: flex; align-items: center; height: 52px; overflow: hidden; flex-shrink: 0; }
+.logo-text {
+    font-size: 1.3rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.header-nav { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link {
+    padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500;
+    color: #374151; transition: all 0.2s;
+}
+.nav-link:hover { background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-primary); opacity: 1; }
+.nav-toggle {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 8px;
+}
+.nav-toggle span { display: block; width: 24px; height: 2px; background: #374151; border-radius: 2px; transition: 0.2s; }
+@media (max-width: 768px) {
+    .nav-toggle { display: flex; }
+    .header-nav {
+        display: none; flex-direction: column; position: absolute;
+        top: 72px; left: 0; right: 0;
+        background: white; padding: 1rem; box-shadow: 0 8px 32px rgba(0,0,0,.12);
+    }
+    .header-nav.open { display: flex; }
+    .nav-link { width: 100%; padding: 0.75rem 1rem; }
+}
+</style>

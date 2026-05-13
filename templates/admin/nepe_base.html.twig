@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="sl-theme-dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} — NEPE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/dark.css">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace-autoloader.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+        --sw:260px;--hh:60px;
+        --bg:#0d0f1a;--bg2:#131625;--bg3:#1a1e35;
+        --border:rgba(255,255,255,.07);
+        --text:#e2e8f0;--muted:rgba(255,255,255,.45);
+        --primary:#4f6ef7;--secondary:#f7c34f;
+        --success:#22c55e;--warning:#f59e0b;--danger:#ef4444;
+        --radius:10px;--ease:.2s ease;
+    }
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:.9rem;line-height:1.6}
+    a{color:inherit;text-decoration:none}
+    /* Sidebar */
+    .sb{width:var(--sw);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;overflow-y:auto}
+    .sb-logo{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;font-size:1rem;font-weight:800;color:var(--text)}
+    .logo-dot{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900;color:#fff;flex-shrink:0}
+    .nav{padding:1rem 0;flex:1}
+    .nav-sec{padding:.5rem 1.5rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.75rem}
+    .nl{display:flex;align-items:center;gap:.75rem;padding:.6rem 1.5rem;color:var(--muted);font-size:.875rem;font-weight:500;border-left:3px solid transparent;transition:all var(--ease)}
+    .nl:hover{background:rgba(255,255,255,.04);color:var(--text);border-left-color:var(--primary)}
+    .nl.on{background:rgba(79,110,247,.1);color:var(--primary);border-left-color:var(--primary);font-weight:600}
+    .nl sl-icon{font-size:1.1rem}
+    .nb{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:50px;background:var(--danger);color:#fff;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+    /* User footer */
+    .sb-user{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+    .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0}
+    .av-name{font-size:.82rem;font-weight:600}
+    .av-role{font-size:.73rem;color:var(--muted)}
+    .av-logout{margin-left:auto;color:var(--muted);transition:color var(--ease)}
+    .av-logout:hover{color:var(--danger)}
+    /* Main */
+    .main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+    /* Topbar */
+    .tb{height:var(--hh);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.75rem;position:sticky;top:0;z-index:40}
+    .tb-title{font-size:1rem;font-weight:700}
+    /* Content */
+    .cnt{padding:2rem 1.75rem;flex:1}
+    /* Impersonation */
+    .imp-bar{background:linear-gradient(90deg,#7c3aed,#4f6ef7);color:#fff;text-align:center;padding:.6rem;font-size:.82rem;font-weight:600}
+    .imp-bar a{color:#fff;text-decoration:underline;margin-left:.5rem}
+    /* Page header */
+    .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;gap:1rem}
+    .ph h1{font-size:1.4rem;font-weight:800}
+    /* Card */
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
+    .card+.card{margin-top:1.25rem}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.25rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:all var(--ease);font-family:inherit}
+    .btn-p{background:var(--primary);color:#fff}
+    .btn-p:hover{background:color-mix(in srgb,var(--primary) 85%,#fff)}
+    .btn-s{background:var(--success);color:#fff}
+    .btn-s:hover{opacity:.88}
+    .btn-d{background:var(--danger);color:#fff}
+    .btn-d:hover{opacity:.88}
+    .btn-g{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border)}
+    .btn-g:hover{background:rgba(255,255,255,.1)}
+    .btn-sm{padding:.35rem .85rem;font-size:.8rem}
+    /* Table */
+    .tw{overflow-x:auto}
+    .at{width:100%;border-collapse:collapse}
+    .at thead{background:var(--bg3)}
+    .at th{padding:.75rem 1rem;text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+    .at td{padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+    .at tr:last-child td{border-bottom:none}
+    .at tr:hover td{background:rgba(255,255,255,.02)}
+    .ta{display:flex;gap:.5rem}
+    /* Form */
+    .af{display:flex;flex-direction:column;gap:1.25rem}
+    .af-row{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+    .af-field{display:flex;flex-direction:column;gap:.4rem}
+    .af-field label{font-size:.8rem;font-weight:600;color:var(--muted)}
+    .af-field label .req{color:var(--danger)}
+    .ai,.as,.ate{width:100%;padding:.65rem 1rem;border-radius:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:.88rem;font-family:inherit;outline:none;transition:border-color var(--ease)}
+    .ai:focus,.as:focus,.ate:focus{border-color:var(--primary)}
+    .ai::placeholder,.ate::placeholder{color:var(--muted)}
+    .ate{resize:vertical;min-height:120px}
+    .as option{background:var(--bg2)}
+    .af-hint{font-size:.75rem;color:var(--muted)}
+    .af-actions{display:flex;gap:.75rem;align-items:center;padding-top:.5rem;border-top:1px solid var(--border)}
+    /* Badges */
+    .badge{display:inline-flex;align-items:center;padding:.2rem .65rem;border-radius:50px;font-size:.72rem;font-weight:700}
+    .bg-ok{background:rgba(34,197,94,.15);color:#4ade80}
+    .bg-warn{background:rgba(245,158,11,.15);color:#fbbf24}
+    .bg-neu{background:rgba(255,255,255,.08);color:var(--muted)}
+    .bg-inf{background:rgba(79,110,247,.15);color:#818cf8}
+    .bg-err{background:rgba(239,68,68,.15);color:#f87171}
+    /* Alert */
+    .al{padding:.9rem 1.25rem;border-radius:var(--radius);margin-bottom:1.25rem;font-size:.88rem;font-weight:500;display:flex;align-items:center;gap:.75rem}
+    .al-ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#4ade80}
+    .al-warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:#fbbf24}
+    .al-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171}
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.25rem;margin-bottom:1.75rem}
+    .stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+    .stat-val{font-size:2rem;font-weight:800}
+    .stat-lbl{font-size:.78rem;color:var(--muted);font-weight:500;margin-top:.25rem}
+    .stat-icon{font-size:1.5rem;margin-bottom:.25rem}
+    /* Sortable */
+    .drag-h{cursor:grab;color:var(--muted)}
+    .drag-h:active{cursor:grabbing}
+    .sortable-ghost{opacity:.4;background:rgba(79,110,247,.1)}
+    @media(max-width:900px){
+        .sb{transform:translateX(-100%)}
+        .sb.open{transform:translateX(0)}
+        .main{margin-left:0}
+        .af-row{grid-template-columns:1fr}
+    }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+{% if is_granted('IS_IMPERSONATOR') %}
+<div class="imp-bar">Impersonando <strong>{{ app.user.username }}</strong> <a href="{{ path('admin_dash') }}?_switch_user=_exit">Sair</a></div>
+{% endif %}
+
+<aside class="sb" id="sidebar">
+    <a href="{{ path('admin_dash') }}" class="sb-logo">
+        <div class="logo-dot">N</div> NEPE Admin
+    </a>
+    <nav class="nav" aria-label="Admin">
+        <div class="nav-sec">Conteúdo</div>
+        <a href="{{ path('admin_dash') }}" class="nl {% if app.request.pathInfo == '/admin' %}on{% endif %}">
+            <sl-icon name="grid-fill"></sl-icon> Dashboard
+        </a>
+        <a href="{{ path('admin_banner_index') }}" class="nl {% if '/admin/banner' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="image-fill"></sl-icon> Banners
+        </a>
+        <a href="{{ path('admin_article_index') }}" class="nl {% if '/admin/article' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="newspaper"></sl-icon> Artigos
+        </a>
+        <a href="{{ path('admin_video_index') }}" class="nl {% if '/admin/video' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="play-circle-fill"></sl-icon> Vídeos
+        </a>
+        <a href="{{ path('admin_category_index') }}" class="nl {% if '/admin/category' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="tag-fill"></sl-icon> Categorias
+        </a>
+        <a href="{{ path('admin_research_line_index') }}" class="nl {% if '/admin/research-line' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="diagram-3-fill"></sl-icon> Linhas de Pesquisa
+        </a>
+        <a href="{{ path('admin_page_index') }}" class="nl {% if '/admin/page' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="file-text-fill"></sl-icon> Páginas
+        </a>
+        <div class="nav-sec">Comunicação</div>
+        <a href="{{ path('admin_message_index') }}" class="nl {% if '/admin/message' in app.request.pathInfo %}on{% endif %}" style="position: relative; display: flex; align-items: center; justify-content: space-between;">
+            <div><sl-icon name="chat-dots-fill"></sl-icon> Mensagens</div>
+            {{ render(controller('App\\Controller\\admin\\MessageController::widget')) }}
+        </a>
+        <a href="{{ path('admin_contact_index') }}" class="nl {% if '/admin/contact' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="envelope-fill"></sl-icon> Contato
+        </a>
+        <a href="{{ path('admin_newsletter_index') }}" class="nl {% if '/admin/newsletter' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="send-fill"></sl-icon> Newsletter
+        </a>
+        {% if app.user and app.user.workGroup == 0 %}
+        <div class="nav-sec">Gestão</div>
+        <a href="{{ path('admin_editor_index') }}" class="nl {% if '/admin/editors' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="people-fill"></sl-icon> Editores
+        </a>
+        <a href="{{ path('admin_settings') }}" class="nl {% if '/admin/settings' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="gear-fill"></sl-icon> Configurações
+        </a>
+        {% endif %}
+        {% if is_granted('ROLE_SUPER_ADMIN') %}
+        <div class="nav-sec">Super Admin</div>
+        <a href="{{ path('superadmin_dash') }}" class="nl"><sl-icon name="shield-fill"></sl-icon> Painel Global</a>
+        {% endif %}
+        {% if is_granted('IS_IMPERSONATOR') %}
+        <div class="nav-sec" style="color:#f59e0b">Impersonação</div>
+        <a href="{{ path('admin_dash') }}?_switch_user=_exit"
+           class="nl"
+           style="color:#f59e0b;font-weight:700;background:rgba(245,158,11,.08);border-left:3px solid #f59e0b">
+            <sl-icon name="person-fill-x"></sl-icon> Sair da impersonação
+        </a>
+        {% endif %}
+    </nav>
+    <div class="sb-user">
+        <div class="av">{{ app.user ? app.user.name|first|upper : '?' }}</div>
+        <div>
+            <div class="av-name">{{ app.user ? app.user.name : '' }}</div>
+            <div class="av-role">{% if app.user %}{{ app.user.workGroup == 0 ? 'Admin' : 'Editor' }}{% endif %}</div>
+        </div>
+        <a href="{{ path('app_logout') }}" class="av-logout" title="Sair"><sl-icon name="box-arrow-right" style="font-size:1.1rem"></sl-icon></a>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="tb">
+        <div style="display:flex;align-items:center;gap:1rem">
+            <button onclick="document.getElementById('sidebar').classList.toggle('open')" style="display:none;background:none;border:none;cursor:pointer;color:var(--text)" id="mob-btn" aria-label="Menu">
+                <sl-icon name="list" style="font-size:1.4rem"></sl-icon>
+            </button>
+            <span class="tb-title">{% block page_title %}Admin{% endblock %}</span>
+        </div>
+        <a href="{{ path('pub_home') }}" target="_blank" class="btn btn-g btn-sm"><sl-icon name="box-arrow-up-right"></sl-icon> Ver site</a>
+    </header>
+
+    <div class="cnt">
+        {% for msg in app.flashes('success') %}
+            <div class="al al-ok"><sl-icon name="check-circle-fill"></sl-icon> {{ msg }}</div>
+        {% endfor %}
+        {% for msg in app.flashes('warning') %}
+            <div class="al al-warn"><sl-icon name="exclamation-triangle-fill"></sl-icon> {{ msg }}</div>
+        {% endfor %}
+        {% for msg in app.flashes('error') %}
+            <div class="al al-err"><sl-icon name="x-circle-fill"></sl-icon> {{ msg }}</div>
+        {% endfor %}
+        {% block body %}{% endblock %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+    if(window.innerWidth<=900){
+        document.getElementById('mob-btn').style.display='flex';
+    }
+});
+</script>
+{% block javascripts %}{% endblock %}
+</body>
+</html>

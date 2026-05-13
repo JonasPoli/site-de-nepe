@@ -1,0 +1,11 @@
+<div class="thread-item {{ msg.status == 'unread' ? 'unread' : '' }}" onclick="loadThread({{ msg.id }})" id="thread-{{ msg.id }}">
+    <div class="thread-meta">
+        <span>{{ msg.sender.id == currentUser.id ? 'Para: ' ~ msg.recipient.name : 'De: ' ~ msg.sender.name }}</span>
+        <time>{{ msg.sentAt|date('d/m H:i') }}</time>
+    </div>
+    <div class="thread-subject">
+        {% if msg.status == 'unread' %}<sl-icon name="circle-fill" style="font-size:.5rem;color:var(--primary);vertical-align:middle"></sl-icon> {% endif %}
+        {{ msg.subject ?? '(sem assunto)' }}
+    </div>
+    <div class="thread-preview">{{ msg.content|striptags|slice(0,80) }}</div>
+</div>

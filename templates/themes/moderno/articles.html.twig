@@ -1,0 +1,30 @@
+{% extends 'themes/moderno/base.html.twig' %}
+{% block title %}Notícias{% endblock %}
+{% block body %}
+<div class="ma-list-hero"><div class="container"><h1>Notícias</h1><p>Publicações e novidades do grupo</p></div></div>
+<div class="container ma-list-page">
+{% if articles|length == 0 %}<p style="text-align:center;color:rgba(255,255,255,.4);padding:4rem">Nenhuma notícia publicada.</p>
+{% else %}
+<div class="m-news-grid">
+{% for article in articles %}
+<article class="m-card">
+    {% if article.image %}<div class="m-card-img" style="background-image:url('/uploads/article/{{ article.image }}')"></div>{% endif %}
+    <div class="m-card-body">
+        {% if article.category %}<span class="m-tag">{{ article.category.name }}</span>{% endif %}
+        <h2 class="m-card-title"><a href="{{ path('pub_article_show', {slug: article.slug}) }}">{{ article.title }}</a></h2>
+        {% if article.shortDescription %}<p class="m-card-excerpt">{{ article.shortDescription }}</p>{% endif %}
+        <div class="m-card-footer"><time>{{ article.publishedAt|date('d/m/Y') }}</time><a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="m-read-more">Ler →</a></div>
+    </div>
+</article>
+{% endfor %}
+</div>
+{% endif %}
+</div>
+{% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.ma-list-hero{background:linear-gradient(135deg,rgba(var(--color-primary-rgb),.2),rgba(var(--color-secondary-rgb),.1));padding:4rem 0;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);}
+.ma-list-hero h1{font-size:clamp(2rem,4vw,3rem);font-weight:900;color:#e2e8f0;margin:0 0 0.5rem;}
+.ma-list-hero p{color:rgba(255,255,255,.55);}
+.ma-list-page{padding:4rem 1.5rem;}
+.m-news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem;}
+</style>{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'themes/nepe/base.html.twig' %}
+
+{% block title %}{{ video.title }}{% endblock %}
+
+{% block meta_description %}
+{% if video.description %}
+<meta name="description" content="{{ video.description|striptags|slice(0,160) }}">
+{% endif %}
+{% endblock %}
+
+{% block og_tags %}
+{{ parent() }}
+<meta property="og:title" content="{{ video.title }}">
+<meta property="og:image" content="{{ video.thumbnailUrl }}">
+<meta property="og:video" content="https://www.youtube.com/watch?v={{ video.youtubeId }}">
+{% endblock %}
+
+{% block body %}
+<div class="container video-page">
+    <div class="video-header">
+        {% if video.category %}
+            <span class="video-category">{{ video.category.name }}</span>
+        {% endif %}
+        <h1>{{ video.title }}</h1>
+        <time datetime="{{ video.createdAt|date('Y-m-d') }}" class="video-date">
+            {{ video.createdAt|date('d/m/Y') }}
+        </time>
+    </div>
+
+    <div class="video-embed">
+        <iframe
+            src="{{ video.embedUrl }}"
+            title="{{ video.title }}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    {% if video.description %}
+    <div class="video-description prose">
+        {{ video.description|raw }}
+    </div>
+    {% endif %}
+
+    {% if video.materialsHtml %}
+    <div class="video-materials">
+        <h2>📚 Materiais e Referências</h2>
+        <div class="prose">{{ video.materialsHtml|raw }}</div>
+    </div>
+    {% endif %}
+
+    {# ── Arquivos para download ── #}
+    {% if video.materials|length > 0 %}
+    <div class="video-downloads">
+        <h2>⬇️ Arquivos para Download</h2>
+        <div class="downloads-grid">
+            {% for mat in video.materials %}
+            {% set icon = mat.extension in ['pdf'] ? '📄' : (mat.extension in ['xls','xlsx'] ? '📊' : (mat.extension in ['doc','docx'] ? '📝' : (mat.extension in ['png','jpg','jpeg'] ? '🖼️' : (mat.extension in ['csv','txt'] ? '📋' : '📎')))) %}
+            <a href="{{ asset('uploads/video_material/' ~ mat.filename) }}" download class="download-card" title="{{ mat.label }}">
+                <span class="dl-icon">{{ icon }}</span>
+                <div class="dl-info">
+                    <span class="dl-name">{{ mat.label }}</span>
+                    <span class="dl-ext">{{ mat.extension|upper }}</span>
+                </div>
+                <span class="dl-arrow">⬇</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <a href="{{ path('pub_videos') }}" class="btn btn-outline">← Voltar para Vídeos</a>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.video-page { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem; }
+.video-category {
+    display: inline-block; padding: 0.3rem 0.9rem; border-radius: 50px;
+    background: color-mix(in srgb, var(--color-secondary) 20%, transparent);
+    color: var(--color-primary); font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem;
+}
+.video-header h1 { font-size: clamp(1.6rem, 3.5vw, 2.5rem); font-weight: 800; margin: 0.5rem 0 0.5rem; }
+.video-date { color: #9ca3af; font-size: 0.85rem; }
+.video-embed { margin: 2rem 0; border-radius: var(--radius); overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 16px 48px rgba(0,0,0,.15); }
+.video-embed iframe { width: 100%; height: 100%; }
+.video-description { margin: 2rem 0; }
+.video-materials {
+    margin: 2.5rem 0; padding: 2rem; border-radius: var(--radius);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 5%, white), white);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+.video-materials h2 { font-size: 1.3rem; font-weight: 700; margin: 0 0 1.25rem; color: var(--color-primary); }
+
+/* Downloads */
+.video-downloads { margin: 2.5rem 0; }
+.video-downloads h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; }
+.downloads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.download-card {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1rem 1.25rem; border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 4%, white);
+    text-decoration: none; color: #1a1c2e;
+    transition: transform .2s, box-shadow .2s;
+}
+.download-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.dl-icon { font-size: 1.75rem; flex-shrink: 0; }
+.dl-info { flex: 1; overflow: hidden; }
+.dl-name { display: block; font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-ext  { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-primary); margin-top: .15rem; }
+.dl-arrow { color: var(--color-primary); font-size: 1rem; flex-shrink: 0; }
+</style>
+{% endblock %}

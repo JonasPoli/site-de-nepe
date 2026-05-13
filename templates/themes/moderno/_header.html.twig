@@ -1,0 +1,53 @@
+<header class="moderno-header" id="mheader">
+    <div class="container mh-inner">
+        <a href="{{ path('pub_home') }}" class="mh-logo" aria-label="Início">
+            {% if currentTenant and currentTenant.logo %}
+                <img src="{{ vich_uploader_asset(currentTenant, 'logoFile') }}" alt="{{ currentTenant.name }}" height="40">
+            {% else %}
+                <span class="mh-logo-text">{{ currentTenant ? currentTenant.name : 'NEPE' }}</span>
+            {% endif %}
+        </a>
+
+        <nav class="mh-nav" aria-label="Navegação">
+            {% if headerPages is defined %}
+                {% for page in headerPages %}
+                    <a href="{{ path('pub_page_show', {slug: page.slug}) }}" class="mh-link">{{ page.title }}</a>
+                {% endfor %}
+            {% endif %}
+            <a href="{{ path('pub_articles') }}" class="mh-link">Notícias</a>
+            <a href="{{ path('pub_videos') }}"   class="mh-link">Vídeos</a>
+            <a href="{{ path('pub_home') }}#contato" class="mh-cta btn btn-primary" style="padding:.6rem 1.5rem;font-size:.85rem">Contato</a>
+        </nav>
+
+        <button class="mh-toggle" aria-label="Menu" onclick="document.querySelector('.mh-nav').classList.toggle('open')">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</header>
+
+<style>
+.moderno-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: rgba(6,1,18,.7); backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.mh-inner { display:flex; align-items:center; justify-content:space-between; height:70px; gap:2rem; }
+.mh-logo-text {
+    font-size:1.4rem; font-weight:900;
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.mh-nav { display:flex; align-items:center; gap:.5rem; }
+.mh-link { color:rgba(255,255,255,.7); font-size:.9rem; font-weight:500; padding:.5rem .85rem; border-radius:8px; transition:all .2s; }
+.mh-link:hover { color:#fff; background:rgba(255,255,255,.07); opacity:1; }
+.mh-toggle { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px; }
+.mh-toggle span { display:block; width:22px; height:2px; background:rgba(255,255,255,.8); border-radius:2px; transition:.2s; }
+@media(max-width:768px){
+    .mh-toggle{display:flex;}
+    .mh-nav{display:none;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:#0a0a1a;padding:1.5rem;border-bottom:1px solid rgba(255,255,255,.08);}
+    .mh-nav.open{display:flex;}
+    .mh-link{width:100%;padding:0.85rem 1rem;}
+}
+/* offset body for fixed header */
+body { padding-top: 70px; }
+</style>

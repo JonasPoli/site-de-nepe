@@ -1,0 +1,331 @@
+{% extends 'themes/nepe/base.html.twig' %}
+
+{% block title %}Vídeos — {{ currentTenant ? currentTenant.name : 'NEPE' }}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Assista todos os vídeos, materiais e referências do {{ currentTenant ? currentTenant.name : 'NEPE' }}.">
+{% endblock %}
+
+{% block body %}
+
+{# ── HERO ── #}
+<section class="vl-hero">
+    <div class="vl-hero-bg">
+        <div class="vl-orb vl-orb-1"></div>
+        <div class="vl-orb vl-orb-2"></div>
+    </div>
+    <div class="container vl-hero-inner reveal-up">
+        <div class="vl-hero-text">
+            <span class="vl-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                Canal de Vídeos
+            </span>
+            <h1>Acompanhe o<br><span class="vl-gradient-text">nosso canal</span></h1>
+            <p>Vídeos, materiais de apoio e referências do {{ currentTenant ? currentTenant.name : 'NEPE' }}. Acesse gratuitamente.</p>
+        </div>
+        {% if currentTenant and currentTenant.youtubeLink %}
+        <a href="{{ currentTenant.youtubeLink }}" target="_blank" rel="noopener" class="vl-yt-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            Inscreva-se no YouTube
+        </a>
+        {% endif %}
+    </div>
+    {# Stats #}
+    <div class="container vl-stats fade-in delay-200">
+        <div class="vl-stat">
+            <span class="vl-stat-num">{{ videos|length }}</span>
+            <span class="vl-stat-label">Vídeos disponíveis</span>
+        </div>
+        <div class="vl-stat-div"></div>
+        <div class="vl-stat">
+            <span class="vl-stat-num">{{ footerCategories|length }}</span>
+            <span class="vl-stat-label">Categorias</span>
+        </div>
+        <div class="vl-stat-div"></div>
+        <div class="vl-stat">
+            <span class="vl-stat-num">100%</span>
+            <span class="vl-stat-label">Gratuito</span>
+        </div>
+    </div>
+</section>
+
+{# ── FILTER BAR ── #}
+<div class="vl-filter-bar" id="vl-filters">
+    <div class="container vl-filter-inner">
+        <button class="vl-filter-btn active" data-cat="all" onclick="filterVideos('all', this)">
+            Todos
+        </button>
+        {% for cat in footerCategories %}
+        <button class="vl-filter-btn" data-cat="{{ cat.id }}" onclick="filterVideos('{{ cat.id }}', this)">
+            {{ cat.name }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+{# ── VIDEO GRID ── #}
+<section class="vl-section">
+    <div class="container">
+
+        {% if videos|length == 0 %}
+        <div class="vl-empty">
+            <div class="vl-empty-icon">🎬</div>
+            <h2>Nenhum vídeo publicado ainda</h2>
+            <p>Em breve publicaremos novos conteúdos.</p>
+        </div>
+        {% else %}
+
+        {# Featured first video #}
+        {% set featured = videos|first %}
+        <div class="vl-featured reveal-up" data-cat="{{ featured.category ? featured.category.id : 'none' }}">
+            <a href="{{ path('pub_video_show', {slug: featured.slug}) }}" class="vl-feat-thumb">
+                <img src="{{ featured.thumbnailUrl }}" alt="{{ featured.title }}" loading="lazy">
+                <div class="vl-feat-overlay">
+                    <div class="vl-play-big">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                </div>
+                {% if featured.category %}
+                <span class="vl-feat-tag">{{ featured.category.name }}</span>
+                {% endif %}
+            </a>
+            <div class="vl-feat-body">
+                <span class="vl-feat-label">Mais recente</span>
+                <h2><a href="{{ path('pub_video_show', {slug: featured.slug}) }}">{{ featured.title }}</a></h2>
+                {% if featured.description %}
+                <p class="vl-feat-desc">{{ featured.description|striptags|slice(0, 200) }}{% if featured.description|length > 200 %}…{% endif %}</p>
+                {% endif %}
+                <div class="vl-feat-meta">
+                    <time>{{ featured.createdAt|date('d/m/Y') }}</time>
+                    {% if featured.materials|length > 0 %}
+                    <span class="vl-mat-badge">
+                        📎 {{ featured.materials|length }} arquivo{{ featured.materials|length > 1 ? 's' : '' }}
+                    </span>
+                    {% endif %}
+                </div>
+                <a href="{{ path('pub_video_show', {slug: featured.slug}) }}" class="vl-btn-watch">
+                    Assistir agora →
+                </a>
+            </div>
+        </div>
+
+        {# Grid restante #}
+        {% if videos|length > 1 %}
+        <div class="vl-grid" id="vl-grid">
+            {% for video in videos %}
+            {% if not loop.first %}
+            <article class="vl-card reveal-up delay-{{ (loop.index0 % 3) * 100 }}" data-cat="{{ video.category ? video.category.id : 'none' }}">
+                <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="vl-card-thumb">
+                    <img src="{{ video.thumbnailUrl }}" alt="{{ video.title }}" loading="lazy">
+                    <div class="vl-card-overlay">
+                        <div class="vl-play-sm">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                </a>
+                <div class="vl-card-body">
+                    {% if video.category %}
+                    <span class="vl-card-cat">{{ video.category.name }}</span>
+                    {% endif %}
+                    <h3>
+                        <a href="{{ path('pub_video_show', {slug: video.slug}) }}">{{ video.title }}</a>
+                    </h3>
+                    <div class="vl-card-footer">
+                        <time>{{ video.createdAt|date('d/m/Y') }}</time>
+                        {% if video.materials|length > 0 %}
+                        <span class="vl-mat-sm">📎 {{ video.materials|length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="pagination-container" style="margin-top: 4rem; display: flex; justify-content: center;">
+            {{ knp_pagination_render(videos) }}
+        </div>
+
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* ── HERO ── */
+.vl-hero {
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0f1117 0%, #1a1c2e 100%);
+    color: white; padding: 5rem 0 0;
+}
+.vl-hero-bg { position: absolute; inset: 0; pointer-events: none; }
+.vl-orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+.vl-orb-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: radial-gradient(circle, rgba(var(--color-primary-rgb),.35), transparent 70%); }
+.vl-orb-2 { width: 400px; height: 400px; bottom: 0; right: -80px; background: radial-gradient(circle, rgba(var(--color-secondary-rgb),.25), transparent 70%); }
+.vl-hero-inner { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 2rem; padding-bottom: 3rem; }
+.vl-hero-text { max-width: 640px; }
+.vl-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .35rem 1rem; border-radius: 50px;
+    background: rgba(var(--color-secondary-rgb),.15); color: var(--color-secondary);
+    font-size: .8rem; font-weight: 700; letter-spacing: .04em; margin-bottom: 1.5rem;
+}
+.vl-hero-text h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 900; line-height: 1.1; margin: 0 0 1.25rem; }
+.vl-gradient-text {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.vl-hero-text p { color: rgba(255,255,255,.6); font-size: 1.1rem; margin: 0; line-height: 1.7; }
+.vl-yt-btn {
+    display: inline-flex; align-items: center; gap: .6rem;
+    background: #ff0000; color: white;
+    padding: .8rem 1.6rem; border-radius: 50px;
+    font-weight: 700; font-size: .95rem;
+    transition: transform .2s, box-shadow .2s; white-space: nowrap; align-self: flex-start;
+}
+.vl-yt-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(255,0,0,.35); }
+
+/* Stats bar */
+.vl-stats {
+    position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 2rem;
+    padding: 1.75rem 0;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+.vl-stat { text-align: center; }
+.vl-stat-num { display: block; font-size: 1.6rem; font-weight: 900; color: white; }
+.vl-stat-label { font-size: .8rem; color: rgba(255,255,255,.45); }
+.vl-stat-div { width: 1px; height: 36px; background: rgba(255,255,255,.1); }
+
+/* ── FILTER BAR ── */
+.vl-filter-bar { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid #f1f5f9; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.vl-filter-inner { display: flex; gap: .5rem; padding: .85rem 0; overflow-x: auto; scrollbar-width: none; }
+.vl-filter-inner::-webkit-scrollbar { display: none; }
+.vl-filter-btn {
+    flex-shrink: 0; padding: .45rem 1.1rem; border-radius: 50px;
+    font-size: .85rem; font-weight: 600; border: 1.5px solid #e5e7eb;
+    background: white; color: #6b7280; cursor: pointer; transition: all .2s;
+}
+.vl-filter-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.vl-filter-btn.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+/* ── SECTION ── */
+.vl-section { padding: 4rem 0 6rem; background: #f8fafc; }
+
+/* ── FEATURED ── */
+.vl-featured {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    background: white; border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.08);
+    overflow: hidden; margin-bottom: 3rem;
+}
+.vl-feat-thumb { position: relative; display: block; overflow: hidden; background: #0f1117; }
+.vl-feat-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: transform .4s, opacity .3s; display: block; }
+.vl-featured:hover .vl-feat-thumb img { transform: scale(1.04); opacity: 1; }
+.vl-feat-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: background .3s; }
+.vl-featured:hover .vl-feat-overlay { background: rgba(0,0,0,.1); }
+.vl-play-big {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: white; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
+    transition: transform .2s;
+}
+.vl-featured:hover .vl-play-big { transform: scale(1.1); }
+.vl-feat-tag {
+    position: absolute; top: 1.25rem; left: 1.25rem;
+    padding: .3rem .85rem; border-radius: 50px;
+    background: var(--color-primary); color: white;
+    font-size: .75rem; font-weight: 700;
+}
+.vl-feat-body { padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+.vl-feat-label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--color-primary); margin-bottom: .75rem; display: block; }
+.vl-feat-body h2 { font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 900; margin: 0 0 1rem; line-height: 1.25; }
+.vl-feat-body h2 a { color: #1a1c2e; }
+.vl-feat-body h2 a:hover { color: var(--color-primary); }
+.vl-feat-desc { color: #6b7280; line-height: 1.7; font-size: .95rem; margin: 0 0 1.25rem; }
+.vl-feat-meta { display: flex; align-items: center; gap: 1rem; font-size: .8rem; color: #9ca3af; margin-bottom: 1.75rem; }
+.vl-mat-badge { background: #f0fdf4; color: #16a34a; padding: .2rem .65rem; border-radius: 50px; font-size: .75rem; font-weight: 600; }
+.vl-btn-watch {
+    display: inline-flex; align-items: center; padding: .85rem 1.75rem;
+    background: var(--color-primary); color: white; border-radius: 50px;
+    font-weight: 700; font-size: .95rem; transition: all .2s; width: fit-content;
+}
+.vl-btn-watch:hover { opacity: .9; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(var(--color-primary-rgb),.35); }
+
+/* ── GRID ── */
+.vl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.75rem;
+}
+.vl-card {
+    background: white; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,.06);
+    transition: transform .25s, box-shadow .25s;
+    display: flex; flex-direction: column;
+}
+.vl-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,.12); }
+.vl-card-thumb { display: block; position: relative; overflow: hidden; aspect-ratio: 16/9; background: #0f1117; }
+.vl-card-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: .9; transition: transform .35s, opacity .25s; display: block; }
+.vl-card:hover .vl-card-thumb img { transform: scale(1.05); opacity: 1; }
+.vl-card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .25s; }
+.vl-card:hover .vl-card-overlay { opacity: 1; }
+.vl-play-sm { width: 50px; height: 50px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.vl-card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.vl-card-cat { display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, transparent); padding: .2rem .6rem; border-radius: 50px; margin-bottom: .6rem; }
+.vl-card-body h3 { font-size: 1rem; font-weight: 700; margin: 0 0 auto; line-height: 1.45; }
+.vl-card-body h3 a { color: #1a1c2e; }
+.vl-card-body h3 a:hover { color: var(--color-primary); }
+.vl-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: .75rem; border-top: 1px solid #f1f5f9; font-size: .8rem; color: #9ca3af; }
+.vl-mat-sm { color: #16a34a; font-size: .75rem; font-weight: 600; }
+
+/* Hidden via filter */
+.vl-card.hidden, .vl-featured.hidden { display: none; }
+
+/* ── EMPTY ── */
+.vl-empty { text-align: center; padding: 6rem 2rem; }
+.vl-empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+.vl-empty h2 { font-size: 1.5rem; font-weight: 700; color: #1a1c2e; margin: 0 0 .5rem; }
+.vl-empty p { color: #9ca3af; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+    .vl-featured { grid-template-columns: 1fr; }
+    .vl-feat-thumb { aspect-ratio: 16/9; }
+    .vl-feat-body { padding: 1.75rem; }
+    .vl-stats { gap: 1.25rem; }
+}
+@media (max-width: 560px) {
+    .vl-hero-inner { flex-direction: column; }
+    .vl-grid { grid-template-columns: 1fr; }
+}
+</style>
+<script>
+function filterVideos(cat, btn) {
+    // update active button
+    document.querySelectorAll('.vl-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const featured = document.querySelector('.vl-featured');
+    const cards    = document.querySelectorAll('.vl-card');
+
+    if (cat === 'all') {
+        if (featured) featured.classList.remove('hidden');
+        cards.forEach(c => c.classList.remove('hidden'));
+        return;
+    }
+    if (featured) {
+        featured.classList.toggle('hidden', featured.dataset.cat !== cat);
+    }
+    cards.forEach(c => {
+        c.classList.toggle('hidden', c.dataset.cat !== cat);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'themes/moderno/base.html.twig' %}
+{% block title %}Vídeos{% endblock %}
+{% block body %}
+<div class="mv-list-hero"><div class="container"><h1>Galeria de Vídeos</h1><p>Acesse todos os vídeos e materiais</p></div></div>
+<div class="container mv-list-page">
+{% if videos|length == 0 %}<p style="text-align:center;color:rgba(255,255,255,.4);padding:4rem">Nenhum vídeo publicado.</p>
+{% else %}
+<div class="m-gallery">
+{% for video in videos %}
+<a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="m-gallery-item">
+    <div class="m-gallery-thumb" style="background-image:url('{{ video.thumbnailUrl }}')">
+        <div class="m-gallery-play"><svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+    <p class="m-gallery-title">{{ video.title }}</p>
+</a>
+{% endfor %}
+</div>
+{% endif %}
+</div>
+{% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.mv-list-hero{background:linear-gradient(135deg,rgba(var(--color-primary-rgb),.2),rgba(var(--color-secondary-rgb),.1));padding:4rem 0;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);}
+.mv-list-hero h1{font-size:clamp(2rem,4vw,3rem);font-weight:900;color:#e2e8f0;margin:0 0 .5rem;}
+.mv-list-hero p{color:rgba(255,255,255,.55);}
+.mv-list-page{padding:4rem 1.5rem;}
+.m-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;}
+.m-gallery-item{display:block;color:#e2e8f0;}
+.m-gallery-thumb{aspect-ratio:16/9;border-radius:var(--radius);background-size:cover;background-position:center;position:relative;overflow:hidden;transition:transform .3s;border:1px solid rgba(255,255,255,.07);}
+.m-gallery-thumb:hover{transform:scale(1.04);}
+.m-gallery-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);opacity:0;transition:opacity .25s;}
+.m-gallery-thumb:hover .m-gallery-play{opacity:1;}
+.m-gallery-title{font-size:.85rem;font-weight:600;margin:.75rem 0 0;color:rgba(255,255,255,.8);line-height:1.4;}
+</style>{% endblock %}

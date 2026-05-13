@@ -1,0 +1,59 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Blocos — {{ section.titlePart1 }}{% endblock %}{% block page_title %}Blocos{% endblock %}
+{% block body %}
+<div class="ph">
+    <div>
+        <h1>Blocos da Seção</h1>
+        <div style="font-size:.8rem;color:var(--muted)">
+            Página: {{ section.page.title }} · Layout zig-zag (par=invertido)
+        </div>
+    </div>
+    <div style="display:flex;gap:.75rem">
+        <a href="{{ path('admin_block_new', {sectionId: section.id}) }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Novo Bloco</a>
+        <a href="{{ path('admin_section_index', {pageId: section.page.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Seções</a>
+    </div>
+</div>
+<div class="card">
+    <ul class="sortable-list" id="sortable-blocks">
+    {% for block in blocks %}
+    <li class="sortable-item" data-id="{{ block.id }}">
+        <span class="drag-h"><sl-icon name="grip-vertical"></sl-icon></span>
+        <span class="badge bg-neu" style="font-size:.72rem">#{{ loop.index }}</span>
+        {% if block.image %}
+            <img src="/uploads/page_block/{{ block.image }}" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:4px">
+        {% endif %}
+        <div style="flex:1">
+            <div style="font-weight:600">{{ block.title ?? '(sem título)' }}</div>
+            {% if block.preTitle %}<div style="font-size:.75rem;color:var(--muted)">{{ block.preTitle }}</div>{% endif %}
+        </div>
+        <div class="ta">
+            <a href="{{ path('admin_block_edit', {id: block.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+            <form action="{{ path('admin_block_delete', {id: block.id}) }}" method="post" onsubmit="return confirm('Remover bloco?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('del_block_' ~ block.id) }}">
+                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+            </form>
+        </div>
+    </li>
+    {% else %}
+    <li style="padding:2rem;text-align:center;color:var(--muted)">Nenhum bloco. Crie o primeiro!</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.sortable-list{list-style:none;padding:0;margin:0}
+.sortable-item{display:flex;align-items:center;gap:1rem;padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,.04)}
+.sortable-item:last-child{border-bottom:none}
+</style>{% endblock %}
+{% block javascripts %}{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+<script>
+Sortable.create(document.getElementById('sortable-blocks'),{
+    handle:'.drag-h',ghostClass:'sortable-ghost',animation:150,
+    onEnd(){
+        const ids=[...document.querySelectorAll('#sortable-blocks [data-id]')].map(el=>el.dataset.id);
+        fetch('{{ path('admin_block_reorder') }}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    }
+});
+</script>
+{% endblock %}

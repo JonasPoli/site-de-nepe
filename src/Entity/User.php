@@ -19,44 +19,59 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private ?string $username = null;
 
+    #[ORM\Column(length: 255)]
+    private string $name = '';
+
+    #[ORM\Column(length: 255, unique: true, nullable: true)]
+    private ?string $email = null;
+
     /**
-     * @var list<string> The user roles
+     * WorkGroup defines the user's role within a tenant:
+     *  0 = Admin (full access to tenant content; or SuperAdmin if tenant is null)
+     *  1 = Editor (can create/edit articles)
+     *  2 = Reviewer (can approve articles, send comments)
      */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $workGroup = 0;
+
+    /**
+     * Null = SuperAdmin (global). Set = scoped to that tenant only.
+     */
+    #[ORM\ManyToOne(targetEntity: Tenant::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Tenant $tenant = null;
+
+    /** @var list<string> */
     #[ORM\Column]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
     private ?string $password = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
+    public function getUsername(): ?string { return $this->username; }
+    public function setUsername(string $username): static { $this->username = $username; return $this; }
 
-    public function setUsername(string $username): static
-    {
-        $this->username = $username;
+    public function getName(): string { return $this->name; }
+    public function setName(string $name): static { $this->name = $name; return $this; }
 
-        return $this;
-    }
+    public function getEmail(): ?string { return $this->email; }
+    public function setEmail(?string $email): static { $this->email = $email; return $this; }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->username;
-    }
+    public function getWorkGroup(): int { return $this->workGroup; }
+    public function setWorkGroup(int $workGroup): static { $this->workGroup = $workGroup; return $this; }
+
+    public function getTenant(): ?Tenant { return $this->tenant; }
+    public function setTenant(?Tenant $tenant): static { $this->tenant = $tenant; return $this; }
+
+    public function isSuperAdmin(): bool { return $this->tenant === null && $this->workGroup === 0; }
+    public function isAdmin(): bool { return $this->workGroup === 0; }
+    public function isEditor(): bool { return $this->workGroup === 1; }
+    public function isReviewer(): bool { return $this->workGroup === 2; }
+
+    /** @see UserInterface */
+    public function getUserIdentifier(): string { return (string) $this->username; }
 
     /**
      * @see UserInterface
@@ -65,43 +80,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
+
+        if ($this->tenant === null && $this->workGroup === 0) {
+            $roles[] = 'ROLE_SUPER_ADMIN';
+            $roles[] = 'ROLE_ADMIN'; // SuperAdmin can also access /admin
+        } elseif ($this->workGroup === 0) {
+            $roles[] = 'ROLE_ADMIN';
+        } elseif ($this->workGroup === 1 || $this->workGroup === 2) {
+            $roles[] = 'ROLE_EDITOR';
+            $roles[] = 'ROLE_ADMIN'; // editors also see the admin panel
+        }
 
         return array_unique($roles);
     }
 
-    /**
-     * @param list<string> $roles
-     */
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
+    /** @param list<string> $roles */
+    public function setRoles(array $roles): static { $this->roles = $roles; return $this; }
 
-        return $this;
-    }
+    /** @see PasswordAuthenticatedUserInterface */
+    public function getPassword(): string { return (string) $this->password; }
+    public function setPassword(string $password): static { $this->password = $password; return $this; }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
+    /** @see UserInterface */
+    public function eraseCredentials(): void {}
 
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
-    }
+    public function __toString(): string { return $this->name ?: (string) $this->username; }
 }

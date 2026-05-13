@@ -1,0 +1,52 @@
+{#
+  Reusable rich-text editor using Quill.js (no API key required).
+  Parameters:
+    field_id    — id of the hidden <textarea> that receives the HTML (ex: 'article-body')
+    field_name  — name attribute of the hidden textarea (ex: 'body')
+    content     — initial HTML content
+    height      — editor height in px (default: 350)
+#}
+{% set _height = height ?? 350 %}
+
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+<div id="quill-{{ field_id }}" style="height:{{ _height }}px; background:#fff; border-radius:0 0 6px 6px;"></div>
+<textarea id="{{ field_id }}" name="{{ field_name }}" style="display:none">{{ content|default('')|raw }}</textarea>
+
+<script>
+(function() {
+    var quill = new Quill('#quill-{{ field_id }}', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link', 'blockquote'],
+                [{ align: [] }],
+                ['clean']
+            ]
+        }
+    });
+
+    // Load initial content
+    var initial = document.getElementById('{{ field_id }}').value;
+    if (initial) {
+        quill.root.innerHTML = initial;
+    }
+
+    // Sync to hidden textarea on every change so the form submits correct HTML
+    quill.on('text-change', function() {
+        document.getElementById('{{ field_id }}').value = quill.root.innerHTML;
+    });
+
+    // Also sync on form submit (safety net)
+    var form = document.getElementById('{{ field_id }}').closest('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            document.getElementById('{{ field_id }}').value = quill.root.innerHTML;
+        });
+    }
+})();
+</script>

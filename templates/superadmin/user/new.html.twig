@@ -1,0 +1,37 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Novo Usuário (Super){% endblock %}{% block page_title %}Novo Usuário{% endblock %}
+{% block body %}
+<div class="ph"><h1>Novo Usuário</h1><a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card">
+    <form action="{{ path('superadmin_user_new') }}" method="post" class="af">
+        <div class="af-row">
+            <div class="af-field"><label>Nome <span class="req">*</span></label><input type="text" name="name" class="ai" required></div>
+            <div class="af-field"><label>Username <span class="req">*</span></label><input type="text" name="username" class="ai" required></div>
+        </div>
+        <div class="af-row">
+            <div class="af-field"><label>E-mail</label><input type="email" name="email" class="ai"></div>
+            <div class="af-field">
+                <label>Tenant</label>
+                <select name="tenant" class="as">
+                    <option value="">— Super Admin (sem tenant) —</option>
+                    {% for t in tenants %}
+                        <option value="{{ t.id }}">{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>Função (workGroup)</label>
+                <select name="workGroup" class="as">
+                    <option value="0">Admin (gerencia o tenant)</option>
+                    <option value="1">Editor (cria artigos)</option>
+                    <option value="2">Revisor (aprova artigos)</option>
+                </select>
+            </div>
+            <div class="af-field"><label>Senha <span class="req">*</span></label><input type="password" name="password" class="ai" required minlength="8"></div>
+        </div>
+        <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Criar Usuário</button><a href="{{ path('superadmin_dash') }}" class="btn btn-g">Cancelar</a></div>
+    </form>
+</div>
+{% endblock %}

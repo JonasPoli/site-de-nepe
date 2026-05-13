@@ -1,0 +1,69 @@
+{% macro block_form(block, action) %}
+<form action="{{ action }}" method="post" class="af" enctype="multipart/form-data">
+    <div class="af-row">
+        <div class="af-field"><label>Pré-título (label acima)</label><input type="text" name="preTitle" class="ai" value="{{ block.preTitle }}"></div>
+        <div class="af-field"><label>Título do bloco</label><input type="text" name="title" class="ai" value="{{ block.title }}"></div>
+    </div>
+    <div class="af-field">
+        <label>Texto (HTML)</label>
+        {{ include('admin/_rich_editor.html.twig', {
+            field_id: 'block-text',
+            field_name: 'text',
+            content: block.text,
+            height: 300
+        }) }}
+    </div>
+
+    {# ── Imagem ── #}
+    <div class="af-field">
+        <label>Imagem do bloco</label>
+        <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+            {% if block.image %}
+                <div>
+                    <img id="block-img-preview"
+                         src="{{ vich_uploader_asset(block, 'imageFile') }}"
+                         alt="Imagem atual"
+                         style="height:80px;width:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+                    <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem;text-align:center">Atual</div>
+                </div>
+            {% else %}
+                <div id="block-img-preview"
+                     style="width:120px;height:80px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted)">
+                    <sl-icon name="image" style="font-size:1.8rem"></sl-icon>
+                </div>
+            {% endif %}
+            <div style="flex:1">
+                <label for="block-img-upload" style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:8px;border:1px dashed var(--primary);color:var(--primary);font-size:.85rem;font-weight:600;cursor:pointer">
+                    <sl-icon name="upload"></sl-icon> Selecionar imagem
+                </label>
+                <input type="file" id="block-img-upload" name="imageFile"
+                       accept="image/webp,image/jpeg,image/png"
+                       style="display:none"
+                       onchange="previewBlockImg(this)">
+                <p class="af-hint" style="margin-top:.4rem">WebP, JPG ou PNG · Recomendado: 800×600 px · Aparece ao lado do texto em zig-zag</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+    </div>
+</form>
+<script>
+function previewBlockImg(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        let el = document.getElementById('block-img-preview');
+        if (el.tagName === 'DIV') {
+            const img = document.createElement('img');
+            img.id = 'block-img-preview';
+            img.style.cssText = 'height:80px;width:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border)';
+            el.replaceWith(img); el = img;
+        }
+        el.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+</script>
+{% endmacro %}

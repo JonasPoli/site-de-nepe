@@ -1,0 +1,4 @@
+{% extends 'admin/nepe_base.html.twig' %}{% import 'admin/page/_form.html.twig' as f %}
+{% block title %}Nova Página{% endblock %}{% block page_title %}Nova Página{% endblock %}
+{% block body %}<div class="ph"><h1>Nova Página</h1><a href="{{ path('admin_page_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card">{{ f.page_form(page, path('admin_page_new')) }}</div>{% endblock %}

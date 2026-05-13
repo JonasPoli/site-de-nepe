@@ -1,0 +1,95 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Super Admin — Dashboard{% endblock %}
+{% block page_title %}Painel Global{% endblock %}
+
+{% block body %}
+<div class="stats">
+    <div class="stat">
+        <div class="stat-icon" style="color:var(--primary)"><sl-icon name="building"></sl-icon></div>
+        <div class="stat-val">{{ tenants|length }}</div>
+        <div class="stat-lbl">Tenants</div>
+    </div>
+    <div class="stat">
+        <div class="stat-icon" style="color:var(--secondary)"><sl-icon name="people-fill"></sl-icon></div>
+        <div class="stat-val">{{ users|length }}</div>
+        <div class="stat-lbl">Usuários</div>
+    </div>
+</div>
+
+{# ── TENANTS ── #}
+<div id="tenants" class="ph" style="margin-top:1.5rem">
+    <h2 style="font-size:1.1rem;font-weight:700">Tenants</h2>
+    <a href="{{ path('superadmin_tenant_new') }}" class="btn btn-p btn-sm">
+        <sl-icon name="plus-lg"></sl-icon> Novo Tenant
+    </a>
+</div>
+<div class="card">
+    <div class="tw"><table class="at">
+        <thead><tr><th>Nome</th><th>Domínio</th><th>Aprovações</th><th>Tema</th><th></th></tr></thead>
+        <tbody>
+        {% for t in tenants %}
+        <tr>
+            <td style="font-weight:700">{{ t.name }}</td>
+            <td>{{ t.domain ?? '—' }}</td>
+            <td>{{ t.requiredApprovals ?? 1 }}</td>
+            <td><span class="badge bg-neu">{{ t.theme ?? 'nepe' }}</span></td>
+            <td><div class="ta">
+                <a href="{{ path('superadmin_tenant_edit', {id: t.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+                <form action="{{ path('superadmin_tenant_delete', {id: t.id}) }}" method="post" onsubmit="return confirm('Remover tenant e TODOS os dados?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('del_tenant_' ~ t.id) }}">
+                    <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+                </form>
+            </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">Nenhum tenant cadastrado.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</div>
+
+{# ── USUÁRIOS ── #}
+<div id="users" class="ph" style="margin-top:2rem">
+    <h2 style="font-size:1.1rem;font-weight:700">Usuários</h2>
+    <a href="{{ path('superadmin_user_new') }}" class="btn btn-p btn-sm">
+        <sl-icon name="plus-lg"></sl-icon> Novo Usuário
+    </a>
+</div>
+<div class="card">
+    <div class="tw"><table class="at">
+        <thead><tr><th>Nome</th><th>Username</th><th>Tenant</th><th>Função</th><th></th></tr></thead>
+        <tbody>
+        {% for u in users %}
+        <tr>
+            <td style="font-weight:600">{{ u.name }}</td>
+            <td><code style="background:var(--bg3);padding:.15rem .5rem;border-radius:4px;font-size:.8rem">{{ u.username }}</code></td>
+            <td>{{ u.tenant ? u.tenant.name : '<span class="badge bg-warn">Global</span>'|raw }}</td>
+            <td>
+                {% if u.tenant == null %}
+                    <span class="badge bg-inf"><sl-icon name="shield-fill" style="font-size:.65rem;margin-right:.3rem"></sl-icon> Super Admin</span>
+                {% elseif u.workGroup == 0 %}
+                    <span class="badge bg-ok">Admin</span>
+                {% elseif u.workGroup == 1 %}
+                    <span class="badge bg-neu">Editor</span>
+                {% else %}
+                    <span class="badge bg-warn">Revisor</span>
+                {% endif %}
+            </td>
+            <td><div class="ta">
+                <a href="{{ path('superadmin_impersonate', {id: u.id}) }}" class="btn btn-g btn-sm" title="Acessar como este usuário">
+                    <sl-icon name="person-fill-check"></sl-icon>
+                </a>
+                <a href="{{ path('superadmin_user_edit', {id: u.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+                <form action="{{ path('superadmin_user_delete', {id: u.id}) }}" method="post" onsubmit="return confirm('Remover usuário?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('del_user_' ~ u.id) }}">
+                    <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+                </form>
+            </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">Nenhum usuário.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</div>
+{% endblock %}

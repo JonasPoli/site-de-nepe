@@ -1,0 +1,25 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% import 'admin/article/_form.html.twig' as forms %}
+{% block title %}Novo Artigo{% endblock %}
+{% block page_title %}Novo Artigo{% endblock %}
+
+{% block body %}
+<div class="ph">
+    <h1>Novo Artigo</h1>
+    <a href="{{ path('admin_article_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+</div>
+<div class="card">
+    {{ forms.article_form(article, categories, path('admin_article_new'), 'POST') }}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function autoSlug(v){
+    document.getElementById('slug-field').value=v.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+</script>
+{% endblock %}

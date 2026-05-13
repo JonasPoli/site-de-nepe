@@ -1,0 +1,21 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Novo Tenant{% endblock %}{% block page_title %}Novo Tenant{% endblock %}
+{% block body %}
+<div class="ph"><h1>Novo Tenant</h1><a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card">
+    <form action="{{ path('superadmin_tenant_new') }}" method="post" class="af">
+        <div class="af-row">
+            <div class="af-field"><label>Nome <span class="req">*</span></label><input type="text" name="name" class="ai" required></div>
+            <div class="af-field"><label>Domínio</label><input type="text" name="domain" class="ai" placeholder="nepe.usp.br"></div>
+        </div>
+            <div class="af-field"><label>Tema</label><select name="theme" class="as"><option value="nepe">Nepe</option><option value="moderno">Moderno</option></select></div>
+        </div>
+        <div class="af-row">
+            <div class="af-field"><label>Cor Primária</label><input type="color" name="primaryColor" value="#0044cc" style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:none"></div>
+            <div class="af-field"><label>Cor Secundária</label><input type="color" name="secondaryColor" value="#ffaa00" style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:none"></div>
+        </div>
+        <div class="af-field"><label>Mínimo de aprovações</label><input type="number" name="requiredApprovals" class="ai" value="1" min="1" max="10" style="max-width:120px"></div>
+        <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Criar Tenant</button><a href="{{ path('superadmin_dash') }}" class="btn btn-g">Cancelar</a></div>
+    </form>
+</div>
+{% endblock %}

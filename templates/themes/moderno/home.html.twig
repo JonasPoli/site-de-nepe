@@ -1,0 +1,374 @@
+{% extends 'themes/moderno/base.html.twig' %}
+
+{% block title %}{{ currentTenant ? currentTenant.name : 'NEPE Brasil' }}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="{{ currentTenant ? currentTenant.name ~ ' — Núcleo de Estudos e Pesquisas' : 'NEPE Brasil' }}">
+{% endblock %}
+
+{% block body %}
+
+{# ── HERO ── #}
+<section class="m-hero">
+    <div class="m-hero-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        {% if banner and banner.backgroundImage %}
+            <div class="hero-img-overlay" style="background-image:url('/uploads/hero/{{ banner.backgroundImage }}')"></div>
+        {% endif %}
+    </div>
+    <div class="container m-hero-content">
+        {% if banner %}
+            <h1 class="m-hero-title">{{ banner.title }}</h1>
+            {% if banner.subtitle %}<p class="m-hero-sub">{{ banner.subtitle }}</p>{% endif %}
+            {% if banner.ctaText and banner.ctaLink %}
+                <div class="m-hero-actions">
+                    <a href="{{ banner.ctaLink }}" class="btn btn-primary">{{ banner.ctaText }}</a>
+                    <a href="#noticias" class="btn btn-ghost">Explorar ↓</a>
+                </div>
+            {% endif %}
+        {% else %}
+            <span class="section-label"><span class="glow-dot"></span>Bem-vindo</span>
+            <h1 class="m-hero-title">{{ currentTenant ? currentTenant.name : 'NEPE Brasil' }}</h1>
+            <p class="m-hero-sub">Núcleo de Estudos e Pesquisas — conhecimento que transforma</p>
+            <div class="m-hero-actions">
+                <a href="#noticias" class="btn btn-primary">Explorar conteúdo</a>
+                <a href="#contato" class="btn btn-ghost">Entrar em contato</a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="hero-scroll-indicator">
+        <div class="scroll-line"></div>
+    </div>
+</section>
+
+{# ── QUEM SOMOS ── #}
+{% if currentTenant and (currentTenant.aboutFullText or currentTenant.aboutImage) %}
+<section class="m-section m-about" id="quem-somos">
+    <div class="container m-about-grid">
+        <div class="m-about-text">
+            <span class="section-label"><span class="glow-dot"></span>Quem Somos</span>
+            <h2 class="section-heading" style="margin-top:.5rem">{{ currentTenant.name }}</h2>
+            {% if currentTenant.aboutFullText %}
+                <div class="m-about-body">{{ currentTenant.aboutFullText|nl2br }}</div>
+            {% endif %}
+            {% if currentTenant.contactEmail or currentTenant.phone %}
+                <a href="#contato" class="btn btn-primary" style="margin-top:2rem;display:inline-block">Entre em contato →</a>
+            {% endif %}
+        </div>
+        <div class="m-about-img-wrap">
+            {% if currentTenant.aboutImage %}
+                <img src="{{ asset('uploads/tenant/about/' ~ currentTenant.aboutImage) }}" alt="Quem Somos" class="m-about-img" loading="lazy">
+            {% else %}
+                <div class="m-about-placeholder"></div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── NEWS ── #}
+{% if latestNews|length > 0 %}
+<section class="m-section" id="noticias">
+    <div class="container">
+        <div class="m-section-head">
+            <span class="section-label"><span class="glow-dot"></span>Publicações</span>
+            <h2 class="section-heading">Fique por dentro</h2>
+            <p style="color:rgba(255,255,255,.5);margin:.5rem 0 0">Fique por dentro das últimas novidades e atualizações</p>
+        </div>
+        <div class="m-news-grid">
+            {% for article in latestNews %}
+            <article class="m-card {% if loop.first %}m-card-featured{% endif %}">
+                {% if article.image %}
+                    <div class="m-card-img" style="background-image:url('/uploads/article/{{ article.image }}')"></div>
+                {% endif %}
+                <div class="m-card-body">
+                    {% if article.category %}<span class="m-tag">{{ article.category.name }}</span>{% endif %}
+                    <h3 class="m-card-title">
+                        <a href="{{ path('pub_article_show', {slug: article.slug}) }}">{{ article.title }}</a>
+                    </h3>
+                    {% if article.shortDescription and loop.first %}
+                        <p class="m-card-excerpt">{{ article.shortDescription }}</p>
+                    {% endif %}
+                    <div class="m-card-footer">
+                        <time>{{ article.publishedAt|date('d/m/Y') }}</time>
+                        <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="m-read-more">Ler →</a>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <div style="text-align:center;margin-top:2.5rem">
+            <a href="{{ path('pub_articles') }}" class="btn btn-ghost">Ver todas as notícias</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── FEATURED VIDEO ── #}
+{% if featuredVideo %}
+<section class="m-section m-section-dark">
+    <div class="container m-fv">
+        <div class="m-fv-embed">
+            <iframe src="{{ featuredVideo.embedUrl }}" title="{{ featuredVideo.title }}"
+                frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="m-fv-info">
+            <span class="section-label"><span class="glow-dot"></span>Vídeo em Destaque</span>
+            <h2 class="section-heading" style="font-size:clamp(1.4rem,3vw,2rem)">{{ featuredVideo.title }}</h2>
+            {% if featuredVideo.description %}
+                <p class="m-fv-desc">{{ featuredVideo.description|striptags|slice(0,200) }}…</p>
+            {% endif %}
+            <a href="{{ path('pub_video_show', {slug: featuredVideo.slug}) }}" class="btn btn-primary">
+                Acessar Materiais →
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── GALLERY ── #}
+{% if gallery|length > 0 %}
+<section class="m-section">
+    <div class="container">
+        <div class="m-section-head">
+            <span class="section-label"><span class="glow-dot"></span>Estudos</span>
+            <h2 class="section-heading">Galeria de Vídeos</h2>
+        </div>
+        <div class="m-gallery">
+            {% for video in gallery %}
+            <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="m-gallery-item">
+                <div class="m-gallery-thumb" style="background-image:url('{{ video.thumbnailUrl }}')">
+                    <div class="m-gallery-play">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                </div>
+                <p class="m-gallery-title">{{ video.title }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── VÍDEOS ── #}
+{% if footerVideos|length > 0 %}
+<section class="m-section" id="videos">
+    <div class="container">
+        <div class="m-section-head">
+            <span class="section-label"><span class="glow-dot"></span>Canal</span>
+            <h2 class="section-heading">Acompanhe o YouTube</h2>
+            <p style="color:rgba(255,255,255,.5);margin:.5rem 0 0">Veja o que acontece no nosso canal</p>
+        </div>
+        <div class="m-gallery">
+            {% for video in footerVideos|slice(0,3) %}
+            <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="m-gallery-item">
+                <div class="m-gallery-thumb" style="background-image:url('{{ video.thumbnailUrl }}')">
+                    <div class="m-gallery-play"><svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+                </div>
+                <p class="m-gallery-title">{{ video.title }}</p>
+            </a>
+            {% endfor %}
+        </div>
+        <div style="text-align:center;margin-top:2.5rem">
+            <a href="{{ path('pub_videos') }}" class="btn btn-ghost">Ver todos os vídeos</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── RESEARCH LINES ── #}
+{% if lines|length > 0 %}
+<section class="m-section m-section-dark">
+    <div class="container">
+        <div class="m-section-head">
+            <span class="section-label"><span class="glow-dot"></span>Pesquisa</span>
+            <h2 class="section-heading">Linhas de Pesquisa</h2>
+        </div>
+        <div class="m-research-grid">
+            {% for line in lines %}
+            <div class="m-research-card">
+                <div class="m-research-glow"></div>
+                {% if line.icon %}
+                    <div class="m-research-icon">
+                        <sl-icon name="{{ line.icon }}"></sl-icon>
+                    </div>
+                {% endif %}
+                <h3>{{ line.title }}</h3>
+                {% if line.description %}<p>{{ line.description }}</p>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── CONTACT ── #}
+<section class="m-section m-contact-new" id="contato">
+    <div class="container m-cni">
+        <div class="m-ci">
+            <h2 class="section-heading" style="font-size:clamp(1.8rem,3.5vw,2.4rem);margin-bottom:.75rem">Vamos <span style="color:var(--color-secondary)">conversar</span>?</h2>
+            <p style="color:rgba(255,255,255,.5);margin:0 0 2.5rem">Entre em contato — respondemos em breve.</p>
+            {% if currentTenant and currentTenant.phone %}
+            <div class="m-contact-item">
+                <div class="m-ci-icon"><sl-icon name="telephone-fill"></sl-icon></div>
+                <div><div class="m-ci-lbl">Telefone</div><div class="m-ci-val">{{ currentTenant.phone }}</div></div>
+            </div>{% endif %}
+            {% if currentTenant and currentTenant.whatsappLink %}
+            <div class="m-contact-item">
+                <div class="m-ci-icon m-ci-wa"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+                <div><div class="m-ci-lbl">WhatsApp</div><a href="{{ currentTenant.whatsappLink }}" target="_blank" class="m-ci-val m-ci-link">Enviar mensagem</a></div>
+            </div>{% endif %}
+            {% if currentTenant and currentTenant.contactEmail %}
+            <div class="m-contact-item">
+                <div class="m-ci-icon m-ci-mail"><sl-icon name="envelope-fill"></sl-icon></div>
+                <div><div class="m-ci-lbl">E-mail</div><a href="mailto:{{ currentTenant.contactEmail }}" class="m-ci-val m-ci-link">{{ currentTenant.contactEmail }}</a></div>
+            </div>{% endif %}
+            {% if currentTenant and currentTenant.address %}
+            <div class="m-contact-item">
+                <div class="m-ci-icon m-ci-addr"><sl-icon name="geo-alt-fill"></sl-icon></div>
+                <div><div class="m-ci-lbl">Endereço</div><div class="m-ci-val">{{ currentTenant.address }}</div></div>
+            </div>{% endif %}
+        </div>
+        <div class="m-contact-box">
+            {% for msg in app.flashes('contact_s') %}<div class="flash flash-success">{{ msg }}</div>{% endfor %}
+            {% for msg in app.flashes('contact_f') %}<div class="flash flash-error">{{ msg }}</div>{% endfor %}
+            <form action="{{ path('pub_contact_post') }}" method="post" class="m-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('contact_form') }}">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <input type="text" name="name" placeholder="Nome completo" required class="m-input">
+                    <input type="email" name="email" placeholder="Seu e-mail" required class="m-input">
+                </div>
+                <textarea name="message" placeholder="Sua mensagem..." rows="5" required class="m-input"></textarea>
+                <button type="submit" class="btn btn-primary" style="width:100%;padding:1rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Enviar Mensagem</button>
+            </form>
+        </div>
+    </div>
+    {% if currentTenant and currentTenant.mapsEmbedUrl %}
+    <div style="border-top:1px solid rgba(255,255,255,.06)">
+        <iframe src="{{ currentTenant.mapsEmbedUrl }}" width="100%" height="360" style="border:0;display:block;opacity:.85" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa"></iframe>
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/dark.css">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace-autoloader.js"></script>
+<style>
+/* HERO */
+.m-hero { min-height: 100vh; display:flex; align-items:center; position:relative; overflow:hidden; }
+.m-hero-bg { position:absolute; inset:0; }
+.orb { position:absolute; border-radius:50%; filter:blur(100px); opacity:.6; }
+.orb-1 { width:600px; height:600px; top:-200px; left:-100px; background:radial-gradient(circle, rgba(var(--color-primary-rgb),.5),transparent 70%); }
+.orb-2 { width:500px; height:500px; bottom:-150px; right:-100px; background:radial-gradient(circle, rgba(var(--color-secondary-rgb),.4),transparent 70%); }
+.hero-img-overlay { position:absolute; inset:0; background-size:cover; background-position:center; opacity:.25; }
+.m-hero-content { position:relative; z-index:1; padding:6rem 1.5rem; max-width:800px; }
+.m-hero-title {
+    font-size:clamp(2.5rem,8vw,5.5rem); font-weight:900; line-height:1.0;
+    background:linear-gradient(135deg,#fff 0%,color-mix(in srgb,var(--color-secondary) 80%,#fff) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin:.75rem 0 1.25rem;
+    animation: fadeUp .8s both;
+}
+.m-hero-sub { font-size:1.2rem; color:rgba(255,255,255,.7); margin:0 0 2.5rem; animation: fadeUp .8s .15s both; }
+.m-hero-actions { display:flex; gap:1rem; flex-wrap:wrap; animation: fadeUp .8s .3s both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+.hero-scroll-indicator { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); }
+.scroll-line { width:1px; height:60px; background:linear-gradient(to bottom, rgba(255,255,255,.5), transparent); animation:scrollAnim 2s ease-in-out infinite; }
+@keyframes scrollAnim { 0%,100%{opacity:1;transform:scaleY(1)} 50%{opacity:.3;transform:scaleY(.6)} }
+
+/* SECTIONS */
+.m-section { padding:7rem 0; }
+.m-section-dark { background:rgba(255,255,255,.02); border-top:1px solid rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.05); }
+.m-section-head { margin-bottom:3rem; }
+
+/* NEWS CARDS */
+.m-news-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.5rem; }
+.m-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); overflow:hidden; transition:transform .3s,border-color .3s; }
+.m-card:hover { transform:translateY(-8px); border-color:rgba(var(--color-secondary-rgb),.4); }
+.m-card-img { height:180px; background-size:cover; background-position:center; }
+.m-card-featured .m-card-img { height:240px; }
+.m-card-body { padding:1.5rem; }
+.m-tag { display:inline-block; padding:.25rem .75rem; border-radius:50px; background:rgba(var(--color-secondary-rgb),.15); color:var(--color-secondary); font-size:.75rem; font-weight:700; margin-bottom:.75rem; }
+.m-card-title { font-size:1.05rem; font-weight:700; margin:0 0 .75rem; line-height:1.4; }
+.m-card-title a { color:#e2e8f0; }
+.m-card-title a:hover { color:var(--color-secondary); }
+.m-card-excerpt { color:rgba(255,255,255,.5); font-size:.9rem; margin:0 0 1rem; }
+.m-card-footer { display:flex; justify-content:space-between; align-items:center; font-size:.8rem; color:rgba(255,255,255,.35); }
+.m-read-more { color:var(--color-secondary); font-weight:600; }
+
+/* FEATURED VIDEO */
+.m-fv { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+.m-fv-embed { border-radius:var(--radius-lg); overflow:hidden; aspect-ratio:16/9; border:1px solid rgba(255,255,255,.1); box-shadow:var(--shadow-lg); }
+.m-fv-embed iframe { width:100%; height:100%; }
+.m-fv-info .section-label { margin-bottom:1rem; }
+.m-fv-desc { color:rgba(255,255,255,.55); margin:1rem 0 2rem; }
+
+/* GALLERY */
+.m-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1.25rem; }
+.m-gallery-item { display:block; color:#e2e8f0; }
+.m-gallery-thumb { aspect-ratio:16/9; border-radius:var(--radius); background-size:cover; background-position:center; position:relative; overflow:hidden; transition:transform .3s; border:1px solid rgba(255,255,255,.07); }
+.m-gallery-thumb:hover { transform:scale(1.04); }
+.m-gallery-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.35); opacity:0; transition:opacity .25s; }
+.m-gallery-thumb:hover .m-gallery-play { opacity:1; }
+.m-gallery-title { font-size:.85rem; font-weight:600; margin:.75rem 0 0; color:rgba(255,255,255,.8); line-height:1.4; }
+
+/* RESEARCH */
+.m-research-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.5rem; }
+.m-research-card {
+    position:relative; overflow:hidden;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius);
+    padding:2rem; transition:border-color .3s, transform .3s;
+}
+.m-research-card:hover { border-color:rgba(var(--color-primary-rgb),.4); transform:translateY(-4px); }
+.m-research-glow {
+    position:absolute; top:-40px; right:-40px; width:120px; height:120px; border-radius:50%;
+    background:radial-gradient(circle, rgba(var(--color-primary-rgb),.2),transparent 70%);
+    pointer-events:none;
+}
+.m-research-icon { font-size:2rem; color:var(--color-secondary); margin-bottom:1rem; }
+.m-research-card h3 { font-size:1rem; font-weight:700; margin:0 0 .75rem; color:#e2e8f0; }
+.m-research-card p { color:rgba(255,255,255,.5); font-size:.88rem; margin:0; }
+
+/* CONTACT */
+.m-contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; }
+.m-contact-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius-lg); padding:2.5rem; }
+.m-form { display:flex; flex-direction:column; gap:1rem; }
+.m-input {
+    width:100%; padding:.85rem 1.25rem; border-radius:10px;
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1);
+    color:#e2e8f0; font-size:.95rem; font-family:inherit; outline:none; transition:border-color .2s;
+}
+.m-input::placeholder { color:rgba(255,255,255,.35); }
+.m-input:focus { border-color:rgba(var(--color-secondary-rgb),.5); background:rgba(255,255,255,.09); }
+textarea.m-input { resize:vertical; }
+
+@media(max-width:900px){
+    .m-fv { grid-template-columns:1fr; }
+    .m-contact-grid { grid-template-columns:1fr; }
+    .m-about-grid, .m-cni { grid-template-columns:1fr; }
+}
+
+/* ABOUT */
+.m-about { border-top:1px solid rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.05); }
+.m-about-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+.m-about-body { color:rgba(255,255,255,.6); line-height:1.8; margin-top:1.25rem; }
+.m-about-img { width:100%; border-radius:var(--radius-lg); object-fit:cover; aspect-ratio:4/3; border:1px solid rgba(255,255,255,.08); }
+.m-about-placeholder { width:100%; aspect-ratio:4/3; border-radius:var(--radius-lg); background:linear-gradient(135deg,rgba(var(--color-primary-rgb),.2),rgba(var(--color-secondary-rgb),.1)); }
+
+/* CONTACT NEW */
+.m-cni { display:grid; grid-template-columns:1fr 1.2fr; gap:4rem; align-items:start; }
+.m-contact-item { display:flex; align-items:flex-start; gap:1rem; margin-bottom:1.25rem; }
+.m-ci-icon { width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.7); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.m-ci-wa { background:rgba(37,211,102,.15); color:#25d366; }
+.m-ci-mail { background:rgba(var(--color-secondary-rgb),.15); color:var(--color-secondary); }
+.m-ci-addr { background:rgba(239,68,68,.1); color:#f87171; }
+.m-ci-lbl { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.35); margin-bottom:.2rem; }
+.m-ci-val { font-size:.9rem; font-weight:600; color:rgba(255,255,255,.8); }
+.m-ci-link { color:var(--color-secondary); }
+</style>
+{% endblock %}

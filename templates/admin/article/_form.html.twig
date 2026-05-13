@@ -1,0 +1,123 @@
+{% macro article_form(article, categories, action, method) %}
+<form action="{{ action }}" method="{{ method }}" class="af" enctype="multipart/form-data">
+    {{ method != 'POST' ? '<input type="hidden" name="_method" value="' ~ method ~ '">' }}
+    <div class="af-row">
+        <div class="af-field">
+            <label>Título <span class="req">*</span></label>
+            <input type="text" name="title" class="ai" value="{{ article.title }}" required
+                   oninput="autoSlug(this.value)">
+        </div>
+        <div class="af-field">
+            <label>Slug <span class="af-hint">(gerado automaticamente)</span></label>
+            <input type="text" name="slug" id="slug-field" class="ai" value="{{ article.slug }}">
+        </div>
+    </div>
+
+    <div class="af-field">
+        <label>Descrição curta</label>
+        <input type="text" name="shortDescription" class="ai" value="{{ article.shortDescription }}" maxlength="500">
+    </div>
+
+    <div class="af-field">
+        <label>Conteúdo</label>
+        {{ include('admin/_rich_editor.html.twig', {
+            field_id: 'article-content',
+            field_name: 'content',
+            content: article.content,
+            height: 400
+        }) }}
+    </div>
+
+    <div class="af-row">
+        <div class="af-field">
+            <label>Categoria</label>
+            <select name="category" class="as">
+                <option value="">— Sem categoria —</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}" {{ article.category and article.category.id == cat.id ? 'selected' }}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="af-field">
+            <label>Alt da imagem</label>
+            <input type="text" name="imageAlt" class="ai" value="{{ article.imageAlt }}">
+        </div>
+    </div>
+
+    <div class="af-field">
+        <label>Imagem Principal</label>
+        {% if article.image %}
+            <div style="margin-bottom:.5rem">
+                <img src="{{ asset('uploads/article/' ~ article.image) }}" style="max-height:100px;border-radius:4px">
+            </div>
+        {% endif %}
+        <input type="file" name="imageFile" class="ai" accept="image/*">
+    </div>
+
+    <div class="af-field">
+        <label>Galeria de Imagens</label>
+        
+        {% if article.gallery|length > 0 %}
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+            {% for img in article.gallery %}
+                <div style="position:relative;border:1px solid var(--border);border-radius:8px;padding:.5rem;background:var(--bg2)">
+                    <img src="{{ asset('uploads/article_gallery/' ~ img.filename) }}" style="width:100px;height:100px;object-fit:cover;border-radius:4px">
+                    <label style="display:block;margin-top:.5rem;font-size:.75rem;color:red;cursor:pointer;text-align:center">
+                        <input type="checkbox" name="delete_gallery[]" value="{{ img.id }}"> Remover
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div id="gallery-new-list"></div>
+        <button type="button" onclick="addGalleryRow()" class="btn btn-g" style="margin-top:.5rem">
+            <sl-icon name="plus-lg"></sl-icon> Adicionar Imagem
+        </button>
+    </div>
+    
+    <script>
+    let galIdx = 0;
+    function addGalleryRow(){
+        const list = document.getElementById('gallery-new-list');
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:1rem;align-items:center;margin-bottom:.5rem';
+        row.innerHTML = `
+            <input type="file" name="gallery_file[]" accept="image/*" class="ai">
+            <button type="button" class="btn btn-d btn-sm" onclick="this.parentElement.remove()">✕</button>
+        `;
+        list.appendChild(row);
+    }
+    </script>
+
+
+    <details>
+        <summary style="cursor:pointer;font-weight:600;color:var(--muted);font-size:.85rem;margin-bottom:1rem">⚙ SEO avançado</summary>
+        <div class="af" style="margin-top:1rem">
+            <div class="af-row">
+                <div class="af-field">
+                    <label>SEO Title</label>
+                    <input type="text" name="seoTitle" class="ai" value="{{ article.seoTitle }}">
+                </div>
+                <div class="af-field">
+                    <label>Canonical URL</label>
+                    <input type="text" name="canonicalUrl" class="ai" value="{{ article.canonicalUrl }}">
+                </div>
+            </div>
+            <div class="af-field">
+                <label>SEO Description</label>
+                <textarea name="seoDescription" class="ate" rows="3" style="min-height:70px">{{ article.seoDescription }}</textarea>
+            </div>
+            <div class="af-field" style="flex-direction:row;align-items:center;gap:.75rem">
+                <sl-switch name="isNoIndex" value="1" {{ article.isNoIndex ? 'checked' : '' }}></sl-switch>
+                <label style="color:var(--text)">Não indexar (noindex)</label>
+            </div>
+        </div>
+    </details>
+
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_article_index') }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+{% endmacro %}

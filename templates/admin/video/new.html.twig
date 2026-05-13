@@ -1,0 +1,7 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% import 'admin/video/_form.html.twig' as f %}
+{% block title %}Novo Vídeo{% endblock %}{% block page_title %}Novo Vídeo{% endblock %}
+{% block body %}
+<div class="ph"><h1>Novo Vídeo</h1><a href="{{ path('admin_video_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card">{{ f.video_form(video, categories, path('admin_video_new')) }}</div>
+{% endblock %}

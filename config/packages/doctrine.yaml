@@ -25,6 +25,10 @@ doctrine:
         controller_resolver:
             auto_mapping: true
             enabled: true
+        filters:
+            tenant_filter:
+                class: App\Doctrine\TenantFilter
+                enabled: false
 
 when@test:
     doctrine:

@@ -1,0 +1,90 @@
+{# Reusable banner form macro — supports image upload #}
+{% macro banner_form(banner, action) %}
+<form action="{{ action }}" method="post" class="af" enctype="multipart/form-data">
+
+    {# ── Imagem de fundo ── #}
+    <div class="af-field">
+        <label>Imagem de fundo</label>
+        <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+            {% if banner.backgroundImage %}
+                <div>
+                    <img id="banner-preview"
+                         src="{{ asset('uploads/hero/' ~ banner.backgroundImage) }}"
+                         alt="Preview atual"
+                         style="height:80px;width:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+                    <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem;text-align:center">Atual</div>
+                </div>
+            {% else %}
+                <div id="banner-preview"
+                     style="width:160px;height:80px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted)">
+                    <sl-icon name="image" style="font-size:1.8rem"></sl-icon>
+                </div>
+            {% endif %}
+            <div style="flex:1">
+                <label for="banner-upload" style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:8px;border:1px dashed var(--primary);color:var(--primary);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s ease">
+                    <sl-icon name="upload"></sl-icon> Selecionar imagem
+                </label>
+                <input type="file" id="banner-upload" name="backgroundImageFile"
+                       accept="image/webp,image/jpeg,image/png"
+                       style="display:none"
+                       onchange="previewBanner(this)">
+                <p class="af-hint" style="margin-top:.4rem">WebP ou JPG · Recomendado: 1920×600 px · max 5 MB<br>
+                Será exibida com overlay da cor primária do tenant (15% opacidade)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="af-field">
+        <label>Título <span class="req">*</span></label>
+        <input type="text" name="title" class="ai" value="{{ banner.title }}" required>
+    </div>
+    <div class="af-field">
+        <label>Subtítulo</label>
+        <input type="text" name="subtitle" class="ai" value="{{ banner.subtitle }}">
+    </div>
+    <div class="af-row">
+        <div class="af-field">
+            <label>Texto do botão (CTA)</label>
+            <input type="text" name="ctaText" class="ai" value="{{ banner.ctaText }}">
+        </div>
+        <div class="af-field">
+            <label>Link do botão</label>
+            <input type="text" name="ctaLink" class="ai" value="{{ banner.ctaLink }}">
+        </div>
+    </div>
+    <div class="af-field" style="flex-direction:row;align-items:center;gap:.75rem">
+        <sl-switch name="active" value="1" {{ banner.active ? 'checked' : '' }}></sl-switch>
+        <label style="color:var(--text)">Banner ativo</label>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_banner_index') }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+
+<script>
+function previewBanner(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Arquivo muito grande. Máximo 5 MB.');
+        input.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+        let preview = document.getElementById('banner-preview');
+        if (preview.tagName === 'DIV') {
+            const img = document.createElement('img');
+            img.id = 'banner-preview';
+            img.style.cssText = 'height:80px;width:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border)';
+            img.alt = 'Preview';
+            preview.replaceWith(img);
+            preview = img;
+        }
+        preview.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+</script>
+{% endmacro %}

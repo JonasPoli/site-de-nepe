@@ -1,0 +1,35 @@
+{% extends 'themes/moderno/base.html.twig' %}
+{% block title %}{{ article.seoTitle ?? article.title }}{% endblock %}
+{% block meta_description %}{% if article.seoDescription %}<meta name="description" content="{{ article.seoDescription }}">{% endif %}{% endblock %}
+{% block og_tags %}{{ parent() }}<meta property="og:type" content="article"><meta property="og:title" content="{{ article.seoTitle ?? article.title }}">{% if article.image %}<meta property="og:image" content="{{ app.request.schemeAndHttpHost }}/uploads/article/{{ article.image }}">{% endif %}{% endblock %}
+{% block canonical %}{% if article.canonicalUrl %}<link rel="canonical" href="{{ article.canonicalUrl }}">{% endif %}{% endblock %}
+{% block robots %}{% if article.isNoIndex %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
+{% block body %}
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsArticle","headline":{{ article.title|json_encode|raw }},"datePublished":"{{ article.publishedAt|date('c') }}"}</script>
+{% if article.image %}<div class="ma-hero" style="background-image:url('/uploads/article/{{ article.image }}')"><div class="ma-hero-overlay"></div></div>{% endif %}
+<div class="container ma-layout">
+    <header class="ma-header">
+        {% if article.category %}<a href="{{ path('pub_articles') }}" class="m-tag">{{ article.category.name }}</a>{% endif %}
+        <h1>{{ article.title }}</h1>
+        <div class="ma-meta">
+            {% if article.author %}<span>{{ article.author.name }}</span>{% endif %}
+            {% if article.publishedAt %}<time>{{ article.publishedAt|date('d/m/Y') }}</time>{% endif %}
+        </div>
+        {% if article.shortDescription %}<p class="ma-lead">{{ article.shortDescription }}</p>{% endif %}
+    </header>
+    <div class="ma-body prose-dark">{{ article.content|raw }}</div>
+    <a href="{{ path('pub_articles') }}" class="btn btn-ghost" style="margin-top:3rem">← Voltar</a>
+</div>
+{% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.ma-hero{height:50vh;background-size:cover;background-position:center;position:relative;}
+.ma-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(6,1,18,.3),rgba(6,1,18,.9));}
+.ma-layout{max-width:800px;margin:0 auto;padding:3rem 1.5rem;}
+.ma-header h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;line-height:1.2;margin:.75rem 0 1rem;color:#e2e8f0;}
+.ma-meta{display:flex;gap:1.5rem;color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:1.5rem;}
+.ma-lead{font-size:1.1rem;color:rgba(255,255,255,.6);border-left:3px solid var(--color-secondary);padding-left:1.25rem;margin:1.5rem 0;}
+.prose-dark{color:rgba(255,255,255,.75);line-height:1.8;}
+.prose-dark h2,.prose-dark h3{color:#e2e8f0;font-weight:700;margin:2rem 0 1rem;}
+.prose-dark p{margin:0 0 1.25rem;}
+.prose-dark a{color:var(--color-secondary);}
+</style>{% endblock %}

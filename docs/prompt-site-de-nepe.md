@@ -143,9 +143,8 @@ Os usuários editores podem adicionar (e o próprio administrador) podem adicion
 Só que para que um artigo seja publicado ele deve passar por validações dos outros usuários editores.
 No painel do super-admin, no cadastro do Tenent, o super-admin define um valor numérico para "quantidade de aprovações necessárias". Logo, um artigo/notícia só será publicado quando ele tiver o número de aprovações necessárias.
 
-Toda a lógica de comunicação e de validação de artigos/noticias está descrita no documento
+Toda a lógica de comunicação e de validação de artigos/noticias está descrita no documento docs/sistema-de-aprovacao.md
 Atente-se ao fato de que os editores podem trocar mensagens entre si e com o admin (do mesmo tenant)
 
-## 
 
 

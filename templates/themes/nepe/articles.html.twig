@@ -1,0 +1,83 @@
+{% extends 'themes/nepe/base.html.twig' %}
+
+{% block title %}Notícias{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Todas as notícias e publicações de {{ currentTenant ? currentTenant.name : 'NEPE Brasil' }}">
+{% endblock %}
+
+{% block body %}
+<div class="articles-hero">
+    <div class="container">
+        <h1>Notícias</h1>
+        <p>Acompanhe as últimas publicações e novidades do grupo</p>
+    </div>
+</div>
+
+<div class="container articles-list">
+    {% if articles|length == 0 %}
+        <div class="empty-state">
+            <p>Nenhuma notícia publicada ainda.</p>
+        </div>
+    {% else %}
+    <div class="articles-grid">
+        {% for article in articles %}
+        <article class="article-card">
+            {% if article.image %}
+                <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="card-img-link">
+                    <div class="card-img" style="background-image:url('{{ ('uploads/article/' ~ article.image) | imagine_filter('news_thumb') }}')"></div>
+                </a>
+            {% endif %}
+            <div class="card-body">
+                {% if article.category %}
+                    <span class="card-tag">{{ article.category.name }}</span>
+                {% endif %}
+                <h2 class="card-title">
+                    <a href="{{ path('pub_article_show', {slug: article.slug}) }}">{{ article.title }}</a>
+                </h2>
+                {% if article.shortDescription %}
+                    <p class="card-excerpt">{{ article.shortDescription }}</p>
+                {% endif %}
+                <div class="card-footer">
+                    <time>{{ article.publishedAt|date('d/m/Y') }}</time>
+                    <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="card-link">Ler →</a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div class="pagination-container" style="margin-top: 3rem; display: flex; justify-content: center;">
+        {{ knp_pagination_render(articles) }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.articles-hero {
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, var(--color-secondary)));
+    color: white; padding: 4rem 0; text-align: center;
+}
+.articles-hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; margin: 0 0 0.5rem; }
+.articles-hero p { opacity: .85; font-size: 1.1rem; }
+.articles-list { padding: 4rem 1.5rem; }
+.articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
+.article-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.06); transition: transform var(--transition); }
+.article-card:hover { transform: translateY(-6px); }
+.card-img { height: 200px; background-size: cover; background-position: center; transition: transform 0.4s; }
+.card-img-link:hover .card-img { transform: scale(1.04); }
+.card-img-link { overflow: hidden; display: block; }
+.card-body { padding: 1.5rem; }
+.card-tag { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 50px; background: color-mix(in srgb, var(--color-secondary) 20%, transparent); color: var(--color-primary); font-size: 0.75rem; font-weight: 600; margin-bottom: 0.75rem; }
+.card-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 0.75rem; line-height: 1.4; }
+.card-title a { color: #1a1c2e; }
+.card-title a:hover { color: var(--color-primary); }
+.card-excerpt { color: #6b7280; font-size: 0.9rem; margin: 0 0 1rem; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #9ca3af; }
+.card-link { color: var(--color-primary); font-weight: 600; }
+.empty-state { text-align: center; padding: 4rem; color: #9ca3af; font-size: 1.1rem; }
+</style>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="stats">
+    <div class="stat">
+        <div class="stat-icon"><sl-icon name="newspaper"></sl-icon></div>
+        <div class="stat-val">{{ lineCount }}</div>
+        <div class="stat-lbl">Linhas de Pesquisa</div>
+    </div>
+    <div class="stat">
+        <div class="stat-icon" style="color:var(--danger)"><sl-icon name="envelope-fill"></sl-icon></div>
+        <div class="stat-val" style="color:{% if unreadContacts > 0 %}var(--danger){% else %}var(--text){% endif %}">{{ unreadContacts }}</div>
+        <div class="stat-lbl">Contatos não lidos</div>
+    </div>
+    <div class="stat">
+        <div class="stat-icon" style="color:#60a5fa"><sl-icon name="chat-dots-fill"></sl-icon></div>
+        <div class="stat-val" style="color:{% if unreadInternal > 0 %}#60a5fa{% else %}var(--text){% endif %}">{{ unreadInternal }}</div>
+        <div class="stat-lbl">Mensagens Pendentes</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem">
+    <a href="{{ path('admin_article_index') }}" class="card" style="display:flex;align-items:center;gap:1rem;border-left:3px solid var(--primary);text-decoration:none">
+        <sl-icon name="newspaper" style="font-size:2rem;color:var(--primary)"></sl-icon>
+        <div><div style="font-weight:700">Artigos</div><div style="color:var(--muted);font-size:.8rem">Gerenciar publicações</div></div>
+    </a>
+    <a href="{{ path('admin_banner_index') }}" class="card" style="display:flex;align-items:center;gap:1rem;border-left:3px solid var(--secondary);text-decoration:none">
+        <sl-icon name="image-fill" style="font-size:2rem;color:var(--secondary)"></sl-icon>
+        <div><div style="font-weight:700">Banners</div><div style="color:var(--muted);font-size:.8rem">Hero da página inicial</div></div>
+    </a>
+    <a href="{{ path('admin_video_index') }}" class="card" style="display:flex;align-items:center;gap:1rem;border-left:3px solid #a78bfa;text-decoration:none">
+        <sl-icon name="play-circle-fill" style="font-size:2rem;color:#a78bfa"></sl-icon>
+        <div><div style="font-weight:700">Vídeos</div><div style="color:var(--muted);font-size:.8rem">Galeria de estudos</div></div>
+    </a>
+    <a href="{{ path('admin_page_index') }}" class="card" style="display:flex;align-items:center;gap:1rem;border-left:3px solid #34d399;text-decoration:none">
+        <sl-icon name="file-text-fill" style="font-size:2rem;color:#34d399"></sl-icon>
+        <div><div style="font-weight:700">Páginas</div><div style="color:var(--muted);font-size:.8rem">Conteúdo institucional</div></div>
+    </a>
+    <a href="{{ path('admin_message_index') }}" class="card" style="display:flex;align-items:center;gap:1rem;border-left:3px solid #60a5fa;text-decoration:none">
+        <sl-icon name="chat-dots-fill" style="font-size:2rem;color:#60a5fa"></sl-icon>
+        <div>
+            <div style="font-weight:700">Mensagens {% if unreadInternal > 0 %}<span class="badge" style="background:#60a5fa;color:white">{{ unreadInternal }} nova(s)</span>{% endif %}</div>
+            <div style="color:var(--muted);font-size:.8rem">Sistema interno</div>
+        </div>
+    </a>
+    <a href="{{ path('admin_contact_index') }}" class="card" style="display:flex;align-items:center;gap:1rem;border-left:3px solid var(--{% if unreadContacts > 0 %}danger{% else %}border{% endif %});text-decoration:none">
+        <sl-icon name="envelope-fill" style="font-size:2rem;color:{% if unreadContacts > 0 %}var(--danger){% else %}var(--muted){% endif %}"></sl-icon>
+        <div>
+            <div style="font-weight:700">Contato {% if unreadContacts > 0 %}<span class="badge bg-err">{{ unreadContacts }} nova(s)</span>{% endif %}</div>
+            <div style="color:var(--muted);font-size:.8rem">Mensagens do site</div>
+        </div>
+    </a>
+</div>
+{% endblock %}

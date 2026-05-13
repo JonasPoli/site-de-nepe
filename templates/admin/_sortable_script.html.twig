@@ -1,0 +1,61 @@
+{#
+  Parâmetros obrigatórios:
+    tbody_id    — id do elemento <tbody> (ex: 'banner-sortable')
+    reorder_url — URL para o endpoint POST de reordenação
+#}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var tbody = document.getElementById('{{ tbody_id }}');
+    var REORDER_URL = '{{ reorder_url }}';
+
+    if (!tbody || typeof Sortable === 'undefined') {
+        console.warn('[sortable] tbody #{{ tbody_id }} not found or SortableJS not loaded');
+        return;
+    }
+
+    Sortable.create(tbody, {
+        handle: 'td:first-child, td:first-child *',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: saveOrder
+    });
+
+    function saveOrder() {
+        var rows = tbody.querySelectorAll('tr.sortable-row');
+        var ids = Array.from(rows).map(function(r) {
+            return parseInt(r.dataset.id, 10);
+        });
+
+        // Feedback visual imediato nos badges
+        rows.forEach(function(r, i) {
+            var badge = r.querySelector('.ordem-badge');
+            if (badge) badge.textContent = i + 1;
+        });
+
+        fetch(REORDER_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ ids: ids })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+            var toast = document.createElement('div');
+            toast.textContent = '✓ Ordem salva';
+            toast.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:#10b981;color:white;padding:.75rem 1.25rem;border-radius:8px;font-weight:600;font-size:.9rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.15);transition:opacity .4s';
+            document.body.appendChild(toast);
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                setTimeout(function() { toast.remove(); }, 400);
+            }, 1500);
+        })
+        .catch(function(err) { console.error('[sortable] reorder failed', err); });
+    }
+});
+</script>
+<style>
+.sortable-ghost { opacity: 0.4; background: color-mix(in srgb, var(--primary) 10%, transparent); }
+</style>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ currentTenant ? currentTenant.name : 'NEPE Brasil' }}{% endblock %} | NEPE Brasil</title>
+
+    {% block meta_description %}{% endblock %}
+
+    {% block og_tags %}
+    <meta property="og:site_name" content="{{ currentTenant ? currentTenant.name : 'NEPE Brasil' }}">
+    <meta property="og:type" content="website">
+    {% endblock %}
+    <meta name="twitter:card" content="summary_large_image">
+    {% block canonical %}{% endblock %}
+    {% block robots %}{% endblock %}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    {{ tenant_css_vars()|raw }}
+
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+    :root {
+        --font: 'Outfit', system-ui, sans-serif;
+        --radius: 16px; --radius-lg: 24px;
+        --ease: cubic-bezier(0.34, 1.56, 0.64, 1);
+        --shadow: 0 8px 32px rgba(0,0,0,.1);
+        --shadow-lg: 0 24px 64px rgba(0,0,0,.15);
+    }
+    body { font-family: var(--font); background: #060612; color: #e2e8f0; line-height: 1.7; overflow-x: hidden; }
+    a { color: var(--color-secondary); text-decoration: none; transition: opacity .2s; }
+    a:hover { opacity: .8; }
+    img { max-width: 100%; height: auto; display: block; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    .btn {
+        display: inline-flex; align-items: center; gap: .5rem;
+        padding: .85rem 2rem; border-radius: 50px; font-weight: 700; font-size: .95rem;
+        cursor: pointer; border: none; transition: all .3s var(--ease); letter-spacing: .02em;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: #fff; box-shadow: 0 8px 32px rgba(var(--color-primary-rgb),.4);
+    }
+    .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 48px rgba(var(--color-primary-rgb),.5); opacity:1; }
+    .btn-ghost {
+        background: rgba(255,255,255,.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,.15);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.15); opacity:1; }
+    .section-label {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: linear-gradient(135deg, rgba(var(--color-secondary-rgb),.15), rgba(var(--color-primary-rgb),.1));
+        border: 1px solid rgba(var(--color-secondary-rgb),.3);
+        color: var(--color-secondary); font-size: .75rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .1em;
+        padding: .35rem 1rem; border-radius: 50px; margin-bottom: 1.25rem;
+    }
+    .section-heading {
+        font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 900; line-height: 1.1;
+        background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--color-secondary) 60%, #fff) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .glow-dot {
+        width: 6px; height: 6px; border-radius: 50%; background: var(--color-secondary);
+        box-shadow: 0 0 12px var(--color-secondary);
+        display: inline-block; margin-right: .5rem;
+    }
+    /* Flash */
+    .flash { padding:1rem 1.5rem; border-radius:var(--radius); margin:1rem 0; font-weight:500; }
+    .flash-success { background:rgba(16,185,129,.15); color:#6ee7b7; border:1px solid rgba(16,185,129,.3); }
+    .flash-error   { background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.3); }
+    </style>
+
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+
+{% include 'themes/moderno/_header.html.twig' %}
+
+<main>
+    {% for msg in app.flashes('contact_s') %}
+        <div class="container"><div class="flash flash-success">{{ msg }}</div></div>
+    {% endfor %}
+    {% for msg in app.flashes('contact_f') %}
+        <div class="container"><div class="flash flash-error">{{ msg }}</div></div>
+    {% endfor %}
+    {% block body %}{% endblock %}
+</main>
+
+{% include 'themes/moderno/_footer.html.twig' %}
+
+{% block javascripts %}{% endblock %}
+</body>
+</html>

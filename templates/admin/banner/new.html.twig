@@ -1,0 +1,7 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% import 'admin/banner/_form.html.twig' as f %}
+{% block title %}Novo Banner{% endblock %}{% block page_title %}Novo Banner{% endblock %}
+{% block body %}
+<div class="ph"><h1>Novo Banner</h1><a href="{{ path('admin_banner_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card">{{ f.banner_form(banner, path('admin_banner_new')) }}</div>
+{% endblock %}

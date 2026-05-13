@@ -1,0 +1,176 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Visualizar Artigo{% endblock %}
+{% block page_title %}Visualizar Artigo{% endblock %}
+
+{% block body %}
+<div class="ph">
+    <div>
+        <a href="{{ path('admin_article_index') }}" class="btn btn-g btn-sm" style="margin-bottom: 1rem;">← Voltar</a>
+        <h1>{{ article.title }}</h1>
+        <div style="color:var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">
+            Autor: <strong>{{ article.author ? article.author.name : 'Desconhecido' }}</strong> | 
+            Categoria: <strong>{{ article.category ? article.category.name : '—' }}</strong> | 
+            Status: <span class="badge {{ article.status.value == 'published' ? 'bg-ok' : (article.status.value == 'pending' ? 'bg-warn' : 'bg-neu') }}">{{ article.status.label() }}</span>
+        </div>
+    </div>
+    
+    {% set is_author = article.author and article.author.id == app.user.id %}
+    
+    <div style="display:flex; gap: 1rem; align-items:center;">
+        {% if not is_author and is_granted('ARTICLE_REVIEW') and article.status.value == 'pending' and not article.isApprovedBy(app.user) %}
+        <form action="{{ path('admin_article_approve', {id: article.id}) }}" method="post" style="display:inline; background: var(--bg2); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <div style="margin-bottom: 0.5rem; font-weight: 600; color: var(--text);">Avaliação do Artigo</div>
+            <textarea name="comment" placeholder="Comentário da aprovação (opcional)" style="width:100%; border:1px solid var(--border); border-radius:4px; padding:0.5rem; margin-bottom: 0.5rem; font-size:0.85rem; background: var(--bg); color: var(--text);" rows="2"></textarea>
+            <button type="submit" class="btn btn-s" style="width: 100%;">
+                <sl-icon name="check-lg"></sl-icon> Aprovar Publicação
+            </button>
+        </form>
+        {% endif %}
+
+        {% if not is_author %}
+        <div style="background: var(--bg2); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex: 1;">
+            <div style="margin-bottom: 0.5rem; font-weight: 600; color: var(--text);">Discussão e Revisão</div>
+            <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem;">Envie comentários ou solicite ajustes ao autor.</p>
+            <button onclick="document.getElementById('send-message-modal').showModal()" class="btn btn-p">
+                <sl-icon name="chat-dots"></sl-icon> Adicionar Comentário
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    {% if article.image %}
+    <div style="margin: -1.5rem -1.5rem 2rem -1.5rem; border-bottom: 1px solid var(--border);">
+        <img src="{{ asset('uploads/article/' ~ article.image) }}" alt="Main Image" style="width: 100%; height: 300px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+    </div>
+    {% endif %}
+
+    <div class="tw" style="padding: 0 1rem 1rem 1rem;">
+        {% if article.shortDescription %}
+        <div style="font-size: 1.1rem; color: var(--text); font-weight: 500; margin-bottom: 2rem; border-left: 4px solid var(--primary); padding-left: 1rem;">
+            {{ article.shortDescription }}
+        </div>
+        {% endif %}
+
+        <div style="line-height: 1.8; color: var(--text);">
+            {{ article.content|raw }}
+        </div>
+
+        {% if article.gallery|length > 0 %}
+        <div style="margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">Galeria de Imagens</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:1rem;">
+                {% for img in article.gallery %}
+                <div style="border:1px solid var(--border); border-radius:8px; padding:0.25rem; background:var(--bg2);">
+                    <img src="{{ asset('uploads/article_gallery/' ~ img.filename) }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 4px;">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if messages|length > 0 %}
+<div class="card" style="margin-top: 2rem;">
+    <h3 style="margin-bottom: 1rem; font-size: 1.2rem; font-weight: 700;">Conversas sobre este artigo</h3>
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for conv in messages %}
+            {% set contact = (conv.sender == app.user) ? conv.recipient : conv.sender %}
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg3); display: flex; gap: 1rem; align-items: center; cursor: pointer;" onclick="openMessageModal({{ conv.id }})">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                    {{ contact.name|first }}
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <strong style="font-size: 0.95rem;">{{ conv.subject ?: 'Sem assunto' }}</strong>
+                        <span style="font-size: 0.75rem; color: var(--muted);">{{ conv.sentAt|date('d/m/Y H:i') }}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px;">
+                        {{ conv.content }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# Modal de Chat #}
+<dialog id="message-modal" style="padding: 0; border: none; border-radius: var(--radius); background: transparent; width: 100%; max-width: 600px;" onclick="if(event.target===this) this.close()">
+    <div id="message-modal-content" style="background: var(--bg2); min-height: 200px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;">
+        <sl-spinner style="font-size: 2rem;"></sl-spinner>
+    </div>
+</dialog>
+
+{% if not is_author %}
+{# Modal de Enviar Mensagem #}
+<dialog id="send-message-modal" style="padding: 0; border: none; border-radius: var(--radius); background: transparent; width: 100%; max-width: 500px;" onclick="if(event.target===this) this.close()">
+    <div style="background: var(--bg2); padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border);">
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1.5rem;">Enviar Comentário</h3>
+        <form id="send-message-form" class="af">
+            <input type="hidden" name="context_type" value="article">
+            <input type="hidden" name="context_id" value="{{ article.id }}">
+            <input type="hidden" name="recipient_id" value="{{ article.author ? article.author.id : '' }}">
+            <input type="hidden" name="subject" value="Revisão: {{ article.title }}">
+
+            <div class="af-field">
+                <label>Mensagem</label>
+                <textarea name="content" rows="4" class="ate" placeholder="Descreva os ajustes necessários..." required></textarea>
+            </div>
+
+            <div class="af-actions" style="justify-content: flex-end; margin-top: 1rem;">
+                <button type="button" class="btn btn-g" onclick="document.getElementById('send-message-modal').close()">Cancelar</button>
+                <button type="submit" class="btn btn-p"><sl-icon name="send"></sl-icon> Enviar</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+{% endif %}
+
+<script>
+function openMessageModal(id) {
+    const dialog = document.getElementById('message-modal');
+    const content = document.getElementById('message-modal-content');
+    dialog.showModal();
+    content.innerHTML = '<div style="padding: 3rem; display: flex; justify-content: center;"><sl-spinner style="font-size: 2rem;"></sl-spinner></div>';
+
+    fetch('/admin/message/' + id)
+        .then(res => res.text())
+        .then(html => { content.innerHTML = html; })
+        .catch(err => { content.innerHTML = '<div style="padding: 2rem; color: var(--danger);">Erro ao carregar a conversa.</div>'; });
+}
+
+{% if not is_author %}
+document.getElementById('send-message-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+
+    const data = {};
+    new FormData(this).forEach((value, key) => data[key] = value);
+
+    fetch('/admin/message/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.error) {
+            alert('Erro: ' + result.error);
+        } else {
+            alert('Comentário enviado com sucesso!');
+            document.getElementById('send-message-modal').close();
+            this.reset();
+            window.location.reload();
+        }
+    })
+    .catch(() => alert('Erro de comunicação.'))
+    .finally(() => { btn.disabled = false; });
+});
+{% endif %}
+</script>
+
+{% endblock %}

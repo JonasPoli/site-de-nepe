@@ -1,0 +1,13 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Editar Linha{% endblock %}{% block page_title %}Editar Linha{% endblock %}
+{% block body %}
+<div class="ph"><h1>{{ line.title }}</h1><a href="{{ path('admin_research_line_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card">
+    <form action="{{ path('admin_research_line_edit', {id: line.id}) }}" method="post" class="af">
+        <div class="af-field"><label>Título <span class="req">*</span></label><input type="text" name="title" class="ai" value="{{ line.title }}" required></div>
+        <div class="af-field"><label>Descrição</label><textarea name="description" class="ate">{{ line.description }}</textarea></div>
+        <div class="af-field"><label>Ícone (Shoelace)</label><input type="text" name="icon" class="ai" value="{{ line.icon }}" placeholder="Ex: book-fill"></div>
+        <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button><a href="{{ path('admin_research_line_index') }}" class="btn btn-g">Cancelar</a></div>
+    </form>
+</div>
+{% endblock %}

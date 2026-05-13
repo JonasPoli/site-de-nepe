@@ -1,0 +1,148 @@
+{% extends 'themes/nepe/base.html.twig' %}
+
+{% block title %}{{ page.seoTitle ?? page.title }}{% endblock %}
+
+{% block meta_description %}
+{% if page.seoDescription %}
+<meta name="description" content="{{ page.seoDescription }}">
+{% endif %}
+{% endblock %}
+
+{% block og_tags %}
+{{ parent() }}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ page.seoTitle ?? page.title }}">
+{% endblock %}
+
+{% block body %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": {{ (page.seoTitle ?? page.title)|json_encode|raw }},
+  "url": "{{ app.request.uri }}"
+  {% if page.seoDescription %}, "description": {{ page.seoDescription|json_encode|raw }}{% endif %}
+}
+</script>
+
+{# Page hero #}
+<div class="page-hero">
+    <div class="container">
+        <h1>{{ page.title }}</h1>
+    </div>
+</div>
+
+{# Sections in zig-zag layout #}
+{% for section in page.sections %}
+    {% if section.active %}
+    <section class="page-section">
+        {# Two-part colored title #}
+        {% if section.titlePart1 or section.titlePart2 %}
+        <div class="section-two-tone-title reveal-up">
+            {% if section.titlePart1 %}
+                <span class="title-secondary">{{ section.titlePart1 }}</span>
+            {% endif %}
+            {% if section.titlePart2 %}
+                <span class="title-primary">{{ section.titlePart2 }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Blocks in zig-zag #}
+        {% for block in section.blocks %}
+        <div class="zigzag-block {% if loop.index is even %}zigzag-reverse{% endif %} reveal-up delay-{{ loop.index0 * 100 }}">
+            {% if block.image %}
+            <div class="zigzag-img">
+                <div class="zigzag-img-wrapper">
+                    <img src="/uploads/page_block/{{ block.image }}" alt="{{ block.title ?? '' }}" loading="lazy">
+                </div>
+            </div>
+            {% endif %}
+            <div class="zigzag-text">
+                {% if block.preTitle %}
+                    <span class="pre-label">{{ block.preTitle }}</span>
+                {% endif %}
+                {% if block.title %}
+                    <h2>{{ block.title }}</h2>
+                {% endif %}
+                {% if block.text %}
+                    <div class="prose">{{ block.text|raw }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.page-hero {
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary)));
+    color: white; padding: 5rem 0; text-align: center;
+}
+.page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; margin: 0; }
+.page-section { padding: 5rem 0; }
+.page-section:nth-child(even) { background: #f8fafc; }
+
+.section-two-tone-title {
+    display: flex; justify-content: center; margin-bottom: 3rem; overflow: hidden;
+    border-radius: var(--radius); transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.section-two-tone-title:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+.title-secondary {
+    background: var(--color-secondary); color: #1a1c2e;
+    padding: 0.75rem 2rem; font-size: 1.4rem; font-weight: 800;
+}
+.title-primary {
+    background: var(--color-primary); color: white;
+    padding: 0.75rem 2rem; font-size: 1.4rem; font-weight: 800;
+}
+
+.zigzag-block {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+    max-width: 1100px; margin: 0 auto 4rem; padding: 0 1.5rem;
+    transition: transform 0.4s ease;
+}
+.zigzag-block:hover {
+    transform: translateY(-5px);
+}
+.zigzag-reverse .zigzag-img { order: 2; }
+.zigzag-reverse .zigzag-text { order: 1; }
+.zigzag-img-wrapper {
+    overflow: hidden; border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(0,0,0,.1);
+}
+.zigzag-img img { 
+    width: 100%; display: block;
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.zigzag-block:hover .zigzag-img img {
+    transform: scale(1.05) rotate(-1deg);
+}
+.zigzag-text h2 { font-size: 1.7rem; font-weight: 800; margin: 0.75rem 0 1rem; transition: color 0.3s; }
+.zigzag-block:hover .zigzag-text h2 { color: var(--color-primary); }
+.pre-label {
+    display: inline-block; padding: 0.35rem 1rem; border-radius: 50px; margin-bottom: 0.75rem;
+    background: color-mix(in srgb, var(--color-secondary) 25%, transparent);
+    color: var(--color-primary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+    transition: background 0.3s, transform 0.3s;
+}
+.zigzag-block:hover .pre-label {
+    background: var(--color-secondary);
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .zigzag-block { grid-template-columns: 1fr; gap: 2rem; }
+    .zigzag-reverse .zigzag-img, .zigzag-reverse .zigzag-text { order: unset; }
+    .section-two-tone-title { flex-direction: column; }
+    .title-secondary, .title-primary { text-align: center; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'themes/nepe/base.html.twig' %}
+
+{% block title %}{{ article.seoTitle ?? article.title }}{% endblock %}
+
+{% block meta_description %}
+{% if article.seoDescription %}
+<meta name="description" content="{{ article.seoDescription }}">
+{% endif %}
+{% endblock %}
+
+{% block og_tags %}
+{{ parent() }}
+<meta property="og:type"  content="article">
+<meta property="og:title" content="{{ article.seoTitle ?? article.title }}">
+{% if article.seoDescription %}<meta property="og:description" content="{{ article.seoDescription }}">{% endif %}
+{% if article.image %}<meta property="og:image" content="{{ app.request.schemeAndHttpHost }}/uploads/article/{{ article.image }}">{% endif %}
+{% endblock %}
+
+{% block canonical %}
+{% if article.canonicalUrl %}<link rel="canonical" href="{{ article.canonicalUrl }}">{% endif %}
+{% endblock %}
+
+{% block robots %}
+{% if article.isNoIndex %}<meta name="robots" content="noindex">{% endif %}
+{% endblock %}
+
+{% block body %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": {{ article.title|json_encode|raw }},
+  "datePublished": "{{ article.publishedAt|date('c') }}",
+  "author": {"@type": "Organization", "name": {{ (currentTenant ? currentTenant.name : 'NEPE Brasil')|json_encode|raw }}},
+  "publisher": {"@type": "Organization", "name": {{ (currentTenant ? currentTenant.name : 'NEPE Brasil')|json_encode|raw }}}
+  {% if article.image %}, "image": "{{ app.request.schemeAndHttpHost }}/uploads/article/{{ article.image }}"{% endif %}
+}
+</script>
+
+<article class="article-page">
+    {# Hero image #}
+    {% if article.image %}
+    <div class="article-hero-img" style="background-image: url('/uploads/article/{{ article.image }}')"></div>
+    {% endif %}
+
+    <div class="container article-layout">
+        <header class="article-header">
+            {% if article.category %}
+                <a href="{{ path('pub_articles') }}" class="article-category">{{ article.category.name }}</a>
+            {% endif %}
+            <h1>{{ article.title }}</h1>
+            <div class="article-meta">
+                {% if article.author %}<span>Por {{ article.author.name }}</span>{% endif %}
+                {% if article.publishedAt %}
+                    <time datetime="{{ article.publishedAt|date('Y-m-d') }}">
+                        {{ article.publishedAt|date('d \\de F \\de Y') }}
+                    </time>
+                {% endif %}
+            </div>
+            {% if article.shortDescription %}
+                <p class="article-lead">{{ article.shortDescription }}</p>
+            {% endif %}
+        </header>
+
+        <div class="article-body prose">
+            {{ article.content|raw }}
+        </div>
+
+        {% if article.gallery|length > 0 %}
+        <div class="article-gallery">
+            <h3>📸 Galeria de Imagens</h3>
+            <div class="gallery-grid">
+                {% for img in article.gallery %}
+                <a href="{{ asset('uploads/article_gallery/' ~ img.filename) }}" class="glightbox" data-gallery="article-gallery">
+                    <img src="{{ asset('uploads/article_gallery/' ~ img.filename) }}" alt="Imagem da galeria" loading="lazy">
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="article-back">
+            <a href="{{ path('pub_articles') }}" class="btn btn-outline">← Voltar para Notícias</a>
+        </div>
+    </div>
+</article>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+<style>
+.article-hero-img { height: 50vh; background-size: cover; background-position: center; }
+.article-layout { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem; }
+.article-category {
+    display: inline-block; padding: 0.3rem 0.9rem; border-radius: 50px;
+    background: color-mix(in srgb, var(--color-secondary) 20%, transparent);
+    color: var(--color-primary); font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem;
+}
+.article-header h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; line-height: 1.2; margin: 0 0 1rem; }
+.article-meta { display: flex; gap: 1.5rem; color: #9ca3af; font-size: 0.85rem; margin-bottom: 1.5rem; }
+.article-lead { font-size: 1.15rem; color: #4b5563; font-weight: 500; line-height: 1.7; border-left: 4px solid var(--color-primary); padding-left: 1rem; margin: 1.5rem 0; }
+.prose { line-height: 1.8; color: #374151; }
+.prose h2, .prose h3 { color: #1a1c2e; font-weight: 700; margin: 2rem 0 1rem; }
+.prose p { margin: 0 0 1.25rem; }
+.prose img { border-radius: var(--radius); margin: 1.5rem 0; }
+.prose a { color: var(--color-primary); }
+
+.article-gallery { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; }
+.article-gallery h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: #1a1c2e; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+.gallery-grid a { display: block; border-radius: 8px; overflow: hidden; aspect-ratio: 1; }
+.gallery-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; display: block; }
+.gallery-grid a:hover img { transform: scale(1.05); }
+
+.article-back { margin-top: 3rem; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const lightbox = GLightbox({
+            selector: '.glightbox',
+            touchNavigation: true,
+            loop: true
+        });
+    });
+</script>
+{% endblock %}

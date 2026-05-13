@@ -41,3 +41,6 @@ composer.phar
 
 public/images/newsImage/
 public/images/newsImage/*
+
+public/uploads/
+public/uploads/*

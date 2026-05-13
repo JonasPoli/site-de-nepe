@@ -1,0 +1,107 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Configurações{% endblock %}{% block page_title %}Configurações do Site{% endblock %}
+{% block body %}
+<div class="ph"><h1>Configurações</h1></div>
+<div class="card">
+    <form action="{{ path('admin_settings') }}" method="post" class="af" enctype="multipart/form-data">
+
+        {# ── Quem Somos (rodapé) ── #}
+        <div class="af-field">
+            <label>Breve "Quem Somos" <span class="af-hint" style="display:inline;margin-left:.5rem">(1ª frase aparece no rodapé)</span></label>
+            <textarea name="aboutText" class="ai" rows="3" style="resize:vertical" placeholder="Uma frase descrevendo a organização...">{{ tenant.aboutText }}</textarea>
+        </div>
+
+        {# ── Quem Somos (home) ── #}
+        <div style="margin:1.5rem 0 .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Quem Somos — Home</div>
+        <div class="af-field">
+            <label>Texto completo do "Quem Somos" <span class="af-hint" style="display:inline;margin-left:.5rem">(aparece na seção da home)</span></label>
+            <textarea name="aboutFullText" class="ai" rows="6" style="resize:vertical" placeholder="Descrição mais detalhada da organização para a home...">{{ tenant.aboutFullText }}</textarea>
+        </div>
+        <div class="af-field">
+            <label>Imagem do "Quem Somos"</label>
+            <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+                {% if tenant.aboutImage %}
+                    <img id="about-img-prev" src="{{ asset('uploads/tenant/about/' ~ tenant.aboutImage) }}"
+                         alt="Imagem atual" style="height:80px;width:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+                {% else %}
+                    <div id="about-img-prev" style="width:120px;height:80px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted)">
+                        <sl-icon name="image" style="font-size:1.8rem"></sl-icon>
+                    </div>
+                {% endif %}
+                <div>
+                    <label for="about-img-upload" style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:8px;border:1px dashed var(--primary);color:var(--primary);font-size:.85rem;font-weight:600;cursor:pointer">
+                        <sl-icon name="upload"></sl-icon> Selecionar imagem
+                    </label>
+                    <input type="file" id="about-img-upload" name="aboutImageFile" accept="image/webp,image/jpeg,image/png" style="display:none" onchange="prevAbout(this)">
+                    <p class="af-hint" style="margin-top:.4rem">Recomendado: 800×600 px · WebP, JPG ou PNG</p>
+                </div>
+            </div>
+        </div>
+
+        {# ── Contato ── #}
+        <div style="margin:1.5rem 0 .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Contato</div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>E-mail de Contato</label>
+                <input type="email" name="contactEmail" class="ai" value="{{ tenant.contactEmail }}" placeholder="contato@exemplo.com.br">
+            </div>
+            <div class="af-field">
+                <label>Telefone</label>
+                <input type="text" name="phone" class="ai" value="{{ tenant.phone }}" placeholder="(00) 0000-0000">
+            </div>
+        </div>
+        <div class="af-field">
+            <label>Endereço</label>
+            <input type="text" name="address" class="ai" value="{{ tenant.address }}" placeholder="Rua Exemplo, 123 — Cidade/UF">
+        </div>
+        <div class="af-field">
+            <label>Google Maps — URL de incorporação <span class="af-hint" style="display:inline;margin-left:.5rem">(src do iframe)</span></label>
+            <input type="url" name="mapsEmbedUrl" class="ai" value="{{ tenant.mapsEmbedUrl }}" placeholder="https://www.google.com/maps/embed?...">
+            <p class="af-hint">No Google Maps: Compartilhar → Incorporar um mapa → copie apenas o valor do atributo <code>src</code></p>
+        </div>
+
+        {# ── Redes Sociais ── #}
+        <div style="margin:1.5rem 0 .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Redes Sociais</div>
+        <div class="af-row">
+            <div class="af-field">
+                <label><twig:ux:icon name="fa6-brands:youtube" style="color:#ff0000;margin-right:.35rem;vertical-align:middle"/>YouTube</label>
+                <input type="url" name="youtubeLink" class="ai" value="{{ tenant.youtubeLink }}" placeholder="https://youtube.com/@canal">
+            </div>
+            <div class="af-field">
+                <label><twig:ux:icon name="fa6-brands:instagram" style="color:#e1306c;margin-right:.35rem;vertical-align:middle"/>Instagram</label>
+                <input type="url" name="instagramLink" class="ai" value="{{ tenant.instagramLink }}" placeholder="https://instagram.com/perfil">
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label><twig:ux:icon name="fa6-brands:facebook" style="color:#1877f2;margin-right:.35rem;vertical-align:middle"/>Facebook</label>
+                <input type="url" name="facebookLink" class="ai" value="{{ tenant.facebookLink }}" placeholder="https://facebook.com/pagina">
+            </div>
+            <div class="af-field">
+                <label><twig:ux:icon name="fa6-brands:linkedin" style="color:#0a66c2;margin-right:.35rem;vertical-align:middle"/>LinkedIn</label>
+                <input type="url" name="linkedinLink" class="ai" value="{{ tenant.linkedinLink }}" placeholder="https://linkedin.com/in/perfil">
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label><twig:ux:icon name="fa6-brands:whatsapp" style="color:#25d366;margin-right:.35rem;vertical-align:middle"/>WhatsApp</label>
+                <input type="url" name="whatsappLink" class="ai" value="{{ tenant.whatsappLink }}" placeholder="https://wa.me/5511999999999">
+                <p class="af-hint">Use o formato <code>https://wa.me/55DD9XXXXXXXX</code></p>
+            </div>
+            <div class="af-field"></div>
+        </div>
+
+        {# ── Publicação ── #}
+        <div style="margin:1.5rem 0 .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Publicação</div>
+        <div class="af-field">
+            <label>Mínimo de aprovações para publicar artigo</label>
+            <input type="number" name="requiredApprovals" class="ai" value="{{ tenant.requiredApprovals ?? 1 }}" min="1" max="10" style="max-width:120px">
+            <p class="af-hint">Número de revisores que precisam aprovar antes de publicar automaticamente.</p>
+        </div>
+
+        <div class="af-actions">
+            <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar Configurações</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

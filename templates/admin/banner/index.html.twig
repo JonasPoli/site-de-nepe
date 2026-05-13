@@ -1,0 +1,41 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Banners{% endblock %}
+{% block page_title %}Banners{% endblock %}
+{% block body %}
+<div class="ph"><h1>Banners</h1><a href="{{ path('admin_banner_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Novo Banner</a></div>
+<div class="card"><div class="tw"><table class="at">
+    <thead><tr><th style="width:36px"></th><th style="width:50px">Pos.</th><th style="width:80px">Imagem</th><th>Título</th><th>CTA</th><th>Status</th><th></th></tr></thead>
+    <tbody id="banner-sortable">
+    {% for b in banners %}
+    <tr class="sortable-row" data-id="{{ b.id }}" style="cursor:grab">
+        <td style="color:var(--muted);user-select:none"><sl-icon name="grip-vertical" style="font-size:1.2rem"></sl-icon></td>
+        <td style="text-align:center"><span class="badge bg-neu ordem-badge">{{ b.position > 0 ? b.position : loop.index }}</span></td>
+        <td>
+            {% if b.backgroundImage %}
+                <img src="{{ asset('uploads/hero/' ~ b.backgroundImage)|imagine_filter('admin_thumb') }}" alt="Banner" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);">
+            {% else %}
+                <div style="width: 60px; height: 40px; background: var(--bg2); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.7rem;">S/ Img</div>
+            {% endif %}
+        </td>
+        <td style="font-weight:600">{{ b.title }}</td>
+        <td>{{ b.ctaText ?? '—' }}</td>
+        <td><span class="badge {{ b.active ? 'bg-ok' : 'bg-neu' }}">{{ b.active ? 'Ativo' : 'Inativo' }}</span></td>
+        <td><div class="ta">
+            <a href="{{ path('admin_banner_edit', {id: b.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+            <form action="{{ path('admin_banner_delete', {id: b.id}) }}" method="post" onsubmit="return confirm('Remover?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('del_banner_' ~ b.id) }}">
+                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+            </form>
+        </div></td>
+    </tr>
+    {% else %}<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Nenhum banner.</td></tr>{% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}
+{% block javascripts %}
+{{ parent() }}
+{{ include('admin/_sortable_script.html.twig', {
+    tbody_id: 'banner-sortable',
+    reorder_url: path('admin_banner_reorder')
+}) }}
+{% endblock %}

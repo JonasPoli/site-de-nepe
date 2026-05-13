@@ -1,0 +1,29 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Editores{% endblock %}{% block page_title %}Editores{% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>Editores e Revisores</h1>
+    <a href="{{ path('admin_editor_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Novo Usuário</a>
+</div>
+<div class="card"><div class="tw"><table class="at">
+    <thead><tr><th>Nome</th><th>Username</th><th>E-mail</th><th>Função</th><th></th></tr></thead>
+    <tbody>
+    {% for editor in editors %}
+    <tr>
+        <td style="font-weight:600">{{ editor.name }}</td>
+        <td><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:4px;font-size:.8rem">{{ editor.username }}</code></td>
+        <td>{{ editor.email ?? '—' }}</td>
+        <td>
+            <span class="badge {{ editor.workGroup == 1 ? 'bg-inf' : 'bg-warn' }}">
+                {{ editor.workGroup == 1 ? 'Editor' : 'Revisor' }}
+            </span>
+        </td>
+        <td><form action="{{ path('admin_editor_delete', {id: editor.id}) }}" method="post" onsubmit="return confirm('Remover usuário?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('del_editor_' ~ editor.id) }}">
+            <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+        </form></td>
+    </tr>
+    {% else %}<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">Nenhum editor.</td></tr>{% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}

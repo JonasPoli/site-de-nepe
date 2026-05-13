@@ -3,7 +3,7 @@ twig:
     form_themes: ['admin/form_theme.html.twig']
     globals:
         templateService: '@App\Service\TemplateService'
-        tinymce_key: '%env(resolve:TINYMCE)%'
+        tinymce_key: '%env(string:TINYMCE_API_KEY)%'
 
 when@test:
     twig:

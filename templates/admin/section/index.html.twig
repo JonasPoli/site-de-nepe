@@ -1,0 +1,62 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Seções — {{ page.title }}{% endblock %}{% block page_title %}Seções{% endblock %}
+{% block body %}
+<div class="ph">
+    <div>
+        <h1>Seções da Página: <em style="color:var(--primary)">{{ page.title }}</em></h1>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:.25rem">
+            Arraste para reordenar · Cada seção pode ter múltiplos blocos em zig-zag
+        </div>
+    </div>
+    <div style="display:flex;gap:.75rem">
+        <a href="{{ path('admin_section_new', {pageId: page.id}) }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Seção</a>
+        <a href="{{ path('admin_page_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Páginas</a>
+    </div>
+</div>
+<div class="card">
+    <ul class="sortable-list" id="sortable-sections">
+    {% for section in sections %}
+    <li class="sortable-item" data-id="{{ section.id }}">
+        <span class="drag-h"><sl-icon name="grip-vertical"></sl-icon></span>
+        <div style="flex:1">
+            <div style="font-weight:600">
+                {% if section.titlePart1 %}<span style="color:var(--secondary)">{{ section.titlePart1 }}</span>{% endif %}
+                {% if section.titlePart1 and section.titlePart2 %} / {% endif %}
+                {% if section.titlePart2 %}<span style="color:var(--primary)">{{ section.titlePart2 }}</span>{% endif %}
+                {% if not section.titlePart1 and not section.titlePart2 %}<span style="color:var(--muted)">(sem título)</span>{% endif %}
+            </div>
+            <div style="font-size:.78rem;color:var(--muted)">{{ section.blocks|length }} bloco(s)</div>
+        </div>
+        <span class="badge {{ section.active ? 'bg-ok' : 'bg-neu' }}">{{ section.active ? 'Ativo' : 'Inativo' }}</span>
+        <div class="ta">
+            <a href="{{ path('admin_block_index', {sectionId: section.id}) }}" class="btn btn-g btn-sm" title="Gerenciar blocos"><sl-icon name="grid"></sl-icon></a>
+            <a href="{{ path('admin_section_edit', {id: section.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+            <form action="{{ path('admin_section_delete', {id: section.id}) }}" method="post" onsubmit="return confirm('Remover seção e todos os blocos?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('del_sec_' ~ section.id) }}">
+                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+            </form>
+        </div>
+    </li>
+    {% else %}
+    <li style="padding:2rem;text-align:center;color:var(--muted)">Nenhuma seção. Crie a primeira!</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.sortable-list{list-style:none;padding:0;margin:0}
+.sortable-item{display:flex;align-items:center;gap:1rem;padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,.04)}
+.sortable-item:last-child{border-bottom:none}
+</style>{% endblock %}
+{% block javascripts %}{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+<script>
+Sortable.create(document.getElementById('sortable-sections'), {
+    handle:'.drag-h', ghostClass:'sortable-ghost', animation:150,
+    onEnd(){
+        const ids=[...document.querySelectorAll('#sortable-sections [data-id]')].map(el=>el.dataset.id);
+        fetch('{{ path('admin_section_reorder') }}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Newsletter{% endblock %}{% block page_title %}Inscritos Newsletter{% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>Newsletter <span class="badge bg-inf">{{ subscribers|length }} inscritos</span></h1>
+    <a href="#" onclick="exportCSV()" class="btn btn-g btn-sm"><sl-icon name="download"></sl-icon> Exportar CSV</a>
+</div>
+<div class="card"><div class="tw"><table class="at" id="nl-table">
+    <thead><tr><th>Nome</th><th>E-mail</th><th>Data</th><th></th></tr></thead>
+    <tbody>
+    {% for s in subscribers %}
+    <tr>
+        <td>{{ s.name ?? '—' }}</td>
+        <td><a href="mailto:{{ s.email }}" style="color:var(--primary)">{{ s.email }}</a></td>
+        <td>{{ s.subscribedAt|date('d/m/Y') }}</td>
+        <td><form action="{{ path('admin_newsletter_delete', {id: s.id}) }}" method="post" onsubmit="return confirm('Remover?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('del_nl_' ~ s.id) }}">
+            <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+        </form></td>
+    </tr>
+    {% else %}<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Nenhum inscrito.</td></tr>{% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}
+{% block javascripts %}{{ parent() }}
+<script>
+function exportCSV(){
+    const rows=[['Nome','Email','Data']];
+    document.querySelectorAll('#nl-table tbody tr').forEach(tr=>{
+        const td=tr.querySelectorAll('td');
+        if(td.length>=3) rows.push([td[0].innerText,td[1].innerText,td[2].innerText]);
+    });
+    const csv=rows.map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
+    const a=document.createElement('a');
+    a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='newsletter.csv';a.click();
+}
+</script>
+{% endblock %}

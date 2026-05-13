@@ -1,0 +1,29 @@
+{# Macro: page form #}
+{% macro page_form(page, action) %}
+<form action="{{ action }}" method="post" class="af">
+    <div class="af-row">
+        <div class="af-field"><label>Título <span class="req">*</span></label><input type="text" name="title" class="ai" value="{{ page.title }}" required></div>
+        <div class="af-field"><label>Slug</label><input type="text" name="slug" class="ai" value="{{ page.slug }}" placeholder="gerado automaticamente"></div>
+    </div>
+    <div class="af-row">
+        <div class="af-field" style="flex-direction:row;align-items:center;gap:.75rem;padding-top:1rem">
+            <sl-switch name="showInHeader" value="1" {{ page.showInHeader ? 'checked' : '' }}></sl-switch>
+            <label style="color:var(--text)">Exibir no menu de navegação</label>
+        </div>
+        <div class="af-field" style="flex-direction:row;align-items:center;gap:.75rem;padding-top:1rem">
+            <sl-switch name="showInFooter" value="1" {{ page.showInFooter ? 'checked' : '' }}></sl-switch>
+            <label style="color:var(--text)">Exibir no rodapé</label>
+        </div>
+    </div>
+    <details><summary style="cursor:pointer;font-weight:600;color:var(--muted);font-size:.85rem;margin-bottom:1rem">⚙ SEO</summary>
+        <div class="af" style="margin-top:1rem">
+            <div class="af-field"><label>SEO Title</label><input type="text" name="seoTitle" class="ai" value="{{ page.seoTitle }}"></div>
+            <div class="af-field"><label>SEO Description</label><textarea name="seoDescription" class="ate" rows="3" style="min-height:70px">{{ page.seoDescription }}</textarea></div>
+        </div>
+    </details>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_page_index') }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+{% endmacro %}

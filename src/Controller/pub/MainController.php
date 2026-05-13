@@ -20,13 +20,9 @@ class MainController extends AbstractController
     {
     }
     #[Route('/', name: 'pub_home')]
-    public function home(\App\Repository\EventoRepository $eventoRepo): Response
+    public function home(): Response
     {
-        $eventos = $eventoRepo->findBy(['status' => 'ativo'], ['dataInicio' => 'ASC']);
-
-        return $this->render('pub/main/home.html.twig', [
-            'eventos' => $eventos,
-        ]);
+        return $this->render('pub/main/home.html.twig');
     }
 
     #[Route('/contato', name: 'pub_contact', methods: ['GET'])]

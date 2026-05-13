@@ -1,0 +1,62 @@
+{% extends 'themes/moderno/base.html.twig' %}
+{% block title %}{{ video.title }}{% endblock %}
+{% block body %}
+<div class="container mv-page">
+    <header class="mv-header">
+        {% if video.category %}<span class="m-tag">{{ video.category.name }}</span>{% endif %}
+        <h1>{{ video.title }}</h1>
+        <time>{{ video.createdAt|date('d/m/Y') }}</time>
+    </header>
+    <div class="mv-embed">
+        <iframe src="{{ video.embedUrl }}" title="{{ video.title }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+    {% if video.description %}<div class="mv-desc prose-dark">{{ video.description|raw }}</div>{% endif %}
+    {% if video.materialsHtml %}
+    <div class="mv-materials">
+        <h2>📚 Materiais e Referências</h2>
+        <div class="prose-dark">{{ video.materialsHtml|raw }}</div>
+    </div>
+    {% endif %}
+    {% if video.materials|length > 0 %}
+    <div class="mv-downloads">
+        <h2>⬇️ Arquivos para Download</h2>
+        <div class="mv-dl-grid">
+            {% for mat in video.materials %}
+            {% set icon = mat.extension in ['pdf'] ? '📄' : (mat.extension in ['xls','xlsx'] ? '📊' : (mat.extension in ['doc','docx'] ? '📝' : (mat.extension in ['png','jpg','jpeg'] ? '🖼️' : (mat.extension in ['csv','txt'] ? '📋' : '📎')))) %}
+            <a href="{{ asset('uploads/video_material/' ~ mat.filename) }}" download class="mv-dl-card" title="{{ mat.label }}">
+                <span class="mv-dl-icon">{{ icon }}</span>
+                <div class="mv-dl-info">
+                    <span class="mv-dl-name">{{ mat.label }}</span>
+                    <span class="mv-dl-ext">{{ mat.extension|upper }}</span>
+                </div>
+                <span class="mv-dl-arrow">⬇</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <a href="{{ path('pub_videos') }}" class="btn btn-ghost" style="margin-top:2rem">← Voltar</a>
+</div>
+{% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.mv-page{max-width:900px;margin:0 auto;padding:3rem 1.5rem;}
+.mv-header h1{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:800;margin:.5rem 0;color:#e2e8f0;}
+.mv-header time{color:rgba(255,255,255,.4);font-size:.85rem;}
+.mv-embed{margin:2rem 0;border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:16/9;border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow-lg);}
+.mv-embed iframe{width:100%;height:100%;}
+.mv-desc{margin:2rem 0;color:rgba(255,255,255,.7);line-height:1.8;}
+.mv-materials{margin:2.5rem 0;padding:2rem;border-radius:var(--radius);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);}
+.mv-materials h2{font-size:1.2rem;font-weight:700;margin:0 0 1.25rem;color:var(--color-secondary);}
+.prose-dark{color:rgba(255,255,255,.7);line-height:1.8;}
+.prose-dark a{color:var(--color-secondary);}
+.mv-downloads{margin:2.5rem 0;}
+.mv-downloads h2{font-size:1.1rem;font-weight:700;margin:0 0 1rem;color:#e2e8f0;}
+.mv-dl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;}
+.mv-dl-card{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);text-decoration:none;transition:background .2s,border-color .2s;}
+.mv-dl-card:hover{background:rgba(255,255,255,.09);border-color:rgba(var(--color-secondary-rgb),.4);}
+.mv-dl-icon{font-size:1.75rem;flex-shrink:0;}
+.mv-dl-info{flex:1;overflow:hidden;}
+.mv-dl-name{display:block;font-size:.9rem;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mv-dl-ext{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-secondary);margin-top:.15rem;}
+.mv-dl-arrow{color:var(--color-secondary);font-size:1rem;flex-shrink:0;}
+</style>{% endblock %}

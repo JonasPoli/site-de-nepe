@@ -1,0 +1,23 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Categorias{% endblock %}{% block page_title %}Categorias{% endblock %}
+{% block body %}
+<div class="ph"><h1>Categorias</h1><a href="{{ path('admin_category_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Categoria</a></div>
+<div class="card"><div class="tw"><table class="at">
+    <thead><tr><th>Nome</th><th>Slug</th><th></th></tr></thead>
+    <tbody>
+    {% for cat in categories %}
+    <tr>
+        <td style="font-weight:600">{{ cat.name }}</td>
+        <td><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:4px;font-size:.8rem">{{ cat.slug }}</code></td>
+        <td><div class="ta">
+            <a href="{{ path('admin_category_edit', {id: cat.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+            <form action="{{ path('admin_category_delete', {id: cat.id}) }}" method="post" onsubmit="return confirm('Remover?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('del_cat_' ~ cat.id) }}">
+                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+            </form>
+        </div></td>
+    </tr>
+    {% else %}<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:2rem">Nenhuma categoria.</td></tr>{% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}

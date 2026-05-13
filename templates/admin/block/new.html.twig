@@ -1,0 +1,8 @@
+{% extends 'admin/nepe_base.html.twig' %}{% import 'admin/block/_form.html.twig' as f %}
+{% block title %}Novo Bloco{% endblock %}{% block page_title %}Novo Bloco{% endblock %}
+{% block body %}
+<div class="ph"><h1>Novo Bloco — Seção {{ section.titlePart1 ?? '' }} {{ section.titlePart2 ?? '' }}</h1>
+<a href="{{ path('admin_block_index', {sectionId: section.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Blocos</a></div>
+<div class="card">{{ f.block_form(block, path('admin_block_new', {sectionId: section.id})) }}</div>
+{% endblock %}
+{% block javascripts %}{{ parent() }}{% endblock %}

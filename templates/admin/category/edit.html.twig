@@ -1,0 +1,9 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Editar Categoria{% endblock %}{% block page_title %}Editar Categoria{% endblock %}
+{% block body %}
+<div class="ph"><h1>{{ category.name }}</h1><a href="{{ path('admin_category_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="card"><form action="{{ path('admin_category_edit', {id: category.id}) }}" method="post" class="af">
+    <div class="af-field"><label>Nome <span class="req">*</span></label><input type="text" name="name" class="ai" value="{{ category.name }}" required></div>
+    <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button><a href="{{ path('admin_category_index') }}" class="btn btn-g">Cancelar</a></div>
+</form></div>
+{% endblock %}

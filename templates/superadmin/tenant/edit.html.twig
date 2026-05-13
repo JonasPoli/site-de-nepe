@@ -1,0 +1,139 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Editar Tenant{% endblock %}
+{% block page_title %}Editar Tenant{% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>{{ tenant.name }}</h1>
+    <a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+</div>
+<div class="card">
+    <form action="{{ path('superadmin_tenant_edit', {id: tenant.id}) }}"
+          method="post" class="af" enctype="multipart/form-data">
+
+        {# ── Logo ── #}
+        <div class="af-field">
+            <label>Logo do site</label>
+            <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+                {% if tenant.logo %}
+                    <div style="position:relative">
+                        <img id="logo-preview"
+                             src="{{ asset('uploads/tenant/logo/' ~ tenant.logo) }}"
+                             alt="Logo atual" style="height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);padding:6px;background:rgba(255,255,255,.05)">
+                        <div style="font-size:.7rem;color:var(--muted);margin-top:.35rem;text-align:center">Atual</div>
+                    </div>
+                {% else %}
+                    <div id="logo-preview" style="width:80px;height:64px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted)">
+                        <sl-icon name="image" style="font-size:1.5rem"></sl-icon>
+                    </div>
+                {% endif %}
+                <div style="flex:1">
+                    <label for="logo-upload" class="logo-upload-btn">
+                        <sl-icon name="upload"></sl-icon> Selecionar imagem
+                    </label>
+                    <input type="file" id="logo-upload" name="logoFile"
+                           accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                           style="display:none" onchange="previewLogo(this)">
+                    <p class="af-hint" style="margin-top:.4rem">PNG, JPG, SVG ou WebP · Recomendado: fundo transparente (PNG ou SVG) · max 2 MB</p>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border)">
+
+        {# ── Identificação ── #}
+        <div class="af-row">
+            <div class="af-field">
+                <label>Nome</label>
+                <input type="text" name="name" class="ai" value="{{ tenant.name }}">
+            </div>
+            <div class="af-field">
+                <label>Domínio</label>
+                <input type="text" name="domain" class="ai" value="{{ tenant.domain }}">
+            </div>
+        </div>
+
+        {# ── Visual ── #}
+        <div class="af-row">
+            <div class="af-field">
+                <label>Tema</label>
+                <select name="theme" class="as">
+                    <option value="nepe" {{ tenant.theme == 'nepe' ? 'selected' }}>Nepe (claro, acadêmico)</option>
+                    <option value="moderno" {{ tenant.theme == 'moderno' ? 'selected' }}>Moderno (dark, vibrante)</option>
+                </select>
+            </div>
+            <div class="af-field">
+                <label>Mínimo de aprovações</label>
+                <input type="number" name="requiredApprovals" class="ai"
+                       value="{{ tenant.requiredApprovals ?? 1 }}" min="1" max="10">
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>Cor Primária</label>
+                <input type="color" name="primaryColor" value="{{ tenant.primaryColor ?? '#0044cc' }}"
+                       style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:none">
+            </div>
+            <div class="af-field">
+                <label>Cor Secundária</label>
+                <input type="color" name="secondaryColor" value="{{ tenant.secondaryColor ?? '#ffaa00' }}"
+                       style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:none">
+            </div>
+        </div>
+
+        <div class="af-actions">
+            <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+            <a href="{{ path('superadmin_dash') }}" class="btn btn-g">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block stylesheets %}{{ parent() }}
+<style>
+.logo-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem 1.1rem;
+    border-radius: 8px;
+    border: 1px dashed var(--primary);
+    color: var(--primary);
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+.logo-upload-btn:hover {
+    background: rgba(124,58,237,.1);
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}{{ parent() }}
+<script>
+function previewLogo(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Arquivo muito grande. Máximo 2 MB.');
+        input.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+        let preview = document.getElementById('logo-preview');
+        if (preview.tagName === 'DIV') {
+            // Replace placeholder div with img
+            const img = document.createElement('img');
+            img.id = 'logo-preview';
+            img.style.cssText = 'height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);padding:6px;background:rgba(255,255,255,.05)';
+            img.alt = 'Preview';
+            preview.replaceWith(img);
+            preview = img;
+        }
+        preview.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+</script>
+{% endblock %}

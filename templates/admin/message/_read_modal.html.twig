@@ -1,0 +1,54 @@
+<div class="conversation">
+    <div class="conv-header">
+        <div>
+            <div class="conv-title">{{ rootMessage.subject ?? '(sem assunto)' }}</div>
+            <div style="font-size:.78rem;color:var(--muted)">
+                {{ rootMessage.sender.name }} → {{ rootMessage.recipient.name }}
+                · {{ conversation|length }} mensagem(ns)
+            </div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+            <form action="{{ path('admin_message_status', {id: rootMessage.id, status: 'resolved'}) }}" method="post" style="display:inline">
+                <button type="submit" class="btn btn-s btn-sm" title="Marcar como resolvido">
+                    <sl-icon name="check2-all"></sl-icon> Resolvido
+                </button>
+            </form>
+            <form action="{{ path('admin_message_status', {id: rootMessage.id, status: 'ignored'}) }}" method="post" style="display:inline">
+                <button type="submit" class="btn btn-g btn-sm" title="Ignorar">
+                    <sl-icon name="slash-circle"></sl-icon>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="conv-messages" id="conv-messages">
+        {% set me = app.user %}
+        {% for msg in conversation %}
+        <div class="{{ msg.sender.id == me.id ? 'msg-mine' : 'msg-theirs' }} msg-bubble">
+            <div class="msg-sender">{{ msg.sender.name }}</div>
+            <div>{{ msg.content|nl2br }}</div>
+            <div class="msg-time">{{ msg.sentAt|date('d/m/Y H:i') }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form class="conv-reply" id="reply-form"
+          action="{{ path('admin_message_reply', {id: rootMessage.id}) }}" method="post">
+        <textarea name="content" id="reply-content" class="ate" rows="2" placeholder="Responder…" style="min-height:60px"></textarea>
+        <button type="submit" class="btn btn-p" style="align-self:flex-end">
+            <sl-icon name="send-fill"></sl-icon>
+        </button>
+    </form>
+</div>
+
+<script>
+// Scroll to bottom of messages
+document.getElementById('conv-messages').scrollTop = 99999;
+
+// Ctrl+Enter to submit
+document.getElementById('reply-content').addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        document.getElementById('reply-form').submit();
+    }
+});
+</script>

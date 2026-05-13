@@ -1,0 +1,24 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Editar Seção{% endblock %}{% block page_title %}Editar Seção{% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>Editar Seção</h1>
+    <a href="{{ path('admin_section_index', {pageId: section.page.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Seções</a>
+</div>
+<div class="card">
+    <form action="{{ path('admin_section_edit', {id: section.id}) }}" method="post" class="af">
+        <div class="af-row">
+            <div class="af-field"><label>Título Parte 1 <span class="af-hint" style="color:var(--secondary)">(cor secundária)</span></label><input type="text" name="titlePart1" class="ai" value="{{ section.titlePart1 }}"></div>
+            <div class="af-field"><label>Título Parte 2 <span class="af-hint" style="color:var(--primary)">(cor primária)</span></label><input type="text" name="titlePart2" class="ai" value="{{ section.titlePart2 }}"></div>
+        </div>
+        <div class="af-field" style="flex-direction:row;align-items:center;gap:.75rem">
+            <sl-switch name="active" value="1" {{ section.active ? 'checked' : '' }}></sl-switch>
+            <label style="color:var(--text)">Seção ativa</label>
+        </div>
+        <div class="af-actions">
+            <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+            <a href="{{ path('admin_section_index', {pageId: section.page.id}) }}" class="btn btn-g">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

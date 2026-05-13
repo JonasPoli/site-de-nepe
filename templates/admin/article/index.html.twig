@@ -1,0 +1,89 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Artigos{% endblock %}
+{% block page_title %}Artigos{% endblock %}
+
+{% block body %}
+<div class="ph">
+    <h1>Artigos</h1>
+    {% if is_granted('ARTICLE_EDIT') %}
+    <a href="{{ path('admin_article_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Novo Artigo</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="tw">
+        <table class="at">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Imagem</th>
+                    <th>Título</th>
+                    <th>Categoria</th>
+                    <th>Autor</th>
+                    <th>Status</th>
+                    <th>Publicado</th>
+                    <th>Aprovações</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for article in articles %}
+            <tr>
+                <td>
+                    {% if article.image %}
+                        <img src="{{ asset('uploads/article/' ~ article.image)|imagine_filter('admin_thumb') }}" alt="Capa" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);">
+                    {% else %}
+                        <div style="width: 60px; height: 40px; background: var(--bg2); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.7rem;">S/ Img</div>
+                    {% endif %}
+                </td>
+                <td style="font-weight:600;max-width:280px">{{ article.title }}</td>
+                <td>{{ article.category ? article.category.name : '—' }}</td>
+                <td>{{ article.author ? article.author.name : '—' }}</td>
+                <td>
+                    {% set s = article.status %}
+                    <span class="badge {{ s.value == 'published' ? 'bg-ok' : (s.value == 'pending' ? 'bg-warn' : 'bg-neu') }}">
+                        {{ s.label() }}
+                    </span>
+                </td>
+                <td>{{ article.publishedAt ? article.publishedAt|date('d/m/Y') : '—' }}</td>
+                <td>
+                    <span class="badge bg-inf">{{ article.approvalCount }}</span>
+                    / {{ article.tenant ? article.tenant.requiredApprovals : 1 }}
+                </td>
+                <td>
+                    <div class="ta">
+                        {% set is_author = article.author and article.author.id == app.user.id %}
+                        
+                        {% if is_author or is_granted('ROLE_SUPER_ADMIN') %}
+                            {% if is_granted('ARTICLE_EDIT') %}
+                                <a href="{{ path('admin_article_edit', {id: article.id}) }}" class="btn btn-g btn-sm" title="Editar">
+                                    <sl-icon name="pencil-fill"></sl-icon>
+                                </a>
+                                {% if article.status.value == 'draft' %}
+                                    <form action="{{ path('admin_article_submit', {id: article.id}) }}" method="post" style="display:inline">
+                                        <button type="submit" class="btn btn-sm" style="background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)" title="Enviar para aprovação">
+                                            <sl-icon name="send-fill"></sl-icon>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                            <form action="{{ path('admin_article_delete', {id: article.id}) }}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Remover artigo?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_article_' ~ article.id) }}">
+                                <button type="submit" class="btn btn-d btn-sm" title="Excluir"><sl-icon name="trash-fill"></sl-icon></button>
+                            </form>
+                        {% else %}
+                            <a href="{{ path('admin_article_show', {id: article.id}) }}" class="btn btn-g btn-sm" title="Visualizar para Aprovar">
+                                <sl-icon name="eye-fill"></sl-icon>
+                            </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">Nenhum artigo encontrado.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -18,15 +18,21 @@
         <div class="flex min-h-screen flex-col">
             <header class="border-b border-slate-200/60 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-slate-950/90">
                 <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-300 text-base font-semibold text-slate-900 shadow-sm">
-                            <sl-icon name="ticket-perforated" class="text-xl"></sl-icon>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-300">TickePix</p>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">Ingressos rápidos com Pix</p>
-                        </div>
-                    </div>
+                    <a href="{{ path('pub_home') }}"
+                       style="display:flex;align-items:center;gap:.75rem;text-decoration:none;flex-shrink:0;height:44px;max-width:220px;overflow:hidden">
+                        {% if currentTenant and currentTenant.logo %}
+                            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo) }}"
+                                 alt="{{ currentTenant.name }}"
+                                 style="max-height:36px;width:auto;max-width:180px;object-fit:contain;display:block;flex-shrink:0">
+                        {% else %}
+                            <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-300 text-base font-semibold text-slate-900 shadow-sm" style="flex-shrink:0">
+                                {{ currentTenant ? currentTenant.name|first|upper : 'N' }}
+                            </div>
+                            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-300 truncate">
+                                {{ currentTenant ? currentTenant.name : 'NEPE' }}
+                            </p>
+                        {% endif %}
+                    </a>
                     <div class="flex items-center gap-2 text-xs font-medium">
                         <button type="button" onclick="lightMode()" class="rounded-full border border-slate-900/10 px-3 py-1 text-slate-600 transition hover:border-slate-900/30 hover:text-slate-900 dark:border-white/10 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white">
                             Claro
