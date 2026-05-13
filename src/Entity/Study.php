@@ -3,14 +3,17 @@
 namespace App\Entity;
 
 use App\Contract\TenantAwareInterface;
-use App\Repository\VideoSupportRepository;
+use App\Repository\StudyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
-#[ORM\Entity(repositoryClass: VideoSupportRepository::class)]
-class VideoSupport implements TenantAwareInterface
+#[ORM\Entity(repositoryClass: StudyRepository::class)]
+#[Vich\Uploadable]
+class Study implements TenantAwareInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -31,14 +34,21 @@ class VideoSupport implements TenantAwareInterface
     #[ORM\Column(length: 255)]
     private string $slug = '';
 
-    /** YouTube video ID — e.g. dQw4w9WgXcQ */
-    #[ORM\Column(length: 30)]
-    private string $youtubeId = '';
+    /** Imagem principal (capa) do estudo */
+    #[Vich\UploadableField(mapping: 'study_cover', fileNameProperty: 'coverImage')]
+    private ?File $coverImageFile = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $coverImage = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $coverImageUpdatedAt = null;
+
+    /** Rich-text description */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    /** HTML content with download links, PDFs, etc. */
+    /** HTML content: referências, links, tabelas, etc. */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $materialsHtml = null;
 
@@ -49,7 +59,7 @@ class VideoSupport implements TenantAwareInterface
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
-    #[ORM\OneToMany(targetEntity: \App\Entity\VideoMaterial::class, mappedBy: 'video', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: StudyMaterial::class, mappedBy: 'study', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $materials;
 
@@ -73,18 +83,19 @@ class VideoSupport implements TenantAwareInterface
     public function getSlug(): string { return $this->slug; }
     public function setSlug(string $slug): static { $this->slug = $slug; return $this; }
 
-    public function getYoutubeId(): string { return $this->youtubeId; }
-    public function setYoutubeId(string $youtubeId): static { $this->youtubeId = $youtubeId; return $this; }
-
-    public function getThumbnailUrl(): string
+    public function getCoverImageFile(): ?File { return $this->coverImageFile; }
+    public function setCoverImageFile(?File $file): static
     {
-        return sprintf('https://img.youtube.com/vi/%s/maxresdefault.jpg', $this->youtubeId);
+        $this->coverImageFile = $file;
+        if ($file) { $this->coverImageUpdatedAt = new \DateTimeImmutable(); }
+        return $this;
     }
 
-    public function getEmbedUrl(): string
-    {
-        return sprintf('https://www.youtube.com/embed/%s', $this->youtubeId);
-    }
+    public function getCoverImage(): ?string { return $this->coverImage; }
+    public function setCoverImage(?string $coverImage): static { $this->coverImage = $coverImage; return $this; }
+
+    public function getCoverImageUpdatedAt(): ?\DateTimeImmutable { return $this->coverImageUpdatedAt; }
+    public function setCoverImageUpdatedAt(?\DateTimeImmutable $coverImageUpdatedAt): static { $this->coverImageUpdatedAt = $coverImageUpdatedAt; return $this; }
 
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $description): static { $this->description = $description; return $this; }
@@ -97,6 +108,6 @@ class VideoSupport implements TenantAwareInterface
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 
-    /** @return Collection<int, \App\Entity\VideoMaterial> */
+    /** @return Collection<int, StudyMaterial> */
     public function getMaterials(): Collection { return $this->materials; }
 }

@@ -1,0 +1,14 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% import 'admin/study/_form.html.twig' as forms %}
+
+{% block page_title %}Editar Estudo{% endblock %}
+
+{% block body %}
+<div class="ph">
+    <h1>Editar: {{ study.title }}</h1>
+    <a href="{{ path('admin_study_index') }}" class="btn btn-g">← Voltar</a>
+</div>
+<div class="card">
+    {{ forms.study_form(study, categories, path('admin_study_edit', {id: study.id})) }}
+</div>
+{% endblock %}

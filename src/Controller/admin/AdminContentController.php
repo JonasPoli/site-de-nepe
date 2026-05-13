@@ -5,6 +5,8 @@ namespace App\Controller\admin;
 use App\Entity\HeroBanner;
 use App\Entity\ResearchLine;
 use App\Entity\Category;
+use App\Entity\Study;
+use App\Entity\StudyMaterial;
 use App\Entity\VideoMaterial;
 use App\Entity\VideoSupport;
 use App\Entity\Page;
@@ -21,6 +23,7 @@ use App\Repository\PageRepository;
 use App\Repository\PageSectionRepository;
 use App\Repository\PageBlockRepository;
 use App\Repository\ResearchLineRepository;
+use App\Repository\StudyRepository;
 use App\Repository\UserRepository;
 use App\Repository\VideoSupportRepository;
 use App\Service\TenantContext;
@@ -274,6 +277,55 @@ class AdminContentController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('admin_video_index');
+    }
+
+    // ── Study ─────────────────────────────────────────────────────────────────
+
+    #[Route('/study', name: 'study_index')]
+    public function studyIndex(StudyRepository $repo): Response
+    {
+        return $this->render('admin/study/index.html.twig', ['studies' => $repo->findBy([], ['createdAt' => 'DESC'])]);
+    }
+
+    #[Route('/study/new', name: 'study_new', methods: ['GET', 'POST'])]
+    public function studyNew(Request $r, EntityManagerInterface $em, TenantContext $tc, CategoryRepository $cats, SluggerInterface $slugger): Response
+    {
+        $study = new Study();
+        if ($r->isMethod('POST')) {
+            $study->setTenant($tc->requireTenant());
+            $study->setAuthor($this->getUser() instanceof User ? $this->getUser() : null);
+            $this->populateStudy($study, $r, $slugger, $em);
+            $em->persist($study);
+            $em->flush();
+            $this->addFlash('success', 'Estudo criado.');
+            return $this->redirectToRoute('admin_study_index');
+        }
+        return $this->render('admin/study/new.html.twig', ['study' => $study, 'categories' => $cats->findAll()]);
+    }
+
+    #[Route('/study/{id}/edit', name: 'study_edit', methods: ['GET', 'POST'])]
+    public function studyEdit(Study $study, Request $r, EntityManagerInterface $em, CategoryRepository $cats, SluggerInterface $slugger): Response
+    {
+        if ($r->isMethod('POST')) {
+            $this->populateStudy($study, $r, $slugger, $em);
+            $em->flush();
+            $this->addFlash('success', 'Estudo atualizado.');
+            return $this->redirectToRoute('admin_study_index');
+        }
+        return $this->render('admin/study/edit.html.twig', [
+            'study'      => $study,
+            'categories' => $cats->findAll(),
+        ]);
+    }
+
+    #[Route('/study/{id}/delete', name: 'study_delete', methods: ['POST'])]
+    public function studyDelete(Study $study, Request $r, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('del_study_' . $study->getId(), (string) $r->request->get('_token'))) {
+            $em->remove($study);
+            $em->flush();
+        }
+        return $this->redirectToRoute('admin_study_index');
     }
 
     // ── ContactMessage ────────────────────────────────────────────────────────
@@ -616,6 +668,48 @@ class AdminContentController extends AbstractController
             if ($label === '') { $label = $uploadedFile->getClientOriginalName(); }
             $mat = new VideoMaterial();
             $mat->setVideo($video);
+            $mat->setLabel($label);
+            $mat->setExtension(strtolower($uploadedFile->getClientOriginalExtension()));
+            $mat->setFile($uploadedFile);
+            $em->persist($mat);
+        }
+    }
+
+    private function populateStudy(Study $study, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void
+    {
+        $study->setTitle((string) $r->request->get('title'));
+        $study->setSlug($r->request->get('slug') ?: strtolower((string) $slugger->slug($study->getTitle())));
+        $study->setDescription($r->request->get('description') ?: null);
+        $study->setMaterialsHtml($r->request->get('materialsHtml') ?: null);
+
+        // ── Cover image ───────────────────────────────────────────────────────
+        $coverFile = $r->files->get('coverImageFile');
+        if ($coverFile instanceof UploadedFile) {
+            $study->setCoverImageFile($coverFile);
+        }
+
+        // ── Category ──────────────────────────────────────────────────────────
+        $catId = (int) $r->request->get('category');
+        $category = $catId ? $em->getReference(\App\Entity\Category::class, $catId) : null;
+        $study->setCategory($category);
+
+        // ── Delete removed materials ──────────────────────────────────────────
+        $deleteIds = array_filter(array_map('intval', (array) $r->request->all('delete_material')));
+        foreach ($study->getMaterials() as $mat) {
+            if (in_array($mat->getId(), $deleteIds, true)) {
+                $em->remove($mat);
+            }
+        }
+
+        // ── Add new uploaded materials ────────────────────────────────────────
+        $files  = $r->files->all('material_file');
+        $labels = $r->request->all('material_label');
+        foreach ($files as $idx => $uploadedFile) {
+            if (!$uploadedFile instanceof UploadedFile) { continue; }
+            $label = trim((string) ($labels[$idx] ?? ''));
+            if ($label === '') { $label = $uploadedFile->getClientOriginalName(); }
+            $mat = new StudyMaterial();
+            $mat->setStudy($study);
             $mat->setLabel($label);
             $mat->setExtension(strtolower($uploadedFile->getClientOriginalExtension()));
             $mat->setFile($uploadedFile);

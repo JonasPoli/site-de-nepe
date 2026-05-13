@@ -67,3 +67,14 @@ vich_uploader:
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
             inject_on_load: true
 
+        study_cover:
+            uri_prefix: /uploads/study_cover
+            upload_destination: '%kernel.project_dir%/public/uploads/study_cover'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            inject_on_load: true
+
+        study_material:
+            uri_prefix: /uploads/study_material
+            upload_destination: '%kernel.project_dir%/public/uploads/study_material'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            inject_on_load: true

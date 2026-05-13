@@ -1,0 +1,90 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% import 'admin/study/_form.html.twig' as forms %}
+
+{% block page_title %}Estudos{% endblock %}
+
+{% block body %}
+<div class="ph">
+    <h1>Estudos</h1>
+    <a href="{{ path('admin_study_new') }}" class="btn btn-p">
+        <sl-icon name="plus-lg"></sl-icon> Novo Estudo
+    </a>
+</div>
+
+<div class="card">
+    {% if studies|length == 0 %}
+    <p style="color:var(--muted);text-align:center;padding:2rem">Nenhum estudo cadastrado ainda.</p>
+    {% else %}
+    <div class="tw">
+        <table class="at">
+            <thead>
+                <tr>
+                    <th style="width:80px">Capa</th>
+                    <th>Título</th>
+                    <th>Categoria</th>
+                    <th>Autor</th>
+                    <th>Materiais</th>
+                    <th>Data</th>
+                    <th style="width:120px">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for study in studies %}
+                <tr>
+                    <td>
+                        {% if study.coverImage %}
+                        <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}"
+                             alt="{{ study.title }}"
+                             style="width:64px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+                        {% else %}
+                        <div style="width:64px;height:40px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem">📚</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="font-weight:600">{{ study.title }}</span>
+                        {% if study.slug %}
+                        <br><code style="font-size:.7rem;color:var(--muted)">/estudo/{{ study.slug }}</code>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if study.category %}
+                            <span class="badge bg-inf">{{ study.category.name }}</span>
+                        {% else %}
+                            <span style="color:var(--muted)">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if study.author %}
+                            {{ study.author.name }}
+                        {% else %}
+                            <span style="color:var(--muted)">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if study.materials|length > 0 %}
+                        <span class="badge bg-ok">📎 {{ study.materials|length }}</span>
+                        {% else %}
+                        <span style="color:var(--muted)">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--muted);font-size:.82rem">{{ study.createdAt|date('d/m/Y') }}</td>
+                    <td>
+                        <div class="ta">
+                            <a href="{{ path('admin_study_edit', {id: study.id}) }}" class="btn btn-g btn-sm">
+                                <sl-icon name="pencil-fill"></sl-icon>
+                            </a>
+                            <form method="post" action="{{ path('admin_study_delete', {id: study.id}) }}"
+                                  onsubmit="return confirm('Excluir este estudo?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('del_study_' ~ study.id) }}">
+                                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -27,6 +27,21 @@
         </time>
     </div>
 
+    {# ── Autoria ── #}
+    {% if video.author %}
+    <div class="authorship-block">
+        <div class="authorship-inner">
+            <div class="author-card">
+                <div class="author-avatar">{{ video.author.name|first|upper }}</div>
+                <div class="author-info">
+                    <span class="author-role">Autor</span>
+                    <span class="author-name">{{ video.author.name }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="video-embed">
         <iframe
             src="{{ video.embedUrl }}"
@@ -113,5 +128,31 @@
 .dl-name { display: block; font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dl-ext  { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-primary); margin-top: .15rem; }
 .dl-arrow { color: var(--color-primary); font-size: 1rem; flex-shrink: 0; }
+
+/* ── Authorship ── */
+.authorship-block {
+    margin: 1.75rem 0 2rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-primary) 5%, white),
+        color-mix(in srgb, var(--color-secondary) 5%, white));
+    border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+.authorship-inner { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.author-card { display: flex; align-items: center; gap: .85rem; }
+.author-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white; font-size: 1rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; box-shadow: 0 4px 12px rgba(var(--color-primary-rgb),.3);
+}
+.author-info { display: flex; flex-direction: column; gap: .1rem; }
+.author-role {
+    font-size: .65rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .09em; color: var(--color-primary); opacity: .8;
+}
+.author-name { font-size: .95rem; font-weight: 700; color: #1a1c2e; }
 </style>
 {% endblock %}

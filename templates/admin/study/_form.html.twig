@@ -1,0 +1,146 @@
+{# Reusable study form macro #}
+{% macro study_form(study, categories, action) %}
+<form action="{{ action }}" method="post" class="af" enctype="multipart/form-data">
+    <div class="af-row">
+        <div class="af-field">
+            <label>Título <span class="req">*</span></label>
+            <input type="text" name="title" class="ai" value="{{ study.title }}" required>
+        </div>
+        <div class="af-field">
+            <label>Slug</label>
+            <input type="text" name="slug" class="ai" value="{{ study.slug }}" placeholder="gerado automaticamente">
+        </div>
+    </div>
+    <div class="af-field">
+        <label>Categoria</label>
+        <select name="category" class="as">
+            <option value="">— Sem categoria —</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {{ study.category and study.category.id == cat.id ? 'selected' }}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {# ── Imagem principal (capa) ── #}
+    <div class="af-field">
+        <label>Imagem principal (capa)</label>
+        {% if study.coverImage %}
+        <div style="margin-bottom:.75rem">
+            <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}"
+                 id="cover-preview"
+                 alt="Capa atual"
+                 style="max-width:360px;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+        </div>
+        {% else %}
+        <div id="cover-preview-wrap" style="max-width:360px;width:100%;aspect-ratio:16/9;background:var(--bg3);border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);margin-bottom:.75rem">
+            <img id="cover-preview" style="max-width:360px;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:none">
+            <span id="cover-placeholder">🖼️ Sem imagem</span>
+        </div>
+        {% endif %}
+        <input type="file" name="coverImageFile" accept="image/*" onchange="previewCover(this)"
+               style="font-size:.85rem;padding:.4rem 0">
+        <p class="af-hint">Formatos aceitos: JPG, PNG, WEBP. Proporção recomendada: 16:9.</p>
+    </div>
+
+    <div class="af-field">
+        <label>Descrição</label>
+        {{ include('admin/_rich_editor.html.twig', {
+            field_id: 'desc-editor',
+            field_name: 'description',
+            content: study.description,
+            height: 300
+        }) }}
+    </div>
+
+    {# ── Materiais e Referências ── #}
+    <div class="af-field">
+        <label>Materiais e Referências</label>
+        {{ include('admin/_rich_editor.html.twig', {
+            field_id: 'materials-editor',
+            field_name: 'materialsHtml',
+            content: study.materialsHtml,
+            height: 400
+        }) }}
+        <p class="af-hint">Editor de texto rico — adicione links, tabelas, listas e formatação.</p>
+    </div>
+
+    {# ── Upload de arquivos ── #}
+    <div class="af-field">
+        <label>Arquivos para download</label>
+
+        {# Materiais existentes #}
+        {% if study.materials|length > 0 %}
+        <div id="existing-materials" style="margin-bottom:1.25rem">
+            <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">Arquivos atuais</div>
+            {% for mat in study.materials %}
+            <div class="mat-row" style="display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--bg2);border-radius:8px;margin-bottom:.5rem;border:1px solid var(--border)">
+                <span class="mat-icon" style="font-size:1.3rem">{{ mat.extension in ['pdf'] ? '📄' : (mat.extension in ['xls','xlsx'] ? '📊' : (mat.extension in ['doc','docx'] ? '📝' : (mat.extension in ['png','jpg','jpeg'] ? '🖼️' : '📎'))) }}</span>
+                <span style="flex:1;font-size:.9rem;font-weight:500">{{ mat.label }}</span>
+                <span style="font-size:.75rem;color:var(--muted)">{{ mat.extension|upper }}</span>
+                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.8rem;color:#ef4444">
+                    <input type="checkbox" name="delete_material[]" value="{{ mat.id }}"
+                           style="accent-color:#ef4444"> Remover
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Adicionar novos arquivos #}
+        <div id="new-materials">
+            <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">Adicionar arquivos</div>
+            <div id="mat-list"></div>
+            <button type="button" onclick="addMaterialRow()" class="btn btn-g" style="margin-top:.5rem">
+                <sl-icon name="plus-lg"></sl-icon> Adicionar arquivo
+            </button>
+            <p class="af-hint" style="margin-top:.5rem">Formatos aceitos: PDF, XLS, XLSX, DOC, DOCX, TXT, CSV, PNG, JPG</p>
+        </div>
+    </div>
+
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_study_index') }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+
+<script>
+function previewCover(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        let preview = document.getElementById('cover-preview');
+        if (preview) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        const placeholder = document.getElementById('cover-placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+let matIdx = 0;
+function addMaterialRow() {
+    const list = document.getElementById('mat-list');
+    const idx  = matIdx++;
+    const row  = document.createElement('div');
+    row.className = 'mat-new-row';
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:.75rem;margin-bottom:.75rem;align-items:center';
+    row.innerHTML = `
+        <div>
+            <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:.25rem">Nome do arquivo <span style="color:#ef4444">*</span></label>
+            <input type="text" name="material_label[${idx}]" class="ai" placeholder="Ex: Slides do Módulo 1" style="width:100%">
+        </div>
+        <div>
+            <label style="font-size:.75rem;font-weight:600;color:var(--muted);display:block;margin-bottom:.25rem">Arquivo <span style="color:#ef4444">*</span></label>
+            <input type="file" name="material_file[${idx}]"
+                   accept=".pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.png,.jpg,.jpeg"
+                   style="font-size:.85rem;padding:.4rem 0">
+        </div>
+        <button type="button" onclick="this.closest('.mat-new-row').remove()"
+                style="background:rgba(239,68,68,.1);color:#ef4444;border:none;border-radius:8px;padding:.5rem .75rem;cursor:pointer;margin-top:1.3rem">✕</button>
+    `;
+    list.appendChild(row);
+}
+</script>
+{% endmacro %}

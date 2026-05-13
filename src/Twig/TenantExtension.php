@@ -4,6 +4,7 @@ namespace App\Twig;
 
 use App\Repository\CategoryRepository;
 use App\Repository\PageRepository;
+use App\Repository\StudyRepository;
 use App\Repository\VideoSupportRepository;
 use App\Service\TenantContext;
 use Twig\Extension\AbstractExtension;
@@ -22,6 +23,7 @@ class TenantExtension extends AbstractExtension implements GlobalsInterface
         private readonly PageRepository $pageRepository,
         private readonly CategoryRepository $categoryRepository,
         private readonly VideoSupportRepository $videoRepository,
+        private readonly StudyRepository $studyRepository,
     ) {}
 
     #[\Override]
@@ -32,6 +34,7 @@ class TenantExtension extends AbstractExtension implements GlobalsInterface
             'footerPages'      => $this->pageRepository->findForFooter(),
             'footerCategories' => $this->categoryRepository->findBy([], ['name' => 'ASC']),
             'footerVideos'     => $this->videoRepository->findBy([], ['createdAt' => 'DESC'], 5),
+            'footerStudies'    => $this->studyRepository->findBy([], ['createdAt' => 'DESC'], 5),
         ];
     }
 

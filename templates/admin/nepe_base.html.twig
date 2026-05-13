@@ -142,12 +142,15 @@
         <a href="{{ path('admin_video_index') }}" class="nl {% if '/admin/video' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="play-circle-fill"></sl-icon> Vídeos
         </a>
+        <a href="{{ path('admin_study_index') }}" class="nl {% if '/admin/study' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="book-fill"></sl-icon> Estudos
+        </a>
         <a href="{{ path('admin_category_index') }}" class="nl {% if '/admin/category' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="tag-fill"></sl-icon> Categorias
         </a>
-        <a href="{{ path('admin_research_line_index') }}" class="nl {% if '/admin/research-line' in app.request.pathInfo %}on{% endif %}">
+        {# <a href="{{ path('admin_research_line_index') }}" class="nl {% if '/admin/research-line' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="diagram-3-fill"></sl-icon> Linhas de Pesquisa
-        </a>
+        </a> #}
         <a href="{{ path('admin_page_index') }}" class="nl {% if '/admin/page' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="file-text-fill"></sl-icon> Páginas
         </a>

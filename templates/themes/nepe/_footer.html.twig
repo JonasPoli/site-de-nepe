@@ -51,6 +51,15 @@
         </nav>
     </div>
 
+    {# Col 5 — Estudos #}
+    <div class="footer-col">
+        <h4 class="footer-col-title">Estudos</h4>
+        <nav class="footer-nav">
+            <a href="{{ path('pub_studies') }}">Todos os estudos</a>
+            {% for study in footerStudies %}<a href="{{ path('pub_study_show', {slug: study.slug}) }}">{{ study.title|slice(0,38) }}{% if study.title|length > 38 %}…{% endif %}</a>{% endfor %}
+        </nav>
+    </div>
+
 </div>
 <div class="footer-bottom">
     <p>&copy; {{ "now"|date("Y") }} {{ currentTenant ? currentTenant.name : 'NEPE Brasil' }}. Todos os direitos reservados.</p>
@@ -58,7 +67,7 @@
 </footer>
 <style>
 .nepe-footer { background: linear-gradient(135deg,#0f172a,#1e293b); color:#94a3b8; margin-top:5rem; }
-.footer-grid { display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:3rem; padding:3.5rem 0 2.5rem; align-items:start; }
+.footer-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr 1fr; gap:2.5rem; padding:3.5rem 0 2.5rem; align-items:start; }
 .footer-col-title { font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:#e2e8f0; margin:0 0 1rem; }
 .footer-logo-text { font-size:1.3rem; font-weight:800; margin-bottom:.75rem; background:linear-gradient(135deg,var(--color-primary),var(--color-secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 .footer-tagline { margin:0 0 1.25rem; font-size:.85rem; line-height:1.6; color:#64748b; }
@@ -70,6 +79,7 @@
 .footer-social a { color:#64748b; transition:color .2s; }
 .footer-social a:hover { color:var(--color-secondary); }
 .footer-bottom { border-top:1px solid rgba(255,255,255,.06); text-align:center; padding:1.25rem; font-size:.8rem; color:#475569; }
-@media(max-width:900px){ .footer-grid{ grid-template-columns:1fr 1fr; gap:2rem; } }
-@media(max-width:560px){ .footer-grid{ grid-template-columns:1fr; } }
+@media(max-width:1100px){ .footer-grid{ grid-template-columns:1fr 1fr 1fr; gap:2rem; } }
+@media(max-width:700px){ .footer-grid{ grid-template-columns:1fr 1fr; gap:1.5rem; } }
+@media(max-width:480px){ .footer-grid{ grid-template-columns:1fr; } }
 </style>

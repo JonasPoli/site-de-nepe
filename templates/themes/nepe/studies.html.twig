@@ -1,0 +1,328 @@
+{% extends 'themes/nepe/base.html.twig' %}
+
+{% block title %}Estudos — {{ currentTenant ? currentTenant.name : 'NEPE' }}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Materiais de estudo, referências e conteúdos aprofundados do {{ currentTenant ? currentTenant.name : 'NEPE' }}.">
+{% endblock %}
+
+{% block body %}
+
+{# ── HERO ── #}
+<section class="sl-hero">
+    <div class="sl-hero-bg">
+        <div class="sl-orb sl-orb-1"></div>
+        <div class="sl-orb sl-orb-2"></div>
+    </div>
+    <div class="container sl-hero-inner reveal-up">
+        <div class="sl-hero-text">
+            <span class="sl-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+                Materiais de Estudo
+            </span>
+            <h1>Aprofunde seu<br><span class="sl-gradient-text">conhecimento</span></h1>
+            <p>Conteúdos, referências e materiais para estudo do {{ currentTenant ? currentTenant.name : 'NEPE' }}. Acesse gratuitamente.</p>
+        </div>
+    </div>
+    {# Stats #}
+    <div class="container sl-stats fade-in delay-200">
+        <div class="sl-stat">
+            <span class="sl-stat-num">{{ studies|length }}</span>
+            <span class="sl-stat-label">Estudos disponíveis</span>
+        </div>
+        <div class="sl-stat-div"></div>
+        <div class="sl-stat">
+            <span class="sl-stat-num">{{ footerCategories|length }}</span>
+            <span class="sl-stat-label">Categorias</span>
+        </div>
+        <div class="sl-stat-div"></div>
+        <div class="sl-stat">
+            <span class="sl-stat-num">100%</span>
+            <span class="sl-stat-label">Gratuito</span>
+        </div>
+    </div>
+</section>
+
+{# ── FILTER BAR ── #}
+<div class="sl-filter-bar" id="sl-filters">
+    <div class="container sl-filter-inner">
+        <button class="sl-filter-btn active" data-cat="all" onclick="filterStudies('all', this)">
+            Todos
+        </button>
+        {% for cat in footerCategories %}
+        <button class="sl-filter-btn" data-cat="{{ cat.id }}" onclick="filterStudies('{{ cat.id }}', this)">
+            {{ cat.name }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+{# ── STUDY GRID ── #}
+<section class="sl-section">
+    <div class="container">
+
+        {% if studies|length == 0 %}
+        <div class="sl-empty">
+            <div class="sl-empty-icon">📚</div>
+            <h2>Nenhum estudo publicado ainda</h2>
+            <p>Em breve publicaremos novos conteúdos.</p>
+        </div>
+        {% else %}
+
+        {# Featured first study #}
+        {% set featured = studies|first %}
+        <div class="sl-featured reveal-up" data-cat="{{ featured.category ? featured.category.id : 'none' }}">
+            <a href="{{ path('pub_study_show', {slug: featured.slug}) }}" class="sl-feat-cover">
+                {% if featured.coverImage %}
+                <img src="{{ asset('uploads/study_cover/' ~ featured.coverImage) }}" alt="{{ featured.title }}" loading="lazy">
+                {% else %}
+                <div class="sl-feat-cover-placeholder">📚</div>
+                {% endif %}
+                {% if featured.category %}
+                <span class="sl-feat-tag">{{ featured.category.name }}</span>
+                {% endif %}
+            </a>
+            <div class="sl-feat-body">
+                <span class="sl-feat-label">Mais recente</span>
+                <h2><a href="{{ path('pub_study_show', {slug: featured.slug}) }}">{{ featured.title }}</a></h2>
+                {% if featured.description %}
+                <p class="sl-feat-desc">{{ featured.description|striptags|slice(0, 200) }}{% if featured.description|length > 200 %}…{% endif %}</p>
+                {% endif %}
+                <div class="sl-feat-meta">
+                    <time>{{ featured.createdAt|date('d/m/Y') }}</time>
+                    {% if featured.author %}
+                    <span class="sl-feat-author">
+                        <span class="sl-author-avatar">{{ featured.author.name|first|upper }}</span>
+                        {{ featured.author.name }}
+                    </span>
+                    {% endif %}
+                    {% if featured.materials|length > 0 %}
+                    <span class="sl-mat-badge">📎 {{ featured.materials|length }} arquivo{{ featured.materials|length > 1 ? 's' : '' }}</span>
+                    {% endif %}
+                </div>
+                <a href="{{ path('pub_study_show', {slug: featured.slug}) }}" class="sl-btn-read">
+                    Ler estudo →
+                </a>
+            </div>
+        </div>
+
+        {# Grid restante #}
+        {% if studies|length > 1 %}
+        <div class="sl-grid" id="sl-grid">
+            {% for study in studies %}
+            {% if not loop.first %}
+            <article class="sl-card reveal-up delay-{{ (loop.index0 % 3) * 100 }}" data-cat="{{ study.category ? study.category.id : 'none' }}">
+                <a href="{{ path('pub_study_show', {slug: study.slug}) }}" class="sl-card-cover">
+                    {% if study.coverImage %}
+                    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}" loading="lazy">
+                    {% else %}
+                    <div class="sl-card-cover-placeholder">📚</div>
+                    {% endif %}
+                </a>
+                <div class="sl-card-body">
+                    {% if study.category %}
+                    <span class="sl-card-cat">{{ study.category.name }}</span>
+                    {% endif %}
+                    <h3>
+                        <a href="{{ path('pub_study_show', {slug: study.slug}) }}">{{ study.title }}</a>
+                    </h3>
+                    <div class="sl-card-footer">
+                        <time>{{ study.createdAt|date('d/m/Y') }}</time>
+                        {% if study.author %}
+                        <span class="sl-card-author">
+                            <span class="sl-author-avatar-sm">{{ study.author.name|first|upper }}</span>
+                            {{ study.author.name }}
+                        </span>
+                        {% endif %}
+                        {% if study.materials|length > 0 %}
+                        <span class="sl-mat-sm">📎 {{ study.materials|length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="pagination-container" style="margin-top: 4rem; display: flex; justify-content: center;">
+            {{ knp_pagination_render(studies) }}
+        </div>
+
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* ── HERO ── */
+.sl-hero {
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0f1117 0%, #1a1c2e 100%);
+    color: white; padding: 5rem 0 0;
+}
+.sl-hero-bg { position: absolute; inset: 0; pointer-events: none; }
+.sl-orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+.sl-orb-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: radial-gradient(circle, rgba(var(--color-primary-rgb),.35), transparent 70%); }
+.sl-orb-2 { width: 400px; height: 400px; bottom: 0; right: -80px; background: radial-gradient(circle, rgba(var(--color-secondary-rgb),.25), transparent 70%); }
+.sl-hero-inner { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 2rem; padding-bottom: 3rem; }
+.sl-hero-text { max-width: 640px; }
+.sl-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .35rem 1rem; border-radius: 50px;
+    background: rgba(var(--color-secondary-rgb),.15); color: var(--color-secondary);
+    font-size: .8rem; font-weight: 700; letter-spacing: .04em; margin-bottom: 1.5rem;
+}
+.sl-hero-text h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 900; line-height: 1.1; margin: 0 0 1.25rem; }
+.sl-gradient-text {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.sl-hero-text p { color: rgba(255,255,255,.6); font-size: 1.1rem; margin: 0; line-height: 1.7; }
+
+/* Stats bar */
+.sl-stats {
+    position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 2rem;
+    padding: 1.75rem 0;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+.sl-stat { text-align: center; }
+.sl-stat-num { display: block; font-size: 1.6rem; font-weight: 900; color: white; }
+.sl-stat-label { font-size: .8rem; color: rgba(255,255,255,.45); }
+.sl-stat-div { width: 1px; height: 36px; background: rgba(255,255,255,.1); }
+
+/* ── FILTER BAR ── */
+.sl-filter-bar { position: sticky; top: 0; z-index: 40; background: white; border-bottom: 1px solid #f1f5f9; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.sl-filter-inner { display: flex; gap: .5rem; padding: .85rem 0; overflow-x: auto; scrollbar-width: none; }
+.sl-filter-inner::-webkit-scrollbar { display: none; }
+.sl-filter-btn {
+    flex-shrink: 0; padding: .45rem 1.1rem; border-radius: 50px;
+    font-size: .85rem; font-weight: 600; border: 1.5px solid #e5e7eb;
+    background: white; color: #6b7280; cursor: pointer; transition: all .2s;
+}
+.sl-filter-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.sl-filter-btn.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+/* ── SECTION ── */
+.sl-section { padding: 4rem 0 6rem; background: #f8fafc; }
+
+/* ── FEATURED ── */
+.sl-featured {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    background: white; border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.08);
+    overflow: hidden; margin-bottom: 3rem;
+}
+.sl-feat-cover { position: relative; display: block; overflow: hidden; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); min-height: 280px; }
+.sl-feat-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
+.sl-featured:hover .sl-feat-cover img { transform: scale(1.04); }
+.sl-feat-cover-placeholder { width: 100%; height: 100%; min-height: 280px; display: flex; align-items: center; justify-content: center; font-size: 5rem; opacity: .4; }
+.sl-feat-tag {
+    position: absolute; top: 1.25rem; left: 1.25rem;
+    padding: .3rem .85rem; border-radius: 50px;
+    background: var(--color-primary); color: white;
+    font-size: .75rem; font-weight: 700;
+}
+.sl-feat-body { padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+.sl-feat-label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--color-primary); margin-bottom: .75rem; display: block; }
+.sl-feat-body h2 { font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 900; margin: 0 0 1rem; line-height: 1.25; }
+.sl-feat-body h2 a { color: #1a1c2e; }
+.sl-feat-body h2 a:hover { color: var(--color-primary); }
+.sl-feat-desc { color: #6b7280; line-height: 1.7; font-size: .95rem; margin: 0 0 1.25rem; }
+.sl-feat-meta { display: flex; align-items: center; gap: 1rem; font-size: .8rem; color: #9ca3af; margin-bottom: 1.75rem; flex-wrap: wrap; }
+.sl-mat-badge { background: #f0fdf4; color: #16a34a; padding: .2rem .65rem; border-radius: 50px; font-size: .75rem; font-weight: 600; }
+.sl-btn-read {
+    display: inline-flex; align-items: center; padding: .85rem 1.75rem;
+    background: var(--color-primary); color: white; border-radius: 50px;
+    font-weight: 700; font-size: .95rem; transition: all .2s; width: fit-content;
+}
+.sl-btn-read:hover { opacity: .9; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(var(--color-primary-rgb),.35); }
+
+/* ── Author chips ── */
+.sl-feat-author { display: inline-flex; align-items: center; gap: .4rem; }
+.sl-author-avatar {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white; font-size: .65rem; font-weight: 800; flex-shrink: 0;
+}
+.sl-author-avatar-sm {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white; font-size: .55rem; font-weight: 800; flex-shrink: 0;
+}
+.sl-card-author { display: inline-flex; align-items: center; gap: .3rem; font-size: .75rem; color: #6b7280; }
+
+/* ── GRID ── */
+.sl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.75rem;
+}
+.sl-card {
+    background: white; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,.06);
+    transition: transform .25s, box-shadow .25s;
+    display: flex; flex-direction: column;
+}
+.sl-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,.12); }
+.sl-card-cover { display: block; position: relative; overflow: hidden; aspect-ratio: 16/9; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); }
+.sl-card-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
+.sl-card:hover .sl-card-cover img { transform: scale(1.05); }
+.sl-card-cover-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; opacity: .4; }
+.sl-card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.sl-card-cat { display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, transparent); padding: .2rem .6rem; border-radius: 50px; margin-bottom: .6rem; }
+.sl-card-body h3 { font-size: 1rem; font-weight: 700; margin: 0 0 auto; line-height: 1.45; }
+.sl-card-body h3 a { color: #1a1c2e; }
+.sl-card-body h3 a:hover { color: var(--color-primary); }
+.sl-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: .75rem; border-top: 1px solid #f1f5f9; font-size: .8rem; color: #9ca3af; flex-wrap: wrap; gap: .4rem; }
+.sl-mat-sm { color: #16a34a; font-size: .75rem; font-weight: 600; }
+
+/* Hidden via filter */
+.sl-card.hidden, .sl-featured.hidden { display: none; }
+
+/* ── EMPTY ── */
+.sl-empty { text-align: center; padding: 6rem 2rem; }
+.sl-empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+.sl-empty h2 { font-size: 1.5rem; font-weight: 700; color: #1a1c2e; margin: 0 0 .5rem; }
+.sl-empty p { color: #9ca3af; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+    .sl-featured { grid-template-columns: 1fr; }
+    .sl-feat-cover { min-height: 220px; aspect-ratio: 16/9; }
+    .sl-feat-body { padding: 1.75rem; }
+    .sl-stats { gap: 1.25rem; }
+}
+@media (max-width: 560px) {
+    .sl-hero-inner { flex-direction: column; }
+    .sl-grid { grid-template-columns: 1fr; }
+}
+</style>
+<script>
+function filterStudies(cat, btn) {
+    document.querySelectorAll('.sl-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const featured = document.querySelector('.sl-featured');
+    const cards    = document.querySelectorAll('.sl-card');
+
+    if (cat === 'all') {
+        if (featured) featured.classList.remove('hidden');
+        cards.forEach(c => c.classList.remove('hidden'));
+        return;
+    }
+    if (featured) {
+        featured.classList.toggle('hidden', featured.dataset.cat !== cat);
+    }
+    cards.forEach(c => {
+        c.classList.toggle('hidden', c.dataset.cat !== cat);
+    });
+}
+</script>
+{% endblock %}
