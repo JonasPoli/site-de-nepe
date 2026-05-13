@@ -1,0 +1,127 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block body %}
+
+    <div class="space-y-10">
+        <section class="rounded-[32px] bg-white/80 p-8 shadow-xl shadow-slate-900/5 ring-1 ring-white/60 backdrop-blur dark:bg-slate-900/60 dark:ring-white/10">
+            <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">Painel</p>
+                    <h1 class="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">Visão geral do ecossistema</h1>
+                    <p class="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
+                        KPIs reais da plataforma de tickets via Pix.
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <sl-button size="large" variant="primary" href="{{ path('app_admin_evento_new') }}">
+                        <sl-icon slot="prefix" name="calendar-plus"></sl-icon>
+                        Novo Evento
+                    </sl-button>
+                    <sl-button size="large" variant="default" outline href="{{ path('app_admin_inscrito_index') }}">
+                        <sl-icon slot="prefix" name="people"></sl-icon>
+                        Ver Inscritos
+                    </sl-button>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid gap-6 lg:grid-cols-4">
+            {% set statCards = [
+                {
+                    icon: 'calendar-event',
+                    label: 'Eventos Ativos',
+                    value: total_eventos,
+                    suffix: '',
+                    tone: 'text-indigo-500',
+                    note: 'Total na plataforma'
+                },
+                {
+                    icon: 'people',
+                    label: 'Inscrições',
+                    value: total_inscritos,
+                    suffix: '',
+                    tone: 'text-sky-500',
+                    note: inscritos_hoje ~ ' entrada(s) hoje'
+                },
+                {
+                    icon: 'piggy-bank',
+                    label: 'Receita Total',
+                    value: 'R$ ' ~ receita_geral|number_format(2, ',', '.'),
+                    suffix: '',
+                    tone: 'text-amber-500',
+                    note: 'Receita geral processada'
+                },
+                {
+                    icon: 'graph-up-arrow',
+                    label: 'Receita Hoje',
+                    value: 'R$ ' ~ receita_hoje|number_format(2, ',', '.'),
+                    suffix: '',
+                    tone: 'text-emerald-500',
+                    note: 'Entradas de hoje'
+                }
+            ] %}
+            {% for card in statCards %}
+                <sl-card class="border-none bg-white/80 shadow-lg shadow-slate-900/5 ring-1 ring-white/70 backdrop-blur dark:bg-slate-900/70 dark:ring-white/10">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">{{ card.label }}</p>
+                            <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">
+                                {{ card.value }} <span class="text-base font-normal text-slate-400">{{ card.suffix }}</span>
+                            </p>
+                            <p class="mt-2 text-xs font-medium {{ card.tone }}">{{ card.note }}</p>
+                        </div>
+                        <sl-icon name="{{ card.icon }}" class="text-2xl text-slate-400 dark:text-slate-500"></sl-icon>
+                    </div>
+                </sl-card>
+            {% endfor %}
+        </section>
+
+        <section class="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+            <sl-card class="border-none bg-white/80 shadow-lg shadow-slate-900/5 ring-1 ring-white/70 backdrop-blur dark:bg-slate-900/70 dark:ring-white/10">
+                <div slot="header" class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-lg font-semibold text-slate-900 dark:text-white">Últimos Eventos</p>
+                    <sl-button size="small" variant="default" outline href="{{ path('app_admin_evento_index') }}">
+                        <sl-icon slot="prefix" name="list"></sl-icon>
+                        Ver Todos
+                    </sl-button>
+                </div>
+                <div class="space-y-4">
+                    {% for evento in ultimos_eventos %}
+                        <div class="flex gap-4 rounded-2xl border border-slate-100/80 p-4 dark:border-white/5">
+                            <sl-avatar shape="rounded" class="shrink-0 bg-slate-200" initials="{{ evento.nome|slice(0, 2)|upper }}"></sl-avatar>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ evento.nome }}</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Data: {{ evento.dataInicio ? evento.dataInicio|date('d/m/Y') : '-' }}</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500">Status: {{ evento.status|capitalize }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-sm text-slate-500">Nenhum evento recente encontrado.</p>
+                    {% endfor %}
+                </div>
+            </sl-card>
+
+            <sl-card class="border-none bg-white/80 shadow-lg shadow-slate-900/5 ring-1 ring-white/70 backdrop-blur dark:bg-slate-900/70 dark:ring-white/10">
+                <div slot="header">
+                    <p class="text-lg font-semibold text-slate-900 dark:text-white">Acesso Rápido</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Links operacionais</p>
+                </div>
+                <div class="space-y-3">
+                    {% set shortcuts = [
+                        { icon: 'calendar-event', label: 'Gerenciar Eventos', route: 'app_admin_evento_index' },
+                        { icon: 'tags', label: 'Tipos de Inscrição', route: 'app_admin_tipo_inscricao_index' },
+                        { icon: 'bag-plus', label: 'Itens Adicionais', route: 'app_admin_item_adicional_index' },
+                        { icon: 'people', label: 'Exportar Inscritos', route: 'app_admin_inscrito_index' }
+                    ] %}
+                    {% for shortcut in shortcuts %}
+                        <a href="{{ path(shortcut.route) }}" class="flex w-full items-center justify-between rounded-xl border border-transparent px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:border-slate-200 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-white/10 dark:hover:bg-white/5">
+                            <span><sl-icon name="{{ shortcut.icon }}" class="mr-2 text-base text-slate-400"></sl-icon>{{ shortcut.label }}</span>
+                            <sl-icon name="chevron-right"></sl-icon>
+                        </a>
+                    {% endfor %}
+                </div>
+            </sl-card>
+        </section>
+    </div>
+
+{% endblock %}

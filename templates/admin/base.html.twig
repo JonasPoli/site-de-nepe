@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> | Administração {% block title %}{% endblock %}</title>
+        <link rel="icon" href="/images/fav.png">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/light.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/dark.css" />
+        <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace-autoloader.js"></script>
+        
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+        {% endblock %}
+        <script>
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark')
+                document.documentElement.classList.add('sl-theme-dark')
+            } else {
+                document.documentElement.classList.remove('dark')
+                document.documentElement.classList.remove('sl-theme-dark')
+            }
+        </script>
+    </head>
+    <body>
+        <div class="bg-gradient-to-tr from-slate-200 to-slate-50 dark:from-slate-950 dark:to-slate-900 dark:text-white">
+            <div class="h-full min-h-screen bg-left-bottom bg-cover bg-fixed" style="background-image: radial-gradient(circle at top, rgba(255,255,255,0.7), transparent 55%), radial-gradient(circle at 20% 20%, rgba(148,163,184,0.35), transparent 45%), radial-gradient(circle at 80% 0%, rgba(125,211,252,0.25), transparent 35%);">
+                <div class="grid grid-cols-[250px_auto] grid-rols-1 lg:ml-0 ml-[-250px] transition-all min-h-screen" id="page-wrap">
+                    <nav class="pt-10 flex flex-col h-screen sticky top-0 overflow-y-auto" > 
+                        <div class="flex-auto">
+                        <div class="px-4 mb-2 text-xs font-bold uppercase text-slate-400 tracking-widest">Eventos</div>
+
+                            {% set isEvento = app.current_route starts with 'app_admin_evento_' %}
+                            <a class='py-2 px-4 mx-4 mb-2 block rounded hover:shadow hover:from-white hover:to-white/60 hover:bg-gradient-to-r hover:via-30% dark:hover:from-white/5 dark:hover:via-white/10 dark:hover:to-white/5 {% if isEvento %}shadow bg-gradient-to-r via-30% from-white/40 via-white/90 to-white/50 dark:from-white/10 dark:via-white/20 dark:to-white/10{% endif %}' href="{{ path('app_admin_evento_index') }}">
+                                <sl-icon name="calendar-event" class="mr-2 align-text-top"></sl-icon>
+                                Eventos
+                            </a>
+
+                            {% set isTipo = app.current_route starts with 'app_admin_tipo_inscricao_' %}
+                            <a class='py-2 px-4 mx-4 mb-2 block rounded hover:shadow hover:from-white hover:to-white/60 hover:bg-gradient-to-r hover:via-30% dark:hover:from-white/5 dark:hover:via-white/10 dark:hover:to-white/5 {% if isTipo %}shadow bg-gradient-to-r via-30% from-white/40 via-white/90 to-white/50 dark:from-white/10 dark:via-white/20 dark:to-white/10{% endif %}' href="{{ path('app_admin_tipo_inscricao_index') }}">
+                                <sl-icon name="tags" class="mr-2 align-text-top"></sl-icon>
+                                Tipos de Inscrição
+                            </a>
+
+                            {% set isItem = app.current_route starts with 'app_admin_item_adicional_' %}
+                            <a class='py-2 px-4 mx-4 mb-2 block rounded hover:shadow hover:from-white hover:to-white/60 hover:bg-gradient-to-r hover:via-30% dark:hover:from-white/5 dark:hover:via-white/10 dark:hover:to-white/5 {% if isItem %}shadow bg-gradient-to-r via-30% from-white/40 via-white/90 to-white/50 dark:from-white/10 dark:via-white/20 dark:to-white/10{% endif %}' href="{{ path('app_admin_item_adicional_index') }}">
+                                <sl-icon name="bag-plus" class="mr-2 align-text-top"></sl-icon>
+                                Itens Adicionais
+                            </a>
+
+                            {% set isInscrito = app.current_route starts with 'app_admin_inscrito_' %}
+                            <a class='py-2 px-4 mx-4 mb-2 block rounded hover:shadow hover:from-white hover:to-white/60 hover:bg-gradient-to-r hover:via-30% dark:hover:from-white/5 dark:hover:via-white/10 dark:hover:to-white/5 {% if isInscrito %}shadow bg-gradient-to-r via-30% from-white/40 via-white/90 to-white/50 dark:from-white/10 dark:via-white/20 dark:to-white/10{% endif %}' href="{{ path('app_admin_inscrito_index') }}">
+                                <sl-icon name="people" class="mr-2 align-text-top"></sl-icon>
+                                Inscritos
+                            </a>
+
+                            <div class="border-t border-slate-200 dark:border-slate-700 my-3 mx-4"></div>
+
+                            <a class='py-2 px-4 mx-4 mb-2 block rounded hover:shadow hover:from-white hover:to-white/60 hover:bg-gradient-to-r hover:via-30% dark:hover:from-white/5 dark:hover:via-white/10 dark:hover:to-white/5 align-middle' href="{{path('app_logout')}}"><sl-icon name="box-arrow-left" class="mr-2 align-text-top"></sl-icon> Logout</a>
+                        </div>
+                        <div class="flex-none p-2 icon-button-no-color-change">
+                            <sl-icon-button class="text-white text-xl hover:text-white hidden dark:inline-block" onclick="lightMode()" name="brightness-high" label="modo claro"></sl-icon-button>
+                            <sl-icon-button class="text-slate-900 text-xl hover:text-slate-900 inline-block dark:hidden" onclick="darkMode()" name="moon" label="modo escuro"></sl-icon-button>
+                        </div>
+                    </nav>
+                    <main class="lg:py-10 px-0 relative bg-transparent w-full">
+                        <div class="lg:hidden icon-button-no-color-change my-4 w-full"><sl-icon-button class="dark:text-white text-xl" onclick="toggleNav()" name="list" label="abrir menu"></sl-icon-button></div>
+                        {% block body %}{% endblock %}
+                    </main>
+                </div>
+            </div>
+            
+        </div>
+        
+    <script>
+        const pageWrap = document.getElementById('page-wrap');
+        
+        function toggleNav(){
+            if(pageWrap.style.transform == "translateX(250px)"){
+                pageWrap.style.transform = "";
+            }else{
+                pageWrap.style.transform = "translateX(250px)";
+            }
+        }
+
+        function toggleDebug() {
+            document.querySelectorAll('.debug-panel').forEach(el => {
+                el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+    </script>
+    <div class="fixed bottom-4 right-4 z-50">
+        <sl-button circle variant="neutral" size="large" onclick="toggleDebug()">
+            <sl-icon name="bug" label="Debug"></sl-icon>
+        </sl-button>
+    </div>
+
+    {% block javascripts %}
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.datatables.net/2.1.3/js/dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/2.1.3/js/dataTables.tailwindcss.min.js"></script>
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+    </body>
+</html>

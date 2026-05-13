@@ -1,0 +1,150 @@
+{% extends 'pub/base.html.twig' %}
+
+{% block title %}Início · TickePix{% endblock %}
+
+{% block body %}
+    <section class="relative isolate overflow-hidden bg-white px-6 py-24 text-slate-900 sm:py-32 lg:px-8 dark:bg-slate-950 dark:text-white">
+        <div class="absolute inset-x-0 top-0 -z-10 flex justify-center overflow-hidden blur-3xl" aria-hidden="true">
+            <div class="aspect-[1400/900] w-[56rem] bg-gradient-to-r from-emerald-400/30 via-teal-200/30 to-sky-400/30 opacity-70 dark:from-emerald-500/40 dark:via-teal-300/40 dark:to-sky-400/40" style="clip-path: polygon(16% 0, 100% 0, 84% 100%, 0 100%);"></div>
+        </div>
+
+        <div class="mx-auto flex max-w-7xl flex-col items-center text-center">
+            <p class="text-sm font-semibold uppercase tracking-[0.4em] text-emerald-600 dark:text-emerald-400">Simples e Rápido</p>
+            <h1 class="mt-6 text-4xl font-semibold tracking-tight text-slate-900 sm:text-6xl dark:text-white">
+                O seu ingresso a um<br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">Pix de distância.</span>
+            </h1>
+            <p class="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+                O TickePix é a plataforma definitiva para vendas de ingressos. Escolha seu evento, faça a inscrição e pague instantaneamente via Pix com segurança e conforto.
+            </p>
+            <div class="mt-10 flex items-center justify-center gap-x-6">
+                <a href="#eventos" class="rounded-full bg-emerald-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+                    Ver Eventos Disponíveis
+                </a>
+                <a href="#contato" class="text-sm font-semibold leading-6 text-slate-900 transition hover:text-emerald-600 dark:text-white dark:hover:text-emerald-400">
+                    Falar conosco <span aria-hidden="true">→</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="eventos" class="bg-slate-50 px-6 py-16 text-slate-900 dark:bg-slate-900/40 dark:text-white sm:py-24 lg:px-8">
+        <div class="mx-auto max-w-7xl">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Eventos em Destaque</h2>
+                <p class="mt-4 text-lg text-slate-600 dark:text-slate-400">Garanta já o seu lugar nos melhores eventos do momento.</p>
+            </div>
+
+            {% if eventos is defined and eventos|length > 0 %}
+                <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                    {% for evento in eventos %}
+                        <div class="flex flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-xl shadow-slate-900/5 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-900/10 dark:border-white/10 dark:bg-slate-950/50">
+                            {% if evento.banner %}
+                                <div class="aspect-[16/9] w-full overflow-hidden bg-slate-200 dark:bg-slate-800">
+                                    <img src="{{ vich_uploader_asset(evento, 'bannerFile') }}" alt="Banner de {{ evento.nome }}" class="h-full w-full object-cover">
+                                </div>
+                            {% else %}
+                                <div class="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-emerald-100 to-teal-50 text-emerald-500 dark:from-emerald-900/40 dark:to-teal-900/20 dark:text-emerald-400">
+                                    <sl-icon name="image" class="text-4xl opacity-50"></sl-icon>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="flex flex-1 flex-col justify-between p-6 lg:p-8">
+                                <div>
+                                    <div class="flex items-center gap-x-4 text-xs">
+                                        <time datetime="{{ evento.dataInicio|date('Y-m-d') }}" class="text-slate-500 dark:text-slate-400">
+                                            <sl-icon name="calendar3" class="mr-1"></sl-icon> 
+                                            {{ evento.dataInicio|date('d/m/Y') }}
+                                        </time>
+                                    </div>
+                                    <div class="group relative mt-4">
+                                        <h3 class="text-xl font-semibold leading-6 text-slate-900 dark:text-white">
+                                            <a href="{{ path('app_pub_evento_show', {token: evento.token}) }}">
+                                                <span class="absolute inset-0"></span>
+                                                {{ evento.nome }}
+                                            </a>
+                                        </h3>
+                                        <div class="mt-4 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                            {{ evento.descricao|striptags }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-8 flex items-center gap-x-4 border-t border-slate-900/5 pt-6 dark:border-white/10">
+                                    <a href="{{ path('app_pub_evento_show', {token: evento.token}) }}" class="w-full rounded-2xl bg-emerald-50 py-2.5 text-center text-sm font-semibold text-emerald-600 transition hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20">
+                                        Ver detalhes e Inscrever-se
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="rounded-3xl border border-slate-200 border-dashed p-12 text-center dark:border-slate-800">
+                    <sl-icon name="calendar-x" class="text-4xl text-slate-400 dark:text-slate-600"></sl-icon>
+                    <h3 class="mt-4 text-base font-semibold text-slate-900 dark:text-white">Nenhum evento ativo no momento</h3>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Fique ligado! Em breve teremos novos eventos disponíveis na plataforma.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section id="contato" class="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div class="rounded-[32px] border border-white/20 bg-white/90 p-8 shadow-[0_25px_60px_rgba(15,23,42,0.1)] backdrop-blur dark:bg-slate-950/80">
+            <div class="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-500 dark:text-emerald-400">Contato</p>
+                    <h2 class="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">Precisa de ajuda?</h2>
+                    <p class="mt-4 text-base text-slate-500 dark:text-slate-400">
+                        Se você teve algum problema com sua inscrição ou pagamento, entre em contato e nossa equipe de suporte responderá rapidamente.
+                    </p>
+                    <div class="mt-8 grid gap-6 sm:grid-cols-2">
+                        <div class="rounded-2xl border border-slate-100/80 bg-white/90 p-5 dark:border-white/10 dark:bg-slate-900/60">
+                            <p class="text-xs uppercase tracking-[0.3em] text-slate-400">WhatsApp</p>
+                            <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-white">+55 (11) 99999-9999</p>
+                        </div>
+                        <div class="rounded-2xl border border-slate-100/80 bg-white/90 p-5 dark:border-white/10 dark:bg-slate-900/60">
+                            <p class="text-xs uppercase tracking-[0.3em] text-slate-400">E-mail</p>
+                            <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-white">suporte@tickepix.com.br</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-[28px] border border-slate-100/80 bg-white/95 p-6 shadow-xl shadow-slate-900/5 dark:border-white/10 dark:bg-slate-900/70">
+                    {% for msg in app.flashes('contact_s') %}
+                        <sl-alert variant="success" open class="mb-4">
+                            <sl-icon slot="icon" name="check-circle"></sl-icon>
+                            {{ msg }}
+                        </sl-alert>
+                    {% endfor %}
+                    {% for msg in app.flashes('contact_f') %}
+                        <sl-alert variant="danger" open class="mb-4">
+                            <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+                            {{ msg }}
+                        </sl-alert>
+                    {% endfor %}
+                    <form method="POST" action="{{ path('pub_contact_post') }}" class="space-y-5">
+                        <input type="hidden" name="_token" value="{{ csrf_token('contact_form') }}">
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-300">Nome</label>
+                            <input required type="text" name="name" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-slate-900/40 dark:text-white" placeholder="Seu nome completo">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-300">E-mail</label>
+                            <input required type="email" name="email" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-slate-900/40 dark:text-white" placeholder="voce@email.com">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-300">Telefone</label>
+                            <input type="text" name="phone" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-slate-900/40 dark:text-white" placeholder="(11) 99999-9999">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-300">Dúvida / Problema</label>
+                            <textarea required name="message" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none dark:border-white/20 dark:bg-slate-900/40 dark:text-white" placeholder="Descreva como podemos ajudar..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-500 flex items-center justify-center gap-2">
+                            <sl-icon name="send-fill"></sl-icon>
+                            Enviar mensagem
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

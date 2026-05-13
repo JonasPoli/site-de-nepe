@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="{{ app.request is defined and app.request ? app.request.locale : 'en' }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+        <title>{% block title %}TickePix - Sistema de Ingressos{% endblock %}</title>
+        <link rel="icon" href="">
+
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+        {% endblock %}
+
+        {% block javascripts %}
+            <script src="{{ asset('app.js') }}" defer></script>
+        {% endblock %}
+    </head>
+    <body class="min-h-screen bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+        <div class="flex min-h-screen flex-col">
+            <header class="border-b border-slate-200/60 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-slate-950/90">
+                <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-300 text-base font-semibold text-slate-900 shadow-sm">
+                            <sl-icon name="ticket-perforated" class="text-xl"></sl-icon>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-300">TickePix</p>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Ingressos rápidos com Pix</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-medium">
+                        <button type="button" onclick="lightMode()" class="rounded-full border border-slate-900/10 px-3 py-1 text-slate-600 transition hover:border-slate-900/30 hover:text-slate-900 dark:border-white/10 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white">
+                            Claro
+                        </button>
+                        <button type="button" onclick="darkMode()" class="rounded-full border border-slate-900/10 px-3 py-1 text-slate-600 transition hover:border-slate-900/30 hover:text-slate-900 dark:border-white/10 dark:text-slate-300 dark:hover:border-white/30 dark:hover:text-white">
+                            Escuro
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1">
+                {% block body %}{% endblock %}
+            </main>
+
+            <footer class="border-t border-slate-200/60 bg-white/80 dark:border-white/10 dark:bg-slate-950/80 mt-auto">
+                <div class="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-6 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between lg:px-8 dark:text-slate-400">
+                    <p>&copy; {{ "now"|date("Y") }} TickePix. Todos os direitos reservados.</p>
+                    <p class="text-slate-500 dark:text-slate-500">Desenvolvido com <sl-icon name="heart-fill" class="text-rose-500 align-middle"></sl-icon> para máxima velocidade e conversão.</p>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,10 @@
+twig:
+    file_name_pattern: '*.twig'
+    form_themes: ['admin/form_theme.html.twig']
+    globals:
+        templateService: '@App\Service\TemplateService'
+        tinymce_key: '%env(resolve:TINYMCE)%'
+
+when@test:
+    twig:
+        strict_variables: true

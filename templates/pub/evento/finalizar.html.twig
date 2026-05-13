@@ -1,0 +1,18 @@
+{% extends 'pub/evento/base_pub.html.twig' %}
+
+{% block content %}
+    {{ include('pub/evento/_finalizar_content.html.twig') }}
+<script>
+function copiarPix() {
+    const code = document.getElementById('pix-code-display').textContent.trim();
+    navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('msg-copiado').style.display = 'block';
+        document.getElementById('btn-copiar').textContent = '✅ Copiado!';
+        setTimeout(() => {
+            document.getElementById('msg-copiado').style.display = 'none';
+            document.getElementById('btn-copiar').textContent = '📋 Copiar Chave Pix';
+        }, 3000);
+    });
+}
+</script>
+{% endblock %}

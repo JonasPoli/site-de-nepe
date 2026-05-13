@@ -1,0 +1,103 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Tipos de Inscrição{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.3/css/dataTables.tailwindcss.min.css">
+{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Tipos de Inscrição</h1>
+    <sl-button href="{{ path('app_admin_tipo_inscricao_new') }}" variant="primary">
+        <sl-icon slot="prefix" name="plus-circle"></sl-icon>
+        Novo Tipo
+    </sl-button>
+</div>
+
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <sl-alert variant="{{ label == 'success' ? 'success' : 'danger' }}" open class="mb-4">
+            <sl-icon slot="icon" name="{{ label == 'success' ? 'check-circle' : 'exclamation-triangle' }}"></sl-icon>
+            {{ message }}
+        </sl-alert>
+    {% endfor %}
+{% endfor %}
+
+<sl-card class="w-full">
+    <div class="overflow-x-auto">
+        <table id="crud-table" class="w-full text-sm text-left border-collapse border border-slate-200 dark:border-white/10">
+            <thead>
+                <tr>
+                    <th>Evento</th>
+                    <th>Tipo / Itens Adicionais</th>
+                    <th>Valor Base</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo in tipos %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            {% if tipo.evento.logoName %}
+                                <img src="{{ vich_uploader_asset(tipo.evento, 'logoFile') }}" class="h-8 w-auto object-contain rounded" alt="{{ tipo.evento.nome }}">
+                            {% endif %}
+                            <span>{{ tipo.evento.nome }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="font-medium">{{ tipo.nome }}</span>
+                        {% if tipo.itensAdicionais|length > 0 %}
+                            <div class="text-xs text-slate-500 mt-1 space-y-0.5">
+                                {% for item in tipo.itensAdicionais %}
+                                    <div>• {{ item.descricao }} — R$ {{ item.valor|number_format(2, ',', '.') }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="font-semibold">R$ {{ tipo.valorBase|number_format(2, ',', '.') }}</td>
+                    <td>
+                        <sl-badge variant="{{ tipo.status == 'ativo' ? 'success' : 'neutral' }}">{{ tipo.status }}</sl-badge>
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <sl-button href="{{ path('app_admin_tipo_inscricao_edit', {id: tipo.id}) }}" size="small" variant="neutral">
+                                <sl-icon name="pencil"></sl-icon>
+                            </sl-button>
+                            <form action="{{ path('app_admin_tipo_inscricao_delete', {id: tipo.id}) }}" method="post" onsubmit="return confirm('Confirma exclusão?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tipo.id) }}">
+                                <sl-button type="submit" size="small" variant="danger">
+                                    <sl-icon name="trash"></sl-icon>
+                                </sl-button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</sl-card>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function initDataTable() {
+            const table = document.getElementById('crud-table');
+            if (table && !$.fn.DataTable.isDataTable(table)) {
+                new DataTable('#crud-table', {
+                    language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json' },
+                    responsive: true,
+                    pageLength: 100,
+                    lengthMenu: [[100, 1000, -1], ['100', '1000', 'Todos']],
+                });
+            }
+        }
+        $(document).ready(initDataTable);
+        document.addEventListener('turbo:load', initDataTable);
+    </script>
+{% endblock %}
