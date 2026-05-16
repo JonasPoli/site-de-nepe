@@ -131,13 +131,21 @@ class NepePublicController extends AbstractController
     }
 
     #[Route('/categoria/{slug}', name: 'pub_category_show')]
-    public function categoryShow(string $slug, CategoryRepository $repo): Response
-    {
+    public function categoryShow(
+        string $slug,
+        CategoryRepository $repo,
+        ArticleRepository $articles,
+        VideoSupportRepository $videos,
+        StudyRepository $studies,
+    ): Response {
         $category = $repo->findOneBy(['slug' => $slug])
             ?? throw $this->createNotFoundException('Categoria não encontrada.');
 
         return $this->render($this->theme('category.html.twig'), [
-            'category' => $category,
+            'category'        => $category,
+            'catArticles'     => $articles->findByCategory($category),
+            'catVideos'       => $videos->findByCategory($category),
+            'catStudies'      => $studies->findByCategory($category),
         ]);
     }
 

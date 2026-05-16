@@ -35,4 +35,14 @@ class VideoSupportRepository extends ServiceEntityRepository
             ->orderBy('v.createdAt', 'DESC')
             ->getQuery();
     }
+
+    /** @return VideoSupport[] */
+    public function findByCategory(\App\Entity\Category $category): array
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.category = :category')
+            ->setParameter('category', $category)
+            ->orderBy('v.createdAt', 'DESC')
+            ->getQuery()->getResult();
+    }
 }

@@ -36,4 +36,16 @@ class ArticleRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['slug' => $slug, 'status' => ArticleStatus::Published]);
     }
+
+    /** @return Article[] */
+    public function findByCategory(\App\Entity\Category $category): array
+    {
+        return $this->createQueryBuilder('a')
+            ->where('a.category = :category')
+            ->andWhere('a.status = :status')
+            ->setParameter('category', $category)
+            ->setParameter('status', ArticleStatus::Published)
+            ->orderBy('a.publishedAt', 'DESC')
+            ->getQuery()->getResult();
+    }
 }

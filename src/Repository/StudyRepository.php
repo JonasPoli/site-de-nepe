@@ -35,4 +35,14 @@ class StudyRepository extends ServiceEntityRepository
             ->orderBy('s.createdAt', 'DESC')
             ->getQuery();
     }
+
+    /** @return Study[] */
+    public function findByCategory(\App\Entity\Category $category): array
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.category = :category')
+            ->setParameter('category', $category)
+            ->orderBy('s.createdAt', 'DESC')
+            ->getQuery()->getResult();
+    }
 }

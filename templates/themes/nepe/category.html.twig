@@ -141,6 +141,123 @@
     {% endif %}
 {% endfor %}
 
+{# ── Materiais: Estudos ── #}
+{% if catStudies is defined and catStudies|length > 0 %}
+<section class="cat-materials-section cat-materials-studies">
+    <div class="container">
+        <div class="cat-mat-header reveal-up">
+            <div class="cat-mat-icon cat-mat-icon--study">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div>
+                <h2 class="cat-mat-title">Estudos</h2>
+                <p class="cat-mat-subtitle">{{ catStudies|length }} {{ catStudies|length == 1 ? 'estudo' : 'estudos' }} nesta {{ isSubCategory ? 'subcategoria' : 'categoria' }}</p>
+            </div>
+        </div>
+        <div class="cat-mat-grid">
+            {% for study in catStudies %}
+            <a href="{{ path('pub_study_show', {slug: study.slug}) }}" class="cat-mat-card reveal-up delay-{{ (loop.index0 % 4) * 100 }}">
+                <div class="cat-mat-card-img">
+                    {% if study.coverImage %}
+                    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}" loading="lazy">
+                    {% else %}
+                    <div class="cat-mat-card-placeholder cat-mat-card-placeholder--study">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="cat-mat-card-body">
+                    <span class="cat-mat-card-type cat-mat-card-type--study">Estudo</span>
+                    <h3 class="cat-mat-card-title">{{ study.title }}</h3>
+                    {% if study.description %}
+                    <p class="cat-mat-card-desc">{{ study.description|striptags|slice(0,100) }}{% if study.description|striptags|length > 100 %}…{% endif %}</p>
+                    {% endif %}
+                    <span class="cat-mat-card-date">{{ study.createdAt|date('d/m/Y') }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── Materiais: Vídeos ── #}
+{% if catVideos is defined and catVideos|length > 0 %}
+<section class="cat-materials-section cat-materials-videos">
+    <div class="container">
+        <div class="cat-mat-header reveal-up">
+            <div class="cat-mat-icon cat-mat-icon--video">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+            <div>
+                <h2 class="cat-mat-title">Vídeos</h2>
+                <p class="cat-mat-subtitle">{{ catVideos|length }} {{ catVideos|length == 1 ? 'vídeo' : 'vídeos' }} nesta {{ isSubCategory ? 'subcategoria' : 'categoria' }}</p>
+            </div>
+        </div>
+        <div class="cat-mat-grid">
+            {% for video in catVideos %}
+            <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="cat-mat-card reveal-up delay-{{ (loop.index0 % 4) * 100 }}">
+                <div class="cat-mat-card-img cat-mat-card-img--video">
+                    <img src="{{ video.thumbnailUrl }}" alt="{{ video.title }}" loading="lazy">
+                    <div class="cat-mat-play-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </div>
+                </div>
+                <div class="cat-mat-card-body">
+                    <span class="cat-mat-card-type cat-mat-card-type--video">Vídeo</span>
+                    <h3 class="cat-mat-card-title">{{ video.title }}</h3>
+                    {% if video.description %}
+                    <p class="cat-mat-card-desc">{{ video.description|striptags|slice(0,100) }}{% if video.description|striptags|length > 100 %}…{% endif %}</p>
+                    {% endif %}
+                    <span class="cat-mat-card-date">{{ video.createdAt|date('d/m/Y') }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── Materiais: Notícias ── #}
+{% if catArticles is defined and catArticles|length > 0 %}
+<section class="cat-materials-section cat-materials-news">
+    <div class="container">
+        <div class="cat-mat-header reveal-up">
+            <div class="cat-mat-icon cat-mat-icon--news">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v2"/><path d="M2 10h10M2 14h10M2 18h10M2 6h4"/></svg>
+            </div>
+            <div>
+                <h2 class="cat-mat-title">Notícias</h2>
+                <p class="cat-mat-subtitle">{{ catArticles|length }} {{ catArticles|length == 1 ? 'notícia' : 'notícias' }} nesta {{ isSubCategory ? 'subcategoria' : 'categoria' }}</p>
+            </div>
+        </div>
+        <div class="cat-mat-grid">
+            {% for article in catArticles %}
+            <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="cat-mat-card reveal-up delay-{{ (loop.index0 % 4) * 100 }}">
+                <div class="cat-mat-card-img">
+                    {% if article.image %}
+                    <img src="{{ ('uploads/article/' ~ article.image)|imagine_filter('news_thumb') }}" alt="{{ article.title }}" loading="lazy">
+                    {% else %}
+                    <div class="cat-mat-card-placeholder cat-mat-card-placeholder--news">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v2"/><path d="M2 10h10M2 14h10M2 18h10"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="cat-mat-card-body">
+                    <span class="cat-mat-card-type cat-mat-card-type--news">Notícia</span>
+                    <h3 class="cat-mat-card-title">{{ article.title }}</h3>
+                    {% if article.shortDescription %}
+                    <p class="cat-mat-card-desc">{{ article.shortDescription|striptags|slice(0,100) }}{% if article.shortDescription|striptags|length > 100 %}…{% endif %}</p>
+                    {% endif %}
+                    <span class="cat-mat-card-date">{{ article.publishedAt ? article.publishedAt|date('d/m/Y') : '' }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
 {% endblock %}
 
 {% block stylesheets %}
@@ -263,6 +380,96 @@
     .zigzag-reverse .zigzag-img, .zigzag-reverse .zigzag-text { order: unset; }
     .section-two-tone-title { flex-direction: column; }
     .title-secondary, .title-primary { text-align: center; }
+}
+
+/* ── Materiais ── */
+.cat-materials-section { padding: 4rem 0; }
+.cat-materials-studies { background: #f8fafc; }
+.cat-materials-videos  { background: white; }
+.cat-materials-news    { background: #f8fafc; }
+
+.cat-mat-header {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 2rem; padding-bottom: 1.25rem;
+    border-bottom: 2px solid rgba(0,0,0,.06);
+}
+.cat-mat-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.cat-mat-icon--study { background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary); }
+.cat-mat-icon--video { background: color-mix(in srgb, #ef4444 12%, transparent); color: #ef4444; }
+.cat-mat-icon--news  { background: color-mix(in srgb, var(--color-secondary) 20%, transparent); color: color-mix(in srgb, var(--color-secondary) 80%, #000); }
+
+.cat-mat-title { font-size: 1.4rem; font-weight: 800; margin: 0 0 .15rem; color: #1a1c2e; }
+.cat-mat-subtitle { font-size: .85rem; color: #6b7280; margin: 0; }
+
+.cat-mat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+}
+
+.cat-mat-card {
+    background: white; border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(0,0,0,.06); border: 1px solid rgba(0,0,0,.05);
+    overflow: hidden; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    transition: transform .22s, box-shadow .22s;
+}
+.cat-mat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,.12); opacity: 1; }
+
+.cat-mat-card-img {
+    position: relative; width: 100%; height: 148px; overflow: hidden;
+    background: #e5e7eb;
+}
+.cat-mat-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.cat-mat-card:hover .cat-mat-card-img img { transform: scale(1.06); }
+
+.cat-mat-card-img--video { cursor: pointer; }
+.cat-mat-play-btn {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.38); transition: background .2s;
+}
+.cat-mat-card:hover .cat-mat-play-btn { background: rgba(0,0,0,.55); }
+.cat-mat-play-btn svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+
+.cat-mat-card-placeholder {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+}
+.cat-mat-card-placeholder--study { background: color-mix(in srgb, var(--color-primary) 8%, #f8fafc); color: var(--color-primary); opacity: .5; }
+.cat-mat-card-placeholder--news  { background: color-mix(in srgb, var(--color-secondary) 10%, #f8fafc); color: color-mix(in srgb, var(--color-secondary) 70%, #000); opacity: .5; }
+
+.cat-mat-card-body {
+    padding: 1rem 1.1rem 1.25rem;
+    display: flex; flex-direction: column; gap: .4rem; flex: 1;
+}
+.cat-mat-card-type {
+    font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    padding: .2rem .6rem; border-radius: 50px; display: inline-block; width: fit-content;
+}
+.cat-mat-card-type--study { background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary); }
+.cat-mat-card-type--video { background: #fee2e2; color: #dc2626; }
+.cat-mat-card-type--news  { background: color-mix(in srgb, var(--color-secondary) 20%, transparent); color: color-mix(in srgb, var(--color-secondary) 60%, #000); }
+
+.cat-mat-card-title {
+    font-size: .95rem; font-weight: 700; margin: 0; color: #1a1c2e;
+    line-height: 1.4; transition: color .2s;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cat-mat-card:hover .cat-mat-card-title { color: var(--color-primary); }
+
+.cat-mat-card-desc {
+    font-size: .8rem; color: #6b7280; line-height: 1.5; margin: 0; flex: 1;
+}
+.cat-mat-card-date { font-size: .75rem; color: #9ca3af; margin-top: auto; }
+
+@media (max-width: 640px) {
+    .cat-mat-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+    .cat-mat-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
