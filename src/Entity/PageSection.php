@@ -15,9 +15,15 @@ class PageSection
     #[ORM\Column]
     private ?int $id = null;
 
+    /** Pertence a uma Page — nullable porque pode pertencer a uma Category */
     #[ORM\ManyToOne(targetEntity: Page::class, inversedBy: 'sections')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Page $page = null;
+
+    /** Pertence a uma Category — nullable porque pode pertencer a uma Page */
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'sections')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Category $category = null;
 
     /** Displayed on secondary-color background */
     #[ORM\Column(length: 255, nullable: true)]
@@ -47,6 +53,9 @@ class PageSection
 
     public function getPage(): ?Page { return $this->page; }
     public function setPage(?Page $page): static { $this->page = $page; return $this; }
+
+    public function getCategory(): ?Category { return $this->category; }
+    public function setCategory(?Category $category): static { $this->category = $category; return $this; }
 
     public function getTitlePart1(): ?string { return $this->titlePart1; }
     public function setTitlePart1(?string $titlePart1): static { $this->titlePart1 = $titlePart1; return $this; }

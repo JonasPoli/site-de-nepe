@@ -1,8 +1,11 @@
 {% extends 'admin/nepe_base.html.twig' %}
-{% block title %}Nova Categoria{% endblock %}{% block page_title %}Nova Categoria{% endblock %}
+{% block title %}Nova Sub-categoria — {{ category.name }}{% endblock %}{% block page_title %}Nova Sub-categoria{% endblock %}
 {% block body %}
-<div class="ph"><h1>Nova Categoria</h1><a href="{{ path('admin_category_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
-<div class="card"><form action="{{ path('admin_category_new') }}" method="post" class="af">
+<div class="ph">
+    <h1>Nova Sub-categoria em: <em style="color:var(--primary)">{{ category.name }}</em></h1>
+    <a href="{{ path('admin_subcategory_index', {id: category.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+</div>
+<div class="card"><form action="{{ path('admin_subcategory_new', {id: category.id}) }}" method="post" class="af">
     <div class="af-group">
         <div class="af-field">
             <label>Nome <span class="req">*</span></label>
@@ -20,7 +23,7 @@
         </div>
         <div class="af-field">
             <label>Descrição</label>
-            <textarea name="description" class="ai" rows="3" placeholder="Texto exibido abaixo do título na página da categoria"></textarea>
+            <textarea name="description" class="ai" rows="3" placeholder="Texto exibido abaixo do título na página da sub-categoria"></textarea>
         </div>
     </div>
     <div class="af-group af-group--inline">
@@ -33,6 +36,6 @@
             <span>Aparece no menu do <strong>rodapé</strong></span>
         </label>
     </div>
-    <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button><a href="{{ path('admin_category_index') }}" class="btn btn-g">Cancelar</a></div>
+    <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button><a href="{{ path('admin_subcategory_index', {id: category.id}) }}" class="btn btn-g">Cancelar</a></div>
 </form></div>
 {% endblock %}

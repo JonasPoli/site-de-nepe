@@ -1,9 +1,12 @@
 {% extends 'admin/nepe_base.html.twig' %}
 {% block title %}Editar Seção{% endblock %}{% block page_title %}Editar Seção{% endblock %}
 {% block body %}
+{% set backUrl = section.page
+    ? path('admin_section_index', {pageId: section.page.id})
+    : path('admin_cat_section_index', {catId: section.category.id}) %}
 <div class="ph">
     <h1>Editar Seção</h1>
-    <a href="{{ path('admin_section_index', {pageId: section.page.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Seções</a>
+    <a href="{{ backUrl }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Seções</a>
 </div>
 <div class="card">
     <form action="{{ path('admin_section_edit', {id: section.id}) }}" method="post" class="af">
@@ -17,7 +20,7 @@
         </div>
         <div class="af-actions">
             <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
-            <a href="{{ path('admin_section_index', {pageId: section.page.id}) }}" class="btn btn-g">Cancelar</a>
+            <a href="{{ backUrl }}" class="btn btn-g">Cancelar</a>
         </div>
     </form>
 </div>

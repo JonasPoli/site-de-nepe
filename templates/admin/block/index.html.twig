@@ -5,12 +5,20 @@
     <div>
         <h1>Blocos da Seção</h1>
         <div style="font-size:.8rem;color:var(--muted)">
-            Página: {{ section.page.title }} · Layout zig-zag (par=invertido)
+            {% if section.page %}
+                Página: {{ section.page.title }} · Layout zig-zag (par=invertido)
+            {% elseif section.category %}
+                Categoria: {{ section.category.name }} · Layout zig-zag (par=invertido)
+            {% endif %}
         </div>
     </div>
     <div style="display:flex;gap:.75rem">
         <a href="{{ path('admin_block_new', {sectionId: section.id}) }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Novo Bloco</a>
-        <a href="{{ path('admin_section_index', {pageId: section.page.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Seções</a>
+        {% if section.page %}
+            <a href="{{ path('admin_section_index', {pageId: section.page.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Seções</a>
+        {% elseif section.category %}
+            <a href="{{ path('admin_cat_section_index', {catId: section.category.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Seções</a>
+        {% endif %}
     </div>
 </div>
 <div class="card">

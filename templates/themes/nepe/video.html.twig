@@ -58,30 +58,36 @@
     </div>
     {% endif %}
 
-    {% if video.materialsHtml %}
-    <div class="video-materials">
+    {% set hasMaterialsHtml = video.materialsHtml and video.materialsHtml|striptags|trim is not empty %}
+    {% set hasMaterialFiles = video.materials|length > 0 %}
+    {% if hasMaterialsHtml or hasMaterialFiles %}
+    <div class="video-materials-section">
         <h2>📚 Materiais e Referências</h2>
-        <div class="prose">{{ video.materialsHtml|raw }}</div>
-    </div>
-    {% endif %}
 
-    {# ── Arquivos para download ── #}
-    {% if video.materials|length > 0 %}
-    <div class="video-downloads">
-        <h2>⬇️ Arquivos para Download</h2>
-        <div class="downloads-grid">
-            {% for mat in video.materials %}
-            {% set icon = mat.extension in ['pdf'] ? '📄' : (mat.extension in ['xls','xlsx'] ? '📊' : (mat.extension in ['doc','docx'] ? '📝' : (mat.extension in ['png','jpg','jpeg'] ? '🖼️' : (mat.extension in ['csv','txt'] ? '📋' : '📎')))) %}
-            <a href="{{ asset('uploads/video_material/' ~ mat.filename) }}" download class="download-card" title="{{ mat.label }}">
-                <span class="dl-icon">{{ icon }}</span>
-                <div class="dl-info">
-                    <span class="dl-name">{{ mat.label }}</span>
-                    <span class="dl-ext">{{ mat.extension|upper }}</span>
-                </div>
-                <span class="dl-arrow">⬇</span>
-            </a>
-            {% endfor %}
+        {% if hasMaterialsHtml %}
+        <div class="video-materials-html prose">
+            {{ video.materialsHtml|raw }}
         </div>
+        {% endif %}
+
+        {% if hasMaterialFiles %}
+        <div class="video-downloads">
+            <h3>⬇️ Arquivos para Download</h3>
+            <div class="downloads-grid">
+                {% for mat in video.materials %}
+                {% set icon = mat.extension in ['pdf'] ? '📄' : (mat.extension in ['xls','xlsx'] ? '📊' : (mat.extension in ['doc','docx'] ? '📝' : (mat.extension in ['png','jpg','jpeg'] ? '🖼️' : (mat.extension in ['csv','txt'] ? '📋' : '📎')))) %}
+                <a href="{{ asset('uploads/video_material/' ~ mat.filename) }}" download class="download-card" title="{{ mat.label }}">
+                    <span class="dl-icon">{{ icon }}</span>
+                    <div class="dl-info">
+                        <span class="dl-name">{{ mat.label }}</span>
+                        <span class="dl-ext">{{ mat.extension|upper }}</span>
+                    </div>
+                    <span class="dl-arrow">⬇</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -103,16 +109,15 @@
 .video-embed { margin: 2rem 0; border-radius: var(--radius); overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 16px 48px rgba(0,0,0,.15); }
 .video-embed iframe { width: 100%; height: 100%; }
 .video-description { margin: 2rem 0; }
-.video-materials {
+.video-materials-section {
     margin: 2.5rem 0; padding: 2rem; border-radius: var(--radius);
     background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 5%, white), white);
     border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
-.video-materials h2 { font-size: 1.3rem; font-weight: 700; margin: 0 0 1.25rem; color: var(--color-primary); }
-
-/* Downloads */
-.video-downloads { margin: 2.5rem 0; }
-.video-downloads h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem; }
+.video-materials-section > h2 { font-size: 1.3rem; font-weight: 700; margin: 0 0 1.25rem; color: var(--color-primary); }
+.video-materials-html { margin-bottom: 1.5rem; }
+.video-downloads { margin-top: 1.5rem; }
+.video-downloads h3 { font-size: 1rem; font-weight: 700; margin: 0 0 .85rem; }
 .downloads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
 .download-card {
     display: flex; align-items: center; gap: 1rem;

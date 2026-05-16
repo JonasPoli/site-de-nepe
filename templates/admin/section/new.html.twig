@@ -2,11 +2,16 @@
 {% block title %}Nova Seção{% endblock %}{% block page_title %}Nova Seção{% endblock %}
 {% block body %}
 <div class="ph">
-    <h1>Nova Seção — <em style="color:var(--primary)">{{ page.title }}</em></h1>
-    <a href="{{ path('admin_section_index', {pageId: page.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+    {% if page %}
+        <h1>Nova Seção — <em style="color:var(--primary)">{{ page.title }}</em></h1>
+        <a href="{{ path('admin_section_index', {pageId: page.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+    {% else %}
+        <h1>Nova Seção — <em style="color:var(--primary)">{{ category.name }}</em></h1>
+        <a href="{{ path('admin_cat_section_index', {catId: category.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+    {% endif %}
 </div>
 <div class="card">
-    <form action="{{ path('admin_section_new', {pageId: page.id}) }}" method="post" class="af">
+    <form action="{{ page ? path('admin_section_new', {pageId: page.id}) : path('admin_cat_section_new', {catId: category.id}) }}" method="post" class="af">
         <div class="af-row">
             <div class="af-field"><label>Título Parte 1 <span class="af-hint" style="color:var(--secondary)">(cor secundária)</span></label><input type="text" name="titlePart1" class="ai" value="{{ section.titlePart1 }}"></div>
             <div class="af-field"><label>Título Parte 2 <span class="af-hint" style="color:var(--primary)">(cor primária)</span></label><input type="text" name="titlePart2" class="ai" value="{{ section.titlePart2 }}"></div>
@@ -17,7 +22,11 @@
         </div>
         <div class="af-actions">
             <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Criar Seção</button>
-            <a href="{{ path('admin_section_index', {pageId: page.id}) }}" class="btn btn-g">Cancelar</a>
+            {% if page %}
+                <a href="{{ path('admin_section_index', {pageId: page.id}) }}" class="btn btn-g">Cancelar</a>
+            {% else %}
+                <a href="{{ path('admin_cat_section_index', {catId: category.id}) }}" class="btn btn-g">Cancelar</a>
+            {% endif %}
         </div>
     </form>
 </div>

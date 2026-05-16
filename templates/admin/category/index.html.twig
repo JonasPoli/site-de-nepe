@@ -1,23 +1,88 @@
 {% extends 'admin/nepe_base.html.twig' %}
 {% block title %}Categorias{% endblock %}{% block page_title %}Categorias{% endblock %}
 {% block body %}
-<div class="ph"><h1>Categorias</h1><a href="{{ path('admin_category_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Categoria</a></div>
-<div class="card"><div class="tw"><table class="at">
-    <thead><tr><th>Nome</th><th>Slug</th><th></th></tr></thead>
-    <tbody>
-    {% for cat in categories %}
-    <tr>
-        <td style="font-weight:600">{{ cat.name }}</td>
-        <td><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:4px;font-size:.8rem">{{ cat.slug }}</code></td>
-        <td><div class="ta">
+<div class="ph">
+    <h1>Categorias</h1>
+    <a href="{{ path('admin_category_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Categoria</a>
+</div>
+<div class="card cat-tree">
+{% for cat in categories %}
+<div class="cat-root {% if not loop.last %}cat-root--sep{% endif %}">
+    {# ── Root category row ── #}
+    <div class="cat-row cat-row--root">
+        <div class="cat-row__info">
+            <div class="cat-row__name">{{ cat.name }}</div>
+            <div class="cat-row__meta">
+                <code class="cat-slug">{{ cat.slug }}</code>
+                {% if cat.showInHeader %}<span class="badge bg-ok" style="font-size:.68rem">Header</span>{% endif %}
+                {% if cat.showInFooter %}<span class="badge bg-inf" style="font-size:.68rem">Footer</span>{% endif %}
+                <span class="badge bg-neu" style="font-size:.68rem">{{ cat.children|length }} sub-cat(s)</span>
+            </div>
+        </div>
+        <div class="ta cat-row__actions">
+            <a href="{{ path('admin_cat_section_index', {catId: cat.id}) }}" class="btn btn-g btn-sm" title="Seções"><sl-icon name="layout-text-sidebar-reverse"></sl-icon></a>
+            <a href="{{ path('admin_subcategory_index', {id: cat.id}) }}" class="btn btn-g btn-sm" title="Sub-categorias"><sl-icon name="diagram-3"></sl-icon></a>
             <a href="{{ path('admin_category_edit', {id: cat.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
-            <form action="{{ path('admin_category_delete', {id: cat.id}) }}" method="post" onsubmit="return confirm('Remover?')">
+            <form action="{{ path('admin_category_delete', {id: cat.id}) }}" method="post" onsubmit="return confirm('Remover categoria e todas as suas sub-categorias?')">
                 <input type="hidden" name="_token" value="{{ csrf_token('del_cat_' ~ cat.id) }}">
                 <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
             </form>
-        </div></td>
-    </tr>
-    {% else %}<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:2rem">Nenhuma categoria.</td></tr>{% endfor %}
-    </tbody>
-</table></div></div>
+        </div>
+    </div>
+    {# ── Sub-categories ── #}
+    {% if cat.children|length > 0 %}
+    <div class="cat-children">
+        {% for sub in cat.children %}
+        <div class="cat-row cat-row--sub">
+            <div class="cat-row__connector">
+                <span class="cat-branch"></span>
+            </div>
+            <div class="cat-row__info">
+                <div class="cat-row__name" style="font-size:.92rem">{{ sub.name }}</div>
+                <div class="cat-row__meta">
+                    <code class="cat-slug" style="font-size:.73rem">{{ sub.slug }}</code>
+                    {% if sub.showInHeader %}<span class="badge bg-ok" style="font-size:.65rem">Header</span>{% endif %}
+                    {% if sub.showInFooter %}<span class="badge bg-inf" style="font-size:.65rem">Footer</span>{% endif %}
+                </div>
+            </div>
+            <div class="ta cat-row__actions">
+                <a href="{{ path('admin_cat_section_index', {catId: sub.id}) }}" class="btn btn-g btn-sm" title="Seções"><sl-icon name="layout-text-sidebar-reverse"></sl-icon></a>
+                <a href="{{ path('admin_subcategory_edit', {id: sub.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+                <form action="{{ path('admin_subcategory_delete', {id: sub.id}) }}" method="post" onsubmit="return confirm('Remover sub-categoria?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('del_sub_' ~ sub.id) }}">
+                    <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="cat-add-sub">
+            <a href="{{ path('admin_subcategory_new', {id: cat.id}) }}" class="btn btn-g btn-sm"><sl-icon name="plus-lg"></sl-icon> Nova Sub-categoria</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="cat-add-sub">
+        <a href="{{ path('admin_subcategory_new', {id: cat.id}) }}" class="btn btn-g btn-sm"><sl-icon name="plus-lg"></sl-icon> Nova Sub-categoria</a>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div style="padding:2rem;text-align:center;color:var(--muted)">Nenhuma categoria.</div>
+{% endfor %}
+</div>
 {% endblock %}
+{% block stylesheets %}{{ parent() }}<style>
+.cat-tree { padding: 0; }
+.cat-root { padding: .6rem 1rem; }
+.cat-root--sep { border-bottom: 1px solid rgba(255,255,255,.06); }
+.cat-row { display: flex; align-items: center; gap: 1rem; padding: .5rem 0; }
+.cat-row--root .cat-row__name { font-weight: 700; font-size: .97rem; }
+.cat-row__info { flex: 1; min-width: 0; }
+.cat-row__meta { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-top: .25rem; }
+.cat-slug { background: var(--bg3); padding: .1rem .4rem; border-radius: 4px; font-size: .78rem; }
+.cat-children { padding-left: 1.4rem; margin-top: .1rem; }
+.cat-row--sub { padding: .3rem 0; }
+.cat-row__connector { display: flex; align-items: center; flex-shrink: 0; }
+.cat-branch { display: inline-block; width: 20px; height: 16px; border-left: 2px solid rgba(255,255,255,.18); border-bottom: 2px solid rgba(255,255,255,.18); border-radius: 0 0 0 5px; margin-bottom: -8px; }
+.cat-add-sub { padding: .4rem 0 .2rem 36px; }
+.cat-row__actions { display: flex; gap: .3rem; flex-shrink: 0; }
+</style>{% endblock %}

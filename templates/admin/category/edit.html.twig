@@ -1,9 +1,41 @@
 {% extends 'admin/nepe_base.html.twig' %}
-{% block title %}Editar Categoria{% endblock %}{% block page_title %}Editar Categoria{% endblock %}
+{% block title %}{{ category.name }}{% endblock %}{% block page_title %}Editar Categoria{% endblock %}
 {% block body %}
-<div class="ph"><h1>{{ category.name }}</h1><a href="{{ path('admin_category_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
+<div class="ph">
+    <h1>{{ category.name }}</h1>
+    <a href="{{ path('admin_category_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Categorias</a>
+</div>
 <div class="card"><form action="{{ path('admin_category_edit', {id: category.id}) }}" method="post" class="af">
-    <div class="af-field"><label>Nome <span class="req">*</span></label><input type="text" name="name" class="ai" value="{{ category.name }}" required></div>
+    <div class="af-group">
+        <div class="af-field">
+            <label>Nome <span class="req">*</span></label>
+            <input type="text" name="name" class="ai" value="{{ category.name }}" required autofocus>
+        </div>
+        <div class="af-field">
+            <label>Slug</label>
+            <input type="text" name="slug" class="ai" value="{{ category.slug }}">
+        </div>
+    </div>
+    <div class="af-group">
+        <div class="af-field">
+            <label>Pré-título</label>
+            <input type="text" name="preTitle" class="ai" value="{{ category.preTitle ?? '' }}" placeholder="Ex: Nossa">
+        </div>
+        <div class="af-field">
+            <label>Descrição</label>
+            <textarea name="description" class="ai" rows="3">{{ category.description ?? '' }}</textarea>
+        </div>
+    </div>
+    <div class="af-group af-group--inline">
+        <label class="af-check">
+            <input type="checkbox" name="showInHeader" value="1" {{ category.showInHeader ? 'checked' : '' }}>
+            <span>Aparece no menu do <strong>topo</strong></span>
+        </label>
+        <label class="af-check">
+            <input type="checkbox" name="showInFooter" value="1" {{ category.showInFooter ? 'checked' : '' }}>
+            <span>Aparece no menu do <strong>rodapé</strong></span>
+        </label>
+    </div>
     <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button><a href="{{ path('admin_category_index') }}" class="btn btn-g">Cancelar</a></div>
 </form></div>
 {% endblock %}

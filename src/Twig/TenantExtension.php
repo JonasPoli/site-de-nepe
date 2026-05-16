@@ -30,11 +30,12 @@ class TenantExtension extends AbstractExtension implements GlobalsInterface
     public function getGlobals(): array
     {
         return [
-            'currentTenant'    => $this->tenantContext->getTenant(),
-            'footerPages'      => $this->pageRepository->findForFooter(),
-            'footerCategories' => $this->categoryRepository->findBy([], ['name' => 'ASC']),
-            'footerVideos'     => $this->videoRepository->findBy([], ['createdAt' => 'DESC'], 5),
-            'footerStudies'    => $this->studyRepository->findBy([], ['createdAt' => 'DESC'], 5),
+            'currentTenant'     => $this->tenantContext->getTenant(),
+            'headerCategories'  => $this->categoryRepository->findForHeader(),
+            'footerPages'       => $this->pageRepository->findForFooter(),
+            'footerCategories'  => $this->categoryRepository->findForFooter(),
+            'footerVideos'      => $this->videoRepository->findBy([], ['createdAt' => 'DESC'], 5),
+            'footerStudies'     => $this->studyRepository->findBy([], ['createdAt' => 'DESC'], 5),
         ];
     }
 

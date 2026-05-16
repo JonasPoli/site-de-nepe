@@ -189,7 +189,9 @@ class AdminContentController extends AbstractController
     #[Route('/category', name: 'category_index')]
     public function categoryIndex(CategoryRepository $repo): Response
     {
-        return $this->render('admin/category/index.html.twig', ['categories' => $repo->findAll()]);
+        return $this->render('admin/category/index.html.twig', [
+            'categories' => $repo->findRootCategories(),
+        ]);
     }
 
     #[Route('/category/new', name: 'category_new', methods: ['GET', 'POST'])]
@@ -198,8 +200,7 @@ class AdminContentController extends AbstractController
         $cat = new Category();
         if ($r->isMethod('POST')) {
             $cat->setTenant($tc->requireTenant());
-            $cat->setName((string) $r->request->get('name'));
-            $cat->setSlug(strtolower((string) $slugger->slug($cat->getName())));
+            $this->populateCategory($cat, $r, $slugger);
             $em->persist($cat);
             $em->flush();
             $this->addFlash('success', 'Categoria criada.');
@@ -212,8 +213,7 @@ class AdminContentController extends AbstractController
     public function categoryEdit(Category $cat, Request $r, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         if ($r->isMethod('POST')) {
-            $cat->setName((string) $r->request->get('name'));
-            $cat->setSlug(strtolower((string) $slugger->slug($cat->getName())));
+            $this->populateCategory($cat, $r, $slugger);
             $em->flush();
             $this->addFlash('success', 'Categoria atualizada.');
             return $this->redirectToRoute('admin_category_index');
@@ -229,6 +229,103 @@ class AdminContentController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('admin_category_index');
+    }
+
+    // ── SubCategory ──────────────────────────────────────────────────────────
+
+    #[Route('/category/{id}/sub', name: 'subcategory_index')]
+    public function subcategoryIndex(Category $cat): Response
+    {
+        return $this->render('admin/category/sub_index.html.twig', [
+            'category' => $cat,
+            'subcategories' => $cat->getChildren(),
+        ]);
+    }
+
+    #[Route('/category/{id}/sub/new', name: 'subcategory_new', methods: ['GET', 'POST'])]
+    public function subcategoryNew(Category $cat, Request $r, EntityManagerInterface $em, TenantContext $tc, SluggerInterface $slugger): Response
+    {
+        // Sub-categories cannot themselves have children (max 1 level)
+        if ($cat->isSubCategory()) {
+            $this->addFlash('danger', 'Sub-categorias não podem ter sub-categorias.');
+            return $this->redirectToRoute('admin_category_index');
+        }
+        $sub = new Category();
+        if ($r->isMethod('POST')) {
+            $sub->setTenant($tc->requireTenant());
+            $sub->setParent($cat);
+            $this->populateCategory($sub, $r, $slugger);
+            $em->persist($sub);
+            $em->flush();
+            $this->addFlash('success', 'Sub-categoria criada.');
+            return $this->redirectToRoute('admin_subcategory_index', ['id' => $cat->getId()]);
+        }
+        return $this->render('admin/category/sub_new.html.twig', [
+            'category' => $cat,
+            'subcategory' => $sub,
+        ]);
+    }
+
+    #[Route('/subcategory/{id}/edit', name: 'subcategory_edit', methods: ['GET', 'POST'])]
+    public function subcategoryEdit(Category $sub, Request $r, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    {
+        $parent = $sub->getParent();
+        if ($r->isMethod('POST')) {
+            $this->populateCategory($sub, $r, $slugger);
+            $em->flush();
+            $this->addFlash('success', 'Sub-categoria atualizada.');
+            return $this->redirectToRoute('admin_subcategory_index', ['id' => $parent?->getId()]);
+        }
+        return $this->render('admin/category/sub_edit.html.twig', [
+            'category' => $parent,
+            'subcategory' => $sub,
+        ]);
+    }
+
+    #[Route('/subcategory/{id}/delete', name: 'subcategory_delete', methods: ['POST'])]
+    public function subcategoryDelete(Category $sub, Request $r, EntityManagerInterface $em): Response
+    {
+        $parentId = $sub->getParent()?->getId();
+        if ($this->isCsrfTokenValid('del_sub_' . $sub->getId(), (string) $r->request->get('_token'))) {
+            $em->remove($sub);
+            $em->flush();
+        }
+        return $this->redirectToRoute('admin_subcategory_index', ['id' => $parentId]);
+    }
+
+    // ── Category Sections ─────────────────────────────────────────────────────
+
+    #[Route('/category/{catId}/section', name: 'cat_section_index')]
+    public function catSectionIndex(int $catId, CategoryRepository $cats): Response
+    {
+        $cat = $cats->find($catId) ?? throw $this->createNotFoundException();
+        return $this->render('admin/section/index.html.twig', [
+            'page'     => null,
+            'category' => $cat,
+            'sections' => $cat->getSections(),
+        ]);
+    }
+
+    #[Route('/category/{catId}/section/new', name: 'cat_section_new', methods: ['GET', 'POST'])]
+    public function catSectionNew(int $catId, Request $r, EntityManagerInterface $em, CategoryRepository $cats): Response
+    {
+        $cat = $cats->find($catId) ?? throw $this->createNotFoundException();
+        $section = new PageSection();
+        if ($r->isMethod('POST')) {
+            $section->setCategory($cat);
+            $section->setTitlePart1($r->request->get('titlePart1') ?: null);
+            $section->setTitlePart2($r->request->get('titlePart2') ?: null);
+            $section->setActive((bool) $r->request->get('active'));
+            $em->persist($section);
+            $em->flush();
+            $this->addFlash('success', 'Seção criada.');
+            return $this->redirectToRoute('admin_cat_section_index', ['catId' => $catId]);
+        }
+        return $this->render('admin/section/new.html.twig', [
+            'page'     => null,
+            'category' => $cat,
+            'section'  => $section,
+        ]);
     }
 
     // ── VideoSupport ─────────────────────────────────────────────────────────
@@ -453,6 +550,9 @@ class AdminContentController extends AbstractController
             $section->setActive((bool) $r->request->get('active'));
             $em->flush();
             $this->addFlash('success', 'Seção atualizada.');
+            if ($section->getCategory()) {
+                return $this->redirectToRoute('admin_cat_section_index', ['catId' => $section->getCategory()->getId()]);
+            }
             return $this->redirectToRoute('admin_section_index', ['pageId' => $section->getPage()?->getId()]);
         }
         return $this->render('admin/section/edit.html.twig', ['section' => $section]);
@@ -461,10 +561,14 @@ class AdminContentController extends AbstractController
     #[Route('/section/{id}/delete', name: 'section_delete', methods: ['POST'])]
     public function sectionDelete(PageSection $section, Request $r, EntityManagerInterface $em): Response
     {
+        $catId  = $section->getCategory()?->getId();
         $pageId = $section->getPage()?->getId();
         if ($this->isCsrfTokenValid('del_sec_' . $section->getId(), (string) $r->request->get('_token'))) {
             $em->remove($section);
             $em->flush();
+        }
+        if ($catId) {
+            return $this->redirectToRoute('admin_cat_section_index', ['catId' => $catId]);
         }
         return $this->redirectToRoute('admin_section_index', ['pageId' => $pageId]);
     }
@@ -626,6 +730,16 @@ class AdminContentController extends AbstractController
         }
         $em->flush();
         return new JsonResponse(['ok' => true]);
+    }
+
+    private function populateCategory(Category $cat, Request $r, SluggerInterface $slugger): void
+    {
+        $cat->setName((string) $r->request->get('name'));
+        $cat->setSlug($r->request->get('slug') ?: strtolower((string) $slugger->slug($cat->getName())));
+        $cat->setPreTitle($r->request->get('preTitle') ?: null);
+        $cat->setDescription($r->request->get('description') ?: null);
+        $cat->setShowInHeader((bool) $r->request->get('showInHeader'));
+        $cat->setShowInFooter((bool) $r->request->get('showInFooter'));
     }
 
     private function populatePage(Page $page, Request $r, SluggerInterface $slugger): void

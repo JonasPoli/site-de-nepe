@@ -1,16 +1,34 @@
 {% extends 'admin/nepe_base.html.twig' %}
-{% block title %}Seções — {{ page.title }}{% endblock %}{% block page_title %}Seções{% endblock %}
+{% block title %}Seções — {{ page ? page.title : category.name }}{% endblock %}{% block page_title %}Seções{% endblock %}
 {% block body %}
 <div class="ph">
     <div>
-        <h1>Seções da Página: <em style="color:var(--primary)">{{ page.title }}</em></h1>
+        {% if page %}
+            <h1>Seções da Página: <em style="color:var(--primary)">{{ page.title }}</em></h1>
+        {% else %}
+            <h1>Seções da Categoria: <em style="color:var(--primary)">{{ category.name }}</em></h1>
+            {% if category.parent %}
+            <div style="font-size:.78rem;color:var(--muted);margin-top:.15rem">
+                Sub-categoria de <strong>{{ category.parent.name }}</strong>
+            </div>
+            {% endif %}
+        {% endif %}
         <div style="font-size:.8rem;color:var(--muted);margin-top:.25rem">
             Arraste para reordenar · Cada seção pode ter múltiplos blocos em zig-zag
         </div>
     </div>
     <div style="display:flex;gap:.75rem">
-        <a href="{{ path('admin_section_new', {pageId: page.id}) }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Seção</a>
-        <a href="{{ path('admin_page_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Páginas</a>
+        {% if page %}
+            <a href="{{ path('admin_section_new', {pageId: page.id}) }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Seção</a>
+            <a href="{{ path('admin_page_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Páginas</a>
+        {% else %}
+            <a href="{{ path('admin_cat_section_new', {catId: category.id}) }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Seção</a>
+            {% if category.parent %}
+                <a href="{{ path('admin_subcategory_index', {id: category.parent.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Sub-categorias</a>
+            {% else %}
+                <a href="{{ path('admin_category_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Categorias</a>
+            {% endif %}
+        {% endif %}
     </div>
 </div>
 <div class="card">

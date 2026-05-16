@@ -1,0 +1,36 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Sub-categorias — {{ category.name }}{% endblock %}{% block page_title %}Sub-categorias{% endblock %}
+{% block body %}
+<div class="ph">
+    <div>
+        <h1>Sub-categorias de: <em style="color:var(--primary)">{{ category.name }}</em></h1>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:.25rem">Aninhamento de apenas 1 nível</div>
+    </div>
+    <div style="display:flex;gap:.75rem">
+        <a href="{{ path('admin_subcategory_new', {id: category.id}) }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Nova Sub-categoria</a>
+        <a href="{{ path('admin_category_index') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Categorias</a>
+    </div>
+</div>
+<div class="card"><div class="tw"><table class="at">
+    <thead><tr><th>Nome</th><th>Slug</th><th>Header</th><th>Footer</th><th>Seções</th><th></th></tr></thead>
+    <tbody>
+    {% for sub in subcategories %}
+    <tr>
+        <td style="font-weight:600">{{ sub.name }}</td>
+        <td><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:4px;font-size:.8rem">{{ sub.slug }}</code></td>
+        <td><span class="badge {{ sub.showInHeader ? 'bg-ok' : 'bg-neu' }}">{{ sub.showInHeader ? 'Sim' : 'Não' }}</span></td>
+        <td><span class="badge {{ sub.showInFooter ? 'bg-ok' : 'bg-neu' }}">{{ sub.showInFooter ? 'Sim' : 'Não' }}</span></td>
+        <td><span class="badge bg-inf">{{ sub.sections|length }}</span></td>
+        <td><div class="ta">
+            <a href="{{ path('admin_cat_section_index', {catId: sub.id}) }}" class="btn btn-g btn-sm" title="Seções"><sl-icon name="layout-text-sidebar-reverse"></sl-icon></a>
+            <a href="{{ path('admin_subcategory_edit', {id: sub.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
+            <form action="{{ path('admin_subcategory_delete', {id: sub.id}) }}" method="post" onsubmit="return confirm('Remover sub-categoria?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('del_sub_' ~ sub.id) }}">
+                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+            </form>
+        </div></td>
+    </tr>
+    {% else %}<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">Nenhuma sub-categoria. <a href="{{ path('admin_subcategory_new', {id: category.id}) }}">Criar a primeira</a>.</td></tr>{% endfor %}
+    </tbody>
+</table></div></div>
+{% endblock %}
