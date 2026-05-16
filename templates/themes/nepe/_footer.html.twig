@@ -38,7 +38,7 @@
         <h4 class="footer-col-title">Notícias</h4>
         <nav class="footer-nav">
             <a href="{{ path('pub_articles') }}">Todas as notícias</a>
-            {% for cat in footerCategories %}<a href="{{ path('pub_articles') }}">{{ cat.name }}</a>{% endfor %}
+            {% for cat in footerCategories %}<a href="{{ path('pub_category_show', {slug: cat.slug}) }}">{{ cat.name }}</a>{% endfor %}
         </nav>
     </div>
 

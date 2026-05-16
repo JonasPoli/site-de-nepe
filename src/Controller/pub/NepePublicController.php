@@ -5,6 +5,7 @@ namespace App\Controller\pub;
 use App\Entity\ContactMessage;
 use App\Entity\NewsletterSubscriber;
 use App\Repository\ArticleRepository;
+use App\Repository\CategoryRepository;
 use App\Repository\HeroBannerRepository;
 use App\Repository\NewsletterSubscriberRepository;
 use App\Repository\PageRepository;
@@ -126,6 +127,17 @@ class NepePublicController extends AbstractController
         return $this->render($this->theme('study.html.twig'), [
             'study'       => $study,
             'headerPages' => $pages->findForHeader(),
+        ]);
+    }
+
+    #[Route('/categoria/{slug}', name: 'pub_category_show')]
+    public function categoryShow(string $slug, CategoryRepository $repo): Response
+    {
+        $category = $repo->findOneBy(['slug' => $slug])
+            ?? throw $this->createNotFoundException('Categoria não encontrada.');
+
+        return $this->render($this->theme('category.html.twig'), [
+            'category' => $category,
         ]);
     }
 

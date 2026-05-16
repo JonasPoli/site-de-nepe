@@ -1,0 +1,268 @@
+{% extends 'themes/nepe/base.html.twig' %}
+
+{% set isSubCategory = category.parent is not null %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block meta_description %}
+{% if category.description %}
+<meta name="description" content="{{ category.description|striptags|slice(0,160) }}">
+{% endif %}
+{% endblock %}
+
+{% block og_tags %}
+{{ parent() }}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ category.name }}">
+{% if category.description %}<meta property="og:description" content="{{ category.description|striptags|slice(0,160) }}">{% endif %}
+{% endblock %}
+
+{% block body %}
+
+{# ── Hero ── #}
+<div class="cat-hero">
+    <div class="container cat-hero-inner reveal-up">
+        <div class="cat-hero-text">
+            {# Breadcrumb para subcategoria #}
+            {% if isSubCategory %}
+            <nav class="cat-breadcrumb" aria-label="Caminho">
+                <a href="{{ path('pub_home') }}">Início</a>
+                <span class="cat-breadcrumb-sep">›</span>
+                <a href="{{ path('pub_category_show', {slug: category.parent.slug}) }}">{{ category.parent.name }}</a>
+                <span class="cat-breadcrumb-sep">›</span>
+                <span>{{ category.name }}</span>
+            </nav>
+            {% else %}
+            <nav class="cat-breadcrumb" aria-label="Caminho">
+                <a href="{{ path('pub_home') }}">Início</a>
+                <span class="cat-breadcrumb-sep">›</span>
+                <span>{{ category.name }}</span>
+            </nav>
+            {% endif %}
+
+            {% if category.preTitle %}
+            <span class="vl-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+                {{ category.preTitle }}
+            </span>
+            {% endif %}
+
+            <h1>{{ category.name }}</h1>
+
+            {% if category.description %}
+            <p class="cat-hero-desc">{{ category.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# ── Grid de Subcategorias (apenas para categoria raiz com filhos) ── #}
+{% if not isSubCategory and category.children|length > 0 %}
+<section class="cat-sub-section">
+    <div class="container">
+        <div class="section-title reveal-up">
+            <h2>Subcategorias</h2>
+            <p>Explore os temas dentro de <strong>{{ category.name }}</strong></p>
+        </div>
+        <div class="cat-sub-grid">
+            {% for sub in category.children %}
+            <a href="{{ path('pub_category_show', {slug: sub.slug}) }}" class="cat-sub-card reveal-up delay-{{ loop.index0 * 100 }}">
+                <div class="cat-sub-card-accent"></div>
+                <div class="cat-sub-card-body">
+                    {% if sub.preTitle %}
+                    <span class="cat-sub-card-pre">{{ sub.preTitle }}</span>
+                    {% endif %}
+                    <h3 class="cat-sub-card-title">{{ sub.name }}</h3>
+                    {% if sub.description %}
+                    <p class="cat-sub-card-desc">{{ sub.description|striptags|slice(0,120) }}{% if sub.description|striptags|length > 120 %}…{% endif %}</p>
+                    {% endif %}
+                    <span class="cat-sub-card-cta">
+                        Ver conteúdo
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── Seções de conteúdo ── #}
+{% for section in category.sections %}
+    {% if section.active %}
+    <section class="page-section">
+        {% if section.titlePart1 or section.titlePart2 %}
+        <div class="section-two-tone-title reveal-up">
+            {% if section.titlePart1 %}
+                <span class="title-secondary">{{ section.titlePart1 }}</span>
+            {% endif %}
+            {% if section.titlePart2 %}
+                <span class="title-primary">{{ section.titlePart2 }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% for block in section.blocks %}
+        <div class="zigzag-block {% if loop.index is even %}zigzag-reverse{% endif %} reveal-up delay-{{ loop.index0 * 100 }}">
+            {% if block.image %}
+            <div class="zigzag-img">
+                <div class="zigzag-img-wrapper">
+                    <img src="/uploads/page_block/{{ block.image }}" alt="{{ block.title ?? '' }}" loading="lazy">
+                </div>
+            </div>
+            {% endif %}
+            <div class="zigzag-text {% if not block.image %}zigzag-text--full{% endif %}">
+                {% if block.preTitle %}
+                    <span class="pre-label">{{ block.preTitle }}</span>
+                {% endif %}
+                {% if block.title %}
+                    <h2>{{ block.title }}</h2>
+                {% endif %}
+                {% if block.text %}
+                    <div class="prose">{{ block.text|raw }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+{% else %}
+    {# Sem seções cadastradas — mensagem vazia elegante #}
+    {% if category.sections|length == 0 and (isSubCategory or category.children|length == 0) %}
+    <section class="cat-empty-section">
+        <div class="container cat-empty-inner reveal-up">
+            <div class="cat-empty-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 6v4m0 4h.01"/></svg>
+            </div>
+            <p>Conteúdo em breve.</p>
+        </div>
+    </section>
+    {% endif %}
+{% endfor %}
+
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* ── Hero ── */
+.cat-hero {
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary)));
+    color: white; padding: 5rem 0 4rem; position: relative; overflow: hidden;
+}
+.cat-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(255,255,255,.08) 0%, transparent 60%);
+}
+.cat-hero-inner { position: relative; }
+.cat-hero-text { max-width: 760px; }
+.cat-breadcrumb {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .8rem; font-weight: 500; opacity: .75; margin-bottom: 1.5rem;
+}
+.cat-breadcrumb a { color: white; text-decoration: none; }
+.cat-breadcrumb a:hover { opacity: 1; text-decoration: underline; }
+.cat-breadcrumb-sep { opacity: .5; }
+.cat-breadcrumb span:last-child { opacity: 1; }
+.vl-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(255,255,255,.18); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.25);
+    color: white; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    padding: .3rem .85rem; border-radius: 50px; margin-bottom: 1rem;
+}
+.cat-hero-text h1 {
+    font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900;
+    margin: .4rem 0 1rem; line-height: 1.15;
+    text-shadow: 0 2px 12px rgba(0,0,0,.15);
+}
+.cat-hero-desc {
+    font-size: 1.05rem; line-height: 1.7; opacity: .88;
+    max-width: 640px; margin: 0;
+}
+
+/* ── Subcategory grid ── */
+.cat-sub-section { padding: 5rem 0; background: #f8fafc; }
+.cat-sub-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem; margin-top: 2.5rem;
+}
+.cat-sub-card {
+    position: relative; background: white; border-radius: var(--radius);
+    box-shadow: 0 2px 16px rgba(0,0,0,.06); border: 1px solid rgba(0,0,0,.06);
+    overflow: hidden; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    transition: transform .25s, box-shadow .25s;
+}
+.cat-sub-card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(0,0,0,.12); opacity: 1; }
+.cat-sub-card-accent {
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+}
+.cat-sub-card-body { padding: 1.5rem; display: flex; flex-direction: column; gap: .6rem; flex: 1; }
+.cat-sub-card-pre {
+    font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--color-primary); opacity: .7;
+}
+.cat-sub-card-title {
+    font-size: 1.15rem; font-weight: 800; margin: 0;
+    color: #1a1c2e; line-height: 1.3;
+    transition: color .2s;
+}
+.cat-sub-card:hover .cat-sub-card-title { color: var(--color-primary); }
+.cat-sub-card-desc {
+    font-size: .875rem; color: #6b7280; line-height: 1.6; margin: 0; flex: 1;
+}
+.cat-sub-card-cta {
+    display: inline-flex; align-items: center; gap: .35rem;
+    font-size: .8rem; font-weight: 700; color: var(--color-primary);
+    margin-top: .5rem;
+    transition: gap .2s;
+}
+.cat-sub-card:hover .cat-sub-card-cta { gap: .6rem; }
+
+/* ── Seções (reutiliza estilos de page.html.twig) ── */
+.page-section { padding: 5rem 0; }
+.page-section:nth-child(even) { background: #f8fafc; }
+.section-two-tone-title {
+    display: flex; justify-content: center; margin-bottom: 3rem; overflow: hidden;
+    border-radius: var(--radius);
+}
+.title-secondary { background: var(--color-secondary); color: #1a1c2e; padding: .75rem 2rem; font-size: 1.4rem; font-weight: 800; }
+.title-primary   { background: var(--color-primary);   color: white;   padding: .75rem 2rem; font-size: 1.4rem; font-weight: 800; }
+.zigzag-block {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+    max-width: 1100px; margin: 0 auto 4rem; padding: 0 1.5rem;
+    transition: transform .4s;
+}
+.zigzag-block:hover { transform: translateY(-5px); }
+.zigzag-text--full { grid-column: 1 / -1; max-width: 760px; }
+.zigzag-reverse .zigzag-img  { order: 2; }
+.zigzag-reverse .zigzag-text { order: 1; }
+.zigzag-img-wrapper { overflow: hidden; border-radius: var(--radius); box-shadow: 0 12px 40px rgba(0,0,0,.1); }
+.zigzag-img img { width: 100%; display: block; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.zigzag-block:hover .zigzag-img img { transform: scale(1.05) rotate(-1deg); }
+.zigzag-text h2 { font-size: 1.7rem; font-weight: 800; margin: .75rem 0 1rem; transition: color .3s; }
+.zigzag-block:hover .zigzag-text h2 { color: var(--color-primary); }
+.pre-label {
+    display: inline-block; padding: .35rem 1rem; border-radius: 50px; margin-bottom: .75rem;
+    background: color-mix(in srgb, var(--color-secondary) 25%, transparent);
+    color: var(--color-primary); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+}
+
+/* ── Vazio ── */
+.cat-empty-section { padding: 5rem 0; }
+.cat-empty-inner { text-align: center; color: #9ca3af; }
+.cat-empty-icon { margin-bottom: 1rem; }
+.cat-empty-inner p { font-size: 1rem; }
+
+@media (max-width: 768px) {
+    .cat-sub-grid { grid-template-columns: 1fr; }
+    .zigzag-block { grid-template-columns: 1fr; gap: 2rem; }
+    .zigzag-reverse .zigzag-img, .zigzag-reverse .zigzag-text { order: unset; }
+    .section-two-tone-title { flex-direction: column; }
+    .title-secondary, .title-primary { text-align: center; }
+}
+</style>
+{% endblock %}

@@ -22,17 +22,17 @@
                 {% for cat in headerCategories %}
                     {% if cat.children|length > 0 %}
                     <div class="nav-dropdown">
-                        <a href="#" class="nav-link nav-link--has-children" aria-haspopup="true">
+                        <a href="{{ path('pub_category_show', {slug: cat.slug}) }}" class="nav-link nav-link--has-children" aria-haspopup="true">
                             {{ cat.name }} <svg class="nav-chevron" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
                         </a>
                         <div class="nav-dropdown__panel">
                             {% for sub in cat.children %}
-                            <a href="#" class="nav-dropdown__item">{{ sub.name }}</a>
+                            <a href="{{ path('pub_category_show', {slug: sub.slug}) }}" class="nav-dropdown__item">{{ sub.name }}</a>
                             {% endfor %}
                         </div>
                     </div>
                     {% else %}
-                    <a href="#" class="nav-link">{{ cat.name }}</a>
+                    <a href="{{ path('pub_category_show', {slug: cat.slug}) }}" class="nav-link">{{ cat.name }}</a>
                     {% endif %}
                 {% endfor %}
             {% endif %}
