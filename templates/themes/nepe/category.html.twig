@@ -67,7 +67,23 @@
         <div class="cat-sub-grid">
             {% for sub in category.children %}
             <a href="{{ path('pub_category_show', {slug: sub.slug}) }}" class="cat-sub-card reveal-up delay-{{ loop.index0 * 100 }}">
+                {# Find the latest image in the blocks of this subcategory #}
+                {% set subImage = null %}
+                {% for sec in sub.sections %}
+                    {% for blk in sec.blocks %}
+                        {% if blk.image %}
+                            {% set subImage = blk.image %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+
+                {% if subImage %}
+                <div class="cat-sub-card-img">
+                    <img src="/uploads/page_block/{{ subImage }}" alt="{{ sub.name }}" loading="lazy">
+                </div>
+                {% else %}
                 <div class="cat-sub-card-accent"></div>
+                {% endif %}
                 <div class="cat-sub-card-body">
                     {% if sub.preTitle %}
                     <span class="cat-sub-card-pre">{{ sub.preTitle }}</span>
@@ -326,6 +342,17 @@
 .cat-sub-card-accent {
     height: 4px;
     background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+}
+.cat-sub-card-img {
+    width: 100%; height: 160px; overflow: hidden; position: relative;
+    background: #e5e7eb;
+}
+.cat-sub-card-img img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform .5s cubic-bezier(.2,.8,.2,1);
+}
+.cat-sub-card:hover .cat-sub-card-img img {
+    transform: scale(1.06);
 }
 .cat-sub-card-body { padding: 1.5rem; display: flex; flex-direction: column; gap: .6rem; flex: 1; }
 .cat-sub-card-pre {
