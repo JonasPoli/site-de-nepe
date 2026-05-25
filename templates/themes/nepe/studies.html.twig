@@ -1,9 +1,9 @@
 {% extends 'themes/nepe/base.html.twig' %}
 
-{% block title %}Estudos — {{ currentTenant ? currentTenant.name : 'NEPE' }}{% endblock %}
+{% block title %}Materiais — {{ currentTenant ? currentTenant.name : 'NEPE' }}{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="Materiais de estudo, referências e conteúdos aprofundados do {{ currentTenant ? currentTenant.name : 'NEPE' }}.">
+<meta name="description" content="Materiais de apoio, referências e conteúdos aprofundados do {{ currentTenant ? currentTenant.name : 'NEPE' }}.">
 {% endblock %}
 
 {% block body %}
@@ -18,17 +18,17 @@
         <div class="sl-hero-text">
             <span class="sl-badge">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
-                Materiais de Estudo
+                Materiais de Apoio
             </span>
             <h1>Aprofunde seu<br><span class="sl-gradient-text">conhecimento</span></h1>
-            <p>Conteúdos, referências e materiais para estudo do {{ currentTenant ? currentTenant.name : 'NEPE' }}. Acesse gratuitamente.</p>
+            <p>Conteúdos, referências e materiais de apoio do {{ currentTenant ? currentTenant.name : 'NEPE' }}. Acesse gratuitamente.</p>
         </div>
     </div>
     {# Stats #}
     <div class="container sl-stats fade-in delay-200">
         <div class="sl-stat">
             <span class="sl-stat-num">{{ studies|length }}</span>
-            <span class="sl-stat-label">Estudos disponíveis</span>
+            <span class="sl-stat-label">Materiais disponíveis</span>
         </div>
         <div class="sl-stat-div"></div>
         <div class="sl-stat">
@@ -64,7 +64,7 @@
         {% if studies|length == 0 %}
         <div class="sl-empty">
             <div class="sl-empty-icon">📚</div>
-            <h2>Nenhum estudo publicado ainda</h2>
+            <h2>Nenhum material publicado ainda</h2>
             <p>Em breve publicaremos novos conteúdos.</p>
         </div>
         {% else %}
@@ -101,7 +101,7 @@
                     {% endif %}
                 </div>
                 <a href="{{ path('pub_study_show', {slug: featured.slug}) }}" class="sl-btn-read">
-                    Ler estudo →
+                    Acessar material →
                 </a>
             </div>
         </div>

@@ -165,14 +165,14 @@
 </section>
 {% endif %}
 
-{# ── ESTUDOS ──────────────────────────────────────────────────────────── #}
+{# ── MATERIAIS ────────────────────────────────────────────────────────── #}
 {% if latestStudies is defined and latestStudies|length > 0 %}
 <section class="section-studies" id="estudos">
     <div class="container">
         <div class="section-title reveal-up">
-            <div class="section-label-line">Estudos</div>
+            <div class="section-label-line">Materiais</div>
             <h2>Aprofunde seu conhecimento</h2>
-            <p>Materiais, referências e conteúdos para estudo</p>
+            <p>Materiais, referências e conteúdos para apoio</p>
         </div>
         <div class="studies-grid-home">
             {% for study in latestStudies %}
@@ -203,7 +203,7 @@
             {% endfor %}
         </div>
         <div style="text-align:center;margin-top:2rem">
-            <a href="{{ path('pub_studies') }}" class="btn btn-outline">Ver todos os estudos</a>
+            <a href="{{ path('pub_studies') }}" class="btn btn-outline">Ver todos os materiais</a>
         </div>
     </div>
 </section>

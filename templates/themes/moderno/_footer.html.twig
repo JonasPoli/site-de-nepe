@@ -4,7 +4,11 @@
 
     {# Col 1 — Brand + Redes Sociais #}
     <div class="mf-col mf-brand">
-        {% if currentTenant and currentTenant.logo %}
+        {% if currentTenant and currentTenant.darkLogo %}
+            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.darkLogo) }}"
+                 alt="{{ currentTenant.name }}"
+                 style="height:44px;width:auto;object-fit:contain;margin-bottom:1rem">
+        {% elseif currentTenant and currentTenant.logo %}
             <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo) }}"
                  alt="{{ currentTenant.name }}"
                  style="height:44px;width:auto;object-fit:contain;margin-bottom:1rem;filter:brightness(0) invert(1)">

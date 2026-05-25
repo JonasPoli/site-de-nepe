@@ -56,6 +56,12 @@ class SuperAdminController extends AbstractController
                 $tenant->setLogoFile($logoFile);
             }
 
+            /** @var UploadedFile|null $darkLogoFile */
+            $darkLogoFile = $request->files->get('darkLogoFile');
+            if ($darkLogoFile instanceof UploadedFile) {
+                $tenant->setDarkLogoFile($darkLogoFile);
+            }
+
             $em->flush();
             $this->addFlash('success', 'Tenant atualizado.');
             return $this->redirectToRoute('superadmin_dash');

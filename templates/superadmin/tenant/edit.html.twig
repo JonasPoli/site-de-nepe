@@ -38,6 +38,34 @@
             </div>
         </div>
 
+        {# ── Logo Escuro ── #}
+        <div class="af-field">
+            <label>Logo do site (para fundo escuro / rodapé)</label>
+            <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+                {% if tenant.darkLogo %}
+                    <div style="position:relative">
+                        <img id="dark-logo-preview"
+                             src="{{ asset('uploads/tenant/logo/' ~ tenant.darkLogo) }}"
+                             alt="Logo escuro atual" style="height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);padding:6px;background:#0d0f1a">
+                        <div style="font-size:.7rem;color:var(--muted);margin-top:.35rem;text-align:center">Atual</div>
+                    </div>
+                {% else %}
+                    <div id="dark-logo-preview" style="width:80px;height:64px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);background:#0d0f1a">
+                        <sl-icon name="image" style="font-size:1.5rem"></sl-icon>
+                    </div>
+                {% endif %}
+                <div style="flex:1">
+                    <label for="dark-logo-upload" class="logo-upload-btn">
+                        <sl-icon name="upload"></sl-icon> Selecionar logo escuro
+                    </label>
+                    <input type="file" id="dark-logo-upload" name="darkLogoFile"
+                           accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                           style="display:none" onchange="previewDarkLogo(this)">
+                    <p class="af-hint" style="margin-top:.4rem">PNG, JPG, SVG ou WebP · Especialmente para fundo escuro do rodapé (branco ou cores claras) · max 2 MB</p>
+                </div>
+            </div>
+        </div>
+
         <hr style="border:none;border-top:1px solid var(--border)">
 
         {# ── Identificação ── #}
@@ -127,6 +155,31 @@ function previewLogo(input) {
             const img = document.createElement('img');
             img.id = 'logo-preview';
             img.style.cssText = 'height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);padding:6px;background:rgba(255,255,255,.05)';
+            img.alt = 'Preview';
+            preview.replaceWith(img);
+            preview = img;
+        }
+        preview.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function previewDarkLogo(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Arquivo muito grande. Máximo 2 MB.');
+        input.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+        let preview = document.getElementById('dark-logo-preview');
+        if (preview.tagName === 'DIV') {
+            // Replace placeholder div with img
+            const img = document.createElement('img');
+            img.id = 'dark-logo-preview';
+            img.style.cssText = 'height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);padding:6px;background:#0d0f1a';
             img.alt = 'Preview';
             preview.replaceWith(img);
             preview = img;

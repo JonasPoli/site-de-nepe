@@ -1,19 +1,19 @@
 {% extends 'admin/nepe_base.html.twig' %}
 {% import 'admin/study/_form.html.twig' as forms %}
 
-{% block page_title %}Estudos{% endblock %}
+{% block page_title %}Materiais{% endblock %}
 
 {% block body %}
 <div class="ph">
-    <h1>Estudos</h1>
+    <h1>Materiais</h1>
     <a href="{{ path('admin_study_new') }}" class="btn btn-p">
-        <sl-icon name="plus-lg"></sl-icon> Novo Estudo
+        <sl-icon name="plus-lg"></sl-icon> Novo Material
     </a>
 </div>
 
 <div class="card">
     {% if studies|length == 0 %}
-    <p style="color:var(--muted);text-align:center;padding:2rem">Nenhum estudo cadastrado ainda.</p>
+    <p style="color:var(--muted);text-align:center;padding:2rem">Nenhum material cadastrado ainda.</p>
     {% else %}
     <div class="tw">
         <table class="at">
@@ -25,6 +25,7 @@
                     <th>Autor</th>
                     <th>Materiais</th>
                     <th>Data</th>
+                    <th>Status</th>
                     <th style="width:120px">Ações</th>
                 </tr>
             </thead>
@@ -69,12 +70,17 @@
                     </td>
                     <td style="color:var(--muted);font-size:.82rem">{{ study.createdAt|date('d/m/Y') }}</td>
                     <td>
+                        <span class="badge {{ study.active ? 'bg-ok' : 'bg-err' }}">
+                            {{ study.active ? 'Ativo' : 'Inativo' }}
+                        </span>
+                    </td>
+                    <td>
                         <div class="ta">
                             <a href="{{ path('admin_study_edit', {id: study.id}) }}" class="btn btn-g btn-sm">
                                 <sl-icon name="pencil-fill"></sl-icon>
                             </a>
                             <form method="post" action="{{ path('admin_study_delete', {id: study.id}) }}"
-                                  onsubmit="return confirm('Excluir este estudo?')">
+                                  onsubmit="return confirm('Excluir este material?')">
                                 <input type="hidden" name="_token" value="{{ csrf_token('del_study_' ~ study.id) }}">
                                 <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
                             </form>

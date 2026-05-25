@@ -21,6 +21,13 @@
         </select>
     </div>
 
+    <div class="af-group af-group--inline">
+        <label class="af-check">
+            <input type="checkbox" name="active" value="1" {{ study.active ? 'checked' }}>
+            <span><strong>Ativo</strong> (exibir este material no site público)</span>
+        </label>
+    </div>
+
     {# ── Imagem principal (capa) ── #}
     <div class="af-field">
         <label>Imagem principal (capa)</label>

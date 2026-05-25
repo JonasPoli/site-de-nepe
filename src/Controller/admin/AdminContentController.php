@@ -394,7 +394,7 @@ class AdminContentController extends AbstractController
             $this->populateStudy($study, $r, $slugger, $em);
             $em->persist($study);
             $em->flush();
-            $this->addFlash('success', 'Estudo criado.');
+            $this->addFlash('success', 'Material criado.');
             return $this->redirectToRoute('admin_study_index');
         }
         return $this->render('admin/study/new.html.twig', ['study' => $study, 'categories' => $cats->findAll()]);
@@ -406,7 +406,7 @@ class AdminContentController extends AbstractController
         if ($r->isMethod('POST')) {
             $this->populateStudy($study, $r, $slugger, $em);
             $em->flush();
-            $this->addFlash('success', 'Estudo atualizado.');
+            $this->addFlash('success', 'Material atualizado.');
             return $this->redirectToRoute('admin_study_index');
         }
         return $this->render('admin/study/edit.html.twig', [
@@ -795,6 +795,7 @@ class AdminContentController extends AbstractController
         $study->setSlug($r->request->get('slug') ?: strtolower((string) $slugger->slug($study->getTitle())));
         $study->setDescription($r->request->get('description') ?: null);
         $study->setMaterialsHtml($r->request->get('materialsHtml') ?: null);
+        $study->setActive((bool) $r->request->get('active'));
 
         // ── Cover image ───────────────────────────────────────────────────────
         $coverFile = $r->files->get('coverImageFile');

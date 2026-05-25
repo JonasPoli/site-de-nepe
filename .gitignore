@@ -44,3 +44,4 @@ public/images/newsImage/*
 
 public/uploads/
 public/uploads/*
+.DS_Store

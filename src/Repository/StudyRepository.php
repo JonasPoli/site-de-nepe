@@ -14,6 +14,7 @@ class StudyRepository extends ServiceEntityRepository
     public function findLatest(): ?Study
     {
         return $this->createQueryBuilder('s')
+            ->where('s.active = true')
             ->orderBy('s.createdAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()->getOneOrNullResult();
@@ -23,6 +24,7 @@ class StudyRepository extends ServiceEntityRepository
     public function findGallery(int $skip = 1, int $limit = 12): array
     {
         return $this->createQueryBuilder('s')
+            ->where('s.active = true')
             ->orderBy('s.createdAt', 'DESC')
             ->setFirstResult($skip)
             ->setMaxResults($limit)
@@ -32,6 +34,7 @@ class StudyRepository extends ServiceEntityRepository
     public function findAllQuery(): \Doctrine\ORM\Query
     {
         return $this->createQueryBuilder('s')
+            ->where('s.active = true')
             ->orderBy('s.createdAt', 'DESC')
             ->getQuery();
     }
@@ -41,6 +44,7 @@ class StudyRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('s')
             ->where('s.category = :category')
+            ->andWhere('s.active = true')
             ->setParameter('category', $category)
             ->orderBy('s.createdAt', 'DESC')
             ->getQuery()->getResult();

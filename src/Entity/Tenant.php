@@ -28,6 +28,12 @@ class Tenant
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $logo = null;
 
+    #[Vich\UploadableField(mapping: 'tenant_logo', fileNameProperty: 'darkLogo')]
+    private ?File $darkLogoFile = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $darkLogo = null;
+
     #[ORM\Column(length: 7, nullable: true)]
     private ?string $primaryColor = '#0044cc';
 
@@ -110,6 +116,19 @@ class Tenant
     public function getLogo(): ?string { return $this->logo; }
     public function setLogo(?string $logo): static { $this->logo = $logo; return $this; }
 
+    public function getDarkLogoFile(): ?File { return $this->darkLogoFile; }
+    public function setDarkLogoFile(?File $darkLogoFile): static
+    {
+        $this->darkLogoFile = $darkLogoFile;
+        if ($darkLogoFile !== null) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function getDarkLogo(): ?string { return $this->darkLogo; }
+    public function setDarkLogo(?string $darkLogo): static { $this->darkLogo = $darkLogo; return $this; }
+
     public function getPrimaryColor(): ?string { return $this->primaryColor; }
     public function setPrimaryColor(?string $primaryColor): static { $this->primaryColor = $primaryColor; return $this; }
 
@@ -169,11 +188,6 @@ class Tenant
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static { $this->updatedAt = $updatedAt; return $this; }
 
-    /**
-     * Exclude $logoFile (Symfony\Component\HttpFoundation\File\File) from serialization.
-     * VichUploader injects a File object when inject_on_load=true, but File objects
-     * cannot be serialized — which causes session failures during _switch_user / impersonation.
-     */
     public function __serialize(): array
     {
         return [
@@ -181,6 +195,7 @@ class Tenant
             'domain'           => $this->domain,
             'name'             => $this->name,
             'logo'             => $this->logo,
+            'darkLogo'         => $this->darkLogo,
             'primaryColor'     => $this->primaryColor,
             'secondaryColor'   => $this->secondaryColor,
             'contactEmail'     => $this->contactEmail,
@@ -208,6 +223,7 @@ class Tenant
         $this->domain            = $data['domain'];
         $this->name              = $data['name'];
         $this->logo              = $data['logo'];
+        $this->darkLogo          = $data['darkLogo'] ?? null;
         $this->primaryColor      = $data['primaryColor'];
         $this->secondaryColor    = $data['secondaryColor'];
         $this->contactEmail      = $data['contactEmail'];
@@ -226,6 +242,7 @@ class Tenant
         $this->theme             = $data['theme'];
         $this->updatedAt         = $data['updatedAt'];
         $this->logoFile          = null;
+        $this->darkLogoFile      = null;
         $this->aboutImageFile    = null;
     }
 

@@ -3,7 +3,11 @@
 
     {# Col 1 — Logo + Quem Somos + Redes Sociais #}
     <div class="footer-col footer-brand">
-        {% if currentTenant and currentTenant.logo %}
+        {% if currentTenant and currentTenant.darkLogo %}
+            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.darkLogo) }}"
+                 alt="{{ currentTenant.name }}"
+                 style="height:48px;width:auto;object-fit:contain;margin-bottom:1rem">
+        {% elseif currentTenant and currentTenant.logo %}
             <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo) }}"
                  alt="{{ currentTenant.name }}"
                  style="height:48px;width:auto;object-fit:contain;margin-bottom:1rem;filter:brightness(0) invert(1)">
@@ -51,14 +55,16 @@
         </nav>
     </div>
 
-    {# Col 5 — Estudos #}
+    {# Col 5 — Materiais #}
+    {% if hasStudies %}
     <div class="footer-col">
-        <h4 class="footer-col-title">Estudos</h4>
+        <h4 class="footer-col-title">Materiais</h4>
         <nav class="footer-nav">
-            <a href="{{ path('pub_studies') }}">Todos os estudos</a>
+            <a href="{{ path('pub_studies') }}">Todos os materiais</a>
             {% for study in footerStudies %}<a href="{{ path('pub_study_show', {slug: study.slug}) }}">{{ study.title|slice(0,38) }}{% if study.title|length > 38 %}…{% endif %}</a>{% endfor %}
         </nav>
     </div>
+    {% endif %}
 
 </div>
 <div class="footer-bottom">

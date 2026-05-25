@@ -141,7 +141,7 @@
     {% endif %}
 {% endfor %}
 
-{# ── Materiais: Estudos ── #}
+{# ── Materiais: Apoio ── #}
 {% if catStudies is defined and catStudies|length > 0 %}
 <section class="cat-materials-section cat-materials-studies">
     <div class="container">
@@ -150,16 +150,26 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
             <div>
-                <h2 class="cat-mat-title">Estudos</h2>
-                <p class="cat-mat-subtitle">{{ catStudies|length }} {{ catStudies|length == 1 ? 'estudo' : 'estudos' }} nesta {{ isSubCategory ? 'subcategoria' : 'categoria' }}</p>
+                <h2 class="cat-mat-title">Materiais</h2>
+                <p class="cat-mat-subtitle">{{ catStudies|length }} {{ catStudies|length == 1 ? 'material' : 'materiais' }} nesta {{ isSubCategory ? 'subcategoria' : 'categoria' }}</p>
             </div>
         </div>
+        {% set fallbackImage = null %}
+        {% for section in category.sections %}
+            {% for block in section.blocks %}
+                {% if block.image %}
+                    {% set fallbackImage = 'uploads/page_block/' ~ block.image %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
         <div class="cat-mat-grid">
             {% for study in catStudies %}
             <a href="{{ path('pub_study_show', {slug: study.slug}) }}" class="cat-mat-card reveal-up delay-{{ (loop.index0 % 4) * 100 }}">
                 <div class="cat-mat-card-img">
                     {% if study.coverImage %}
                     <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}" loading="lazy">
+                    {% elseif fallbackImage %}
+                    <img src="{{ asset(fallbackImage) }}" alt="{{ study.title }}" loading="lazy">
                     {% else %}
                     <div class="cat-mat-card-placeholder cat-mat-card-placeholder--study">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -167,7 +177,7 @@
                     {% endif %}
                 </div>
                 <div class="cat-mat-card-body">
-                    <span class="cat-mat-card-type cat-mat-card-type--study">Estudo</span>
+                    <span class="cat-mat-card-type cat-mat-card-type--study">Material</span>
                     <h3 class="cat-mat-card-title">{{ study.title }}</h3>
                     {% if study.description %}
                     <p class="cat-mat-card-desc">{{ study.description|striptags|slice(0,100) }}{% if study.description|striptags|length > 100 %}…{% endif %}</p>
@@ -349,7 +359,7 @@
 .title-secondary { background: var(--color-secondary); color: #1a1c2e; padding: .75rem 2rem; font-size: 1.4rem; font-weight: 800; }
 .title-primary   { background: var(--color-primary);   color: white;   padding: .75rem 2rem; font-size: 1.4rem; font-weight: 800; }
 .zigzag-block {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
     max-width: 1100px; margin: 0 auto 4rem; padding: 0 1.5rem;
     transition: transform .4s;
 }

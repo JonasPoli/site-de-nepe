@@ -56,6 +56,9 @@ class Study implements TenantAwareInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $author = null;
 
+    #[ORM\Column(options: ['default' => true])]
+    private bool $active = true;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -107,6 +110,9 @@ class Study implements TenantAwareInterface
     public function setAuthor(?User $author): static { $this->author = $author; return $this; }
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+
+    public function isActive(): bool { return $this->active; }
+    public function setActive(bool $active): static { $this->active = $active; return $this; }
 
     /** @return Collection<int, StudyMaterial> */
     public function getMaterials(): Collection { return $this->materials; }
