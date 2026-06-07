@@ -28,28 +28,28 @@
     <div style="margin-bottom:1.5rem;font-size:.95rem;color:var(--muted)">Escolha o tipo de bloco que deseja adicionar nesta seção:</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
         {% set types = [
-            {key: 'banner',        label: 'Banner / Destaque',         icon: 'fa-solid fa-image',                desc: 'Banner de destaque com título, descrição, CTA e imagem de fundo'},
-            {key: 'text_image',    label: 'Imagem + Texto',            icon: 'fa-solid fa-columns',              desc: 'Texto de um lado, imagem do outro'},
-            {key: 'gallery',       label: 'Galeria de Imagens',        icon: 'fa-solid fa-images',               desc: 'Carrossel com múltiplas fotos'},
-            {key: 'newsletter',    label: 'Newsletter',                 icon: 'fa-solid fa-envelope-open-text',   desc: 'Captura de e-mail com blorbs'},
-            {key: 'blurbs4',       label: 'Texto + 4 Blocos',          icon: 'fa-solid fa-th-large',             desc: 'Descrição com quatro ícones'},
-            {key: 'stats',         label: 'Estatísticas',              icon: 'fa-solid fa-chart-bar',            desc: 'Números e indicadores'},
-            {key: 'news_call',     label: 'Chamada de Notícias',       icon: 'fa-solid fa-newspaper',            desc: 'Exibe notícias recentes'},
-            {key: 'map',           label: 'Mapa',                      icon: 'fa-solid fa-map-marker-alt',       desc: 'Embed do Google Maps'},
-            {key: 'sub_categories',label: 'Subcategorias',             icon: 'fa-solid fa-sitemap',              desc: 'Grid de subcategorias'},
-            {key: 'page_list',     label: 'Lista de Páginas',          icon: 'fa-solid fa-list',                 desc: 'Cards com páginas filtradas'},
-            {key: 'testimonials',  label: 'Depoimentos',               icon: 'fa-solid fa-quote-left',           desc: 'Avaliações e depoimentos'},
-            {key: 'partner_logos', label: 'Logos de Parceiros',        icon: 'fa-solid fa-handshake',            desc: 'Linha/grid de logos'},
-            {key: 'team',          label: 'Membros da Equipe',         icon: 'fa-solid fa-users',                desc: 'Cards com membros da sua equipe'},
-            {key: 'contact',       label: 'Formulário de Contato',     icon: 'fa-solid fa-envelope',             desc: 'Exibe dados de contato e um formulário'},
+            {key: 'banner',        label: 'Banner / Destaque',         icon: 'image',              desc: 'Banner de destaque com título, descrição, CTA e imagem de fundo'},
+            {key: 'text_image',    label: 'Imagem + Texto',            icon: 'layout-split',       desc: 'Texto de um lado, imagem do outro'},
+            {key: 'gallery',       label: 'Galeria de Imagens',        icon: 'images',             desc: 'Carrossel com múltiplas fotos'},
+            {key: 'newsletter',    label: 'Newsletter',                 icon: 'envelope-open',      desc: 'Captura de e-mail com blorbs'},
+            {key: 'blurbs4',       label: 'Texto + 4 Blocos',          icon: 'grid',               desc: 'Descrição com quatro ícones'},
+            {key: 'stats',         label: 'Estatísticas',              icon: 'bar-chart-line',     desc: 'Números e indicadores'},
+            {key: 'news_call',     label: 'Chamada de Notícias',       icon: 'newspaper',          desc: 'Exibe notícias recentes'},
+            {key: 'map',           label: 'Mapa',                      icon: 'geo-alt',            desc: 'Embed do Google Maps'},
+            {key: 'sub_categories',label: 'Subcategorias',             icon: 'diagram-3',          desc: 'Grid de subcategorias'},
+            {key: 'page_list',     label: 'Lista de Páginas',          icon: 'card-list',          desc: 'Cards com páginas filtradas'},
+            {key: 'testimonials',  label: 'Depoimentos',               icon: 'chat-quote',         desc: 'Avaliações e depoimentos'},
+            {key: 'partner_logos', label: 'Logos de Parceiros',        icon: 'hand-thumbs-up',     desc: 'Linha/grid de logos'},
+            {key: 'team',          label: 'Membros da Equipe',         icon: 'people',             desc: 'Cards com membros da sua equipe'},
+            {key: 'contact',       label: 'Formulário de Contato',     icon: 'envelope-at',        desc: 'Exibe dados de contato e um formulário'},
         ] %}
         {% for t in types %}
         <a href="{{ path('admin_block_new', {sectionId: section.id}) }}?type={{ t.key }}"
            style="display:flex;flex-direction:column;align-items:center;gap:.75rem;padding:1.5rem 1rem;text-align:center;border:1px solid var(--border);border-radius:12px;transition:all .2s;cursor:pointer;text-decoration:none;background:var(--bg2)"
            onmouseover="this.style.borderColor='var(--primary)';this.style.background='rgba(79,110,247,.06)'"
            onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg2)'">
-            <div style="width:52px;height:52px;background:rgba(79,110,247,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--primary)">
-                <i class="{{ t.icon }}"></i>
+            <div style="width:52px;height:52px;background:rgba(79,110,247,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--primary)">
+                <sl-icon name="{{ t.icon }}"></sl-icon>
             </div>
             <div>
                 <div style="font-weight:700;font-size:.9rem;color:var(--text)">{{ t.label }}</div>

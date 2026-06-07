@@ -42,20 +42,20 @@ enum BlockType: string
     public function icon(): string
     {
         return match($this) {
-            self::TextImage     => 'fa-solid fa-columns',
-            self::Gallery       => 'fa-solid fa-images',
-            self::Newsletter    => 'fa-solid fa-envelope-open-text',
-            self::Stats         => 'fa-solid fa-chart-bar',
-            self::NewsCall      => 'fa-solid fa-newspaper',
-            self::Map           => 'fa-solid fa-map-marker-alt',
-            self::SubCategories => 'fa-solid fa-sitemap',
-            self::PageList      => 'fa-solid fa-list',
-            self::Blurbs4       => 'fa-solid fa-th-large',
-            self::Testimonials  => 'fa-solid fa-quote-left',
-            self::PartnerLogos  => 'fa-solid fa-handshake',
-            self::Banner        => 'fa-solid fa-image',
-            self::Team          => 'fa-solid fa-users',
-            self::Contact       => 'fa-solid fa-envelope',
+            self::TextImage     => 'layout-split',
+            self::Gallery       => 'images',
+            self::Newsletter    => 'envelope-open',
+            self::Stats         => 'bar-chart-line',
+            self::NewsCall      => 'newspaper',
+            self::Map           => 'geo-alt',
+            self::SubCategories => 'diagram-3',
+            self::PageList      => 'card-list',
+            self::Blurbs4       => 'grid',
+            self::Testimonials  => 'chat-quote',
+            self::PartnerLogos  => 'hand-thumbs-up',
+            self::Banner        => 'image',
+            self::Team          => 'people',
+            self::Contact       => 'envelope-at',
         };
     }
 }
