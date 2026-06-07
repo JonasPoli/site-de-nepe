@@ -611,7 +611,7 @@ class AdminContentController extends AbstractController
             'block'      => $block,
             'type'       => $type ?: null,
             'categories' => $cats->findRootCategories(),
-            'pages'      => $pages->findBy([], ['position' => 'ASC', 'title' => 'ASC']),
+            'pages'      => $pages->findBy([], ['title' => 'ASC']),
         ]);
     }
 
@@ -630,7 +630,7 @@ class AdminContentController extends AbstractController
             'block'      => $block,
             'type'       => $block->getType(),
             'categories' => $cats->findRootCategories(),
-            'pages'      => $pages->findBy([], ['position' => 'ASC', 'title' => 'ASC']),
+            'pages'      => $pages->findBy([], ['title' => 'ASC']),
         ]);
     }
 
