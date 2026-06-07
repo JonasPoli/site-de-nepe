@@ -28,11 +28,20 @@
         <span class="drag-h"><sl-icon name="grip-vertical"></sl-icon></span>
         <span class="badge bg-neu" style="font-size:.72rem">#{{ loop.index }}</span>
         {% if block.image %}
-            <img src="/uploads/page_block/{{ block.image }}" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:4px">
+            <img src="{{ vich_uploader_asset(block, 'imageFile') }}" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:4px">
+        {% elseif block.galleryImages|length > 0 %}
+            <img src="{{ asset('uploads/page_block_gallery/' ~ block.galleryImages.first.filename) }}" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:4px">
+        {% else %}
+            <div style="width:60px;height:40px;border-radius:4px;background:var(--bg3);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem">
+                <sl-icon name="layout-text-sidebar"></sl-icon>
+            </div>
         {% endif %}
         <div style="flex:1">
             <div style="font-weight:600">{{ block.title ?? '(sem título)' }}</div>
-            {% if block.preTitle %}<div style="font-size:.75rem;color:var(--muted)">{{ block.preTitle }}</div>{% endif %}
+            <div style="display:flex;align-items:center;gap:.5rem;margin-top:.2rem">
+                <span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:20px;background:rgba(79,110,247,.12);color:var(--primary)">{{ block.blockType.label() }}</span>
+                {% if block.preTitle %}<span style="font-size:.75rem;color:var(--muted)">{{ block.preTitle }}</span>{% endif %}
+            </div>
         </div>
         <div class="ta">
             <a href="{{ path('admin_block_edit', {id: block.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>

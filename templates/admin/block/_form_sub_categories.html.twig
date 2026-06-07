@@ -1,0 +1,25 @@
+<form method="post" action="{{ action }}" class="af">
+    <input type="hidden" name="type" value="sub_categories">
+    <div class="af-field">
+        <label>Título</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Nossas áreas">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="2">{{ block.text }}</textarea>
+    </div>
+    <div class="af-field">
+        <label>Categoria pai (exibe as subcategorias dela)</label>
+        <select name="relatedCategoryId" class="as" required>
+            <option value="">— Selecione a categoria —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ block.relatedCategory and block.relatedCategory.id == cat.id ? 'selected' }}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <p class="af-hint">O bloco exibirá em grid todas as subcategorias desta categoria.</p>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

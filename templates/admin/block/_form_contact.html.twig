@@ -1,0 +1,40 @@
+<form method="post" action="{{ action }}" class="af" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="contact">
+    <div class="af-field">
+        <label>Título</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Entre em contato">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="3">{{ block.text }}</textarea>
+    </div>
+    <div class="af-field">
+        <label>Texto do botão de envio</label>
+        <input type="text" name="config[submitText]" class="ai" value="{{ block.config.submitText ?? 'Enviar mensagem' }}">
+    </div>
+    <fieldset style="border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-top:1rem">
+        <legend style="font-size:.85rem;font-weight:700;padding:0 .5rem">Informações de contato exibidas</legend>
+        <div class="af-field">
+            <label>Endereço</label>
+            <input type="text" name="config[address]" class="ai" value="{{ block.config.address ?? '' }}">
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>Telefone</label>
+                <input type="text" name="config[phone]" class="ai" value="{{ block.config.phone ?? '' }}">
+            </div>
+            <div class="af-field">
+                <label>E-mail</label>
+                <input type="email" name="config[email]" class="ai" value="{{ block.config.email ?? '' }}">
+            </div>
+        </div>
+        <div class="af-field">
+            <label>URL do Google Maps (embed, opcional)</label>
+            <input type="url" name="embedUrl" class="ai" value="{{ block.embedUrl }}" placeholder="https://maps.google.com/maps?...">
+        </div>
+    </fieldset>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

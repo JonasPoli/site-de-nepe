@@ -1,0 +1,76 @@
+<form method="post" action="{{ action }}" class="af" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="testimonials">
+    <div class="af-field">
+        <label>Título da seção</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="O que dizem sobre nós">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="2">{{ block.text }}</textarea>
+    </div>
+
+    <div id="testimonials-container" style="display:flex;flex-direction:column;gap:1.25rem;margin-top:1rem">
+        {% for t in block.testimonials %}
+        <div style="border:1px solid var(--border);border-radius:10px;padding:1rem;background:var(--bg2)">
+            <input type="hidden" name="testimonials[{{ loop.index0 }}][id]" value="{{ t.id }}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+                <strong style="font-size:.85rem">Depoimento: {{ t.name }}</strong>
+                <label style="cursor:pointer;font-size:.8rem;color:var(--danger);display:flex;align-items:center;gap:.3rem">
+                    <input type="checkbox" name="delete_testimonial[]" value="{{ t.id }}"> Remover
+                </label>
+            </div>
+            <div class="af-row">
+                <div class="af-field">
+                    <label>Nome</label>
+                    <input type="text" name="testimonials[{{ loop.index0 }}][name]" class="ai" value="{{ t.name }}">
+                </div>
+                <div class="af-field">
+                    <label>Cargo / Função</label>
+                    <input type="text" name="testimonials[{{ loop.index0 }}][role]" class="ai" value="{{ t.role }}">
+                </div>
+                <div class="af-field" style="max-width:80px">
+                    <label>Nota (1-5)</label>
+                    <input type="number" name="testimonials[{{ loop.index0 }}][rating]" class="ai" value="{{ t.rating }}" min="1" max="5">
+                </div>
+            </div>
+            <div class="af-field">
+                <label>Depoimento</label>
+                <textarea name="testimonials[{{ loop.index0 }}][text]" class="ate" rows="3">{{ t.text }}</textarea>
+            </div>
+            <div class="af-field">
+                <label>Avatar</label>
+                <div style="display:flex;align-items:center;gap:1rem">
+                    {% if t.avatar %}<img src="{{ asset('uploads/testimonial_avatar/' ~ t.avatar) }}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">{% endif %}
+                    <input type="file" name="testimonials[{{ loop.index0 }}][avatarFile]" accept="image/*" class="ai" style="max-width:260px">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-g" style="margin-top:1rem" onclick="addTestimonial()">
+        <sl-icon name="plus-circle"></sl-icon> Adicionar depoimento
+    </button>
+
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+<script>
+let tCount = {{ block.testimonials|length }};
+function addTestimonial() {
+    const i = tCount++;
+    const div = document.createElement('div');
+    div.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:1rem;background:var(--bg2)';
+    div.innerHTML = `
+        <div class="af-row">
+            <div class="af-field"><label>Nome</label><input type="text" name="testimonials[${i}][name]" class="ai" required></div>
+            <div class="af-field"><label>Cargo / Função</label><input type="text" name="testimonials[${i}][role]" class="ai"></div>
+            <div class="af-field" style="max-width:80px"><label>Nota (1-5)</label><input type="number" name="testimonials[${i}][rating]" class="ai" value="5" min="1" max="5"></div>
+        </div>
+        <div class="af-field"><label>Depoimento</label><textarea name="testimonials[${i}][text]" class="ate" rows="3" required></textarea></div>
+        <div class="af-field"><label>Avatar</label><input type="file" name="testimonials[${i}][avatarFile]" accept="image/*" class="ai" style="max-width:260px"></div>`;
+    document.getElementById('testimonials-container').appendChild(div);
+}
+</script>

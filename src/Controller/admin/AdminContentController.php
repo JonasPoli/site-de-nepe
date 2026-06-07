@@ -589,39 +589,265 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/section/{sectionId}/block/new', name: 'block_new', methods: ['GET', 'POST'])]
-    public function blockNew(int $sectionId, Request $r, EntityManagerInterface $em, PageSectionRepository $sections): Response
-    {
+    public function blockNew(
+        int $sectionId, Request $r, EntityManagerInterface $em,
+        PageSectionRepository $sections, CategoryRepository $cats,
+        PageRepository $pages
+    ): Response {
         $section = $sections->find($sectionId) ?? throw $this->createNotFoundException();
         $block = new PageBlock();
+        $type  = $r->query->get('type', $r->request->get('type', ''));
+
         if ($r->isMethod('POST')) {
+            $this->populateBlock($block, $r, $em, $cats);
             $block->setSection($section);
-            $block->setPreTitle($r->request->get('preTitle') ?: null);
-            $block->setTitle($r->request->get('title') ?: null);
-            $block->setText($r->request->get('text') ?: null);
-            $file = $r->files->get('imageFile');
-            if ($file instanceof UploadedFile) { $block->setImageFile($file); }
             $em->persist($block);
             $em->flush();
             $this->addFlash('success', 'Bloco criado.');
             return $this->redirectToRoute('admin_block_index', ['sectionId' => $sectionId]);
         }
-        return $this->render('admin/block/new.html.twig', ['section' => $section, 'block' => $block]);
+        return $this->render('admin/block/new.html.twig', [
+            'section'    => $section,
+            'block'      => $block,
+            'type'       => $type ?: null,
+            'categories' => $cats->findRootCategories(),
+            'pages'      => $pages->findBy([], ['position' => 'ASC', 'title' => 'ASC']),
+        ]);
     }
 
     #[Route('/block/{id}/edit', name: 'block_edit', methods: ['GET', 'POST'])]
-    public function blockEdit(PageBlock $block, Request $r, EntityManagerInterface $em): Response
-    {
+    public function blockEdit(
+        PageBlock $block, Request $r, EntityManagerInterface $em,
+        CategoryRepository $cats, PageRepository $pages
+    ): Response {
         if ($r->isMethod('POST')) {
-            $block->setPreTitle($r->request->get('preTitle') ?: null);
-            $block->setTitle($r->request->get('title') ?: null);
-            $block->setText($r->request->get('text') ?: null);
-            $file = $r->files->get('imageFile');
-            if ($file instanceof UploadedFile) { $block->setImageFile($file); }
+            $this->populateBlock($block, $r, $em, $cats);
             $em->flush();
             $this->addFlash('success', 'Bloco atualizado.');
             return $this->redirectToRoute('admin_block_index', ['sectionId' => $block->getSection()?->getId()]);
         }
-        return $this->render('admin/block/edit.html.twig', ['block' => $block]);
+        return $this->render('admin/block/edit.html.twig', [
+            'block'      => $block,
+            'type'       => $block->getType(),
+            'categories' => $cats->findRootCategories(),
+            'pages'      => $pages->findBy([], ['position' => 'ASC', 'title' => 'ASC']),
+        ]);
+    }
+
+    private function populateBlock(PageBlock $block, Request $r, EntityManagerInterface $em, CategoryRepository $cats): void
+    {
+        $type = $r->request->get('type', $block->getType() ?: 'text_image');
+        $block->setType($type);
+        $block->setPreTitle($r->request->get('preTitle') ?: null);
+        $block->setTitle($r->request->get('title') ?: null);
+        $block->setText($r->request->get('text') ?: null);
+        $block->setEmbedUrl($r->request->get('embedUrl') ?: null);
+        $block->setItemCount($r->request->get('itemCount') !== null ? (int)$r->request->get('itemCount') ?: null : null);
+
+        // Related category
+        $catId = (int) $r->request->get('relatedCategoryId');
+        $block->setRelatedCategory($catId ? $cats->find($catId) : null);
+
+        // Config JSON (blurbs4, stats, newsletter, map, contact, etc.)
+        $cfg = $r->request->all('config');
+        $block->setConfig($cfg ?: null);
+
+        // Main image (text_image)
+        $file = $r->files->get('imageFile');
+        if ($file instanceof UploadedFile && $file->isValid()) { $block->setImageFile($file); }
+
+        // ── Gallery images ───────────────────────────────────────────────────
+        if ($type === 'gallery') {
+            $delIds = array_filter(array_map('intval', (array)$r->request->all('delete_gallery')));
+            foreach ($block->getGalleryImages() as $img) {
+                if (in_array($img->getId(), $delIds, true)) { $em->remove($img); }
+            }
+            foreach ((array)$r->files->all('galleryFiles') as $gFile) {
+                if (!$gFile instanceof UploadedFile || !$gFile->isValid()) { continue; }
+                $img = new \App\Entity\PageBlockImage();
+                $img->setBlock($block);
+                $img->setFile($gFile);
+                $img->setPosition($block->getGalleryImages()->count());
+                $em->persist($img);
+            }
+        }
+
+        // ── Testimonials ─────────────────────────────────────────────────────
+        if ($type === 'testimonials') {
+            $delIds = array_filter(array_map('intval', (array)$r->request->all('delete_testimonial')));
+            foreach ($block->getTestimonials() as $t) {
+                if (in_array($t->getId(), $delIds, true)) { $em->remove($t); }
+            }
+            $items = $r->request->all('testimonials');
+            $files = $r->files->all('testimonials');
+            foreach ($items as $idx => $data) {
+                if (!empty($data['id'])) {
+                    foreach ($block->getTestimonials() as $t) {
+                        if ($t->getId() === (int)$data['id'] && !in_array($t->getId(), $delIds, true)) {
+                            $t->setName($data['name'] ?? '');
+                            $t->setRole($data['role'] ?? null);
+                            $t->setText($data['text'] ?? '');
+                            $t->setRating((int)($data['rating'] ?? 5));
+                            if (isset($files[$idx]['avatarFile']) && $files[$idx]['avatarFile'] instanceof UploadedFile && $files[$idx]['avatarFile']->isValid()) {
+                                $t->setAvatarFile($files[$idx]['avatarFile']);
+                            }
+                        }
+                    }
+                } else {
+                    $t = new \App\Entity\PageBlockTestimonial();
+                    $t->setBlock($block);
+                    $t->setName($data['name'] ?? '');
+                    $t->setRole($data['role'] ?? null);
+                    $t->setText($data['text'] ?? '');
+                    $t->setRating((int)($data['rating'] ?? 5));
+                    $t->setPosition($idx);
+                    if (isset($files[$idx]['avatarFile']) && $files[$idx]['avatarFile'] instanceof UploadedFile && $files[$idx]['avatarFile']->isValid()) {
+                        $t->setAvatarFile($files[$idx]['avatarFile']);
+                    }
+                    $em->persist($t);
+                }
+            }
+        }
+
+        // ── Partner logos ────────────────────────────────────────────────────
+        if ($type === 'partner_logos') {
+            $delIds = array_filter(array_map('intval', (array)$r->request->all('delete_logo')));
+            foreach ($block->getPartnerLogos() as $l) {
+                if (in_array($l->getId(), $delIds, true)) { $em->remove($l); }
+            }
+            $logos     = $r->request->all('logos');
+            $logoFiles = $r->files->all('logos');
+            foreach ($logos as $idx => $data) {
+                if (!empty($data['id'])) {
+                    foreach ($block->getPartnerLogos() as $l) {
+                        if ($l->getId() === (int)$data['id'] && !in_array($l->getId(), $delIds, true)) {
+                            $l->setName($data['name'] ?? null);
+                            $l->setUrl($data['url'] ?? null);
+                            if (isset($logoFiles[$idx]['logoFile']) && $logoFiles[$idx]['logoFile'] instanceof UploadedFile && $logoFiles[$idx]['logoFile']->isValid()) {
+                                $l->setLogoFile($logoFiles[$idx]['logoFile']);
+                            }
+                        }
+                    }
+                }
+            }
+            // Bulk upload
+            foreach ((array)$r->files->all('logoFiles') as $lf) {
+                if (!$lf instanceof UploadedFile || !$lf->isValid()) { continue; }
+                $l = new \App\Entity\PageBlockPartnerLogo();
+                $l->setBlock($block);
+                $l->setLogoFile($lf);
+                $l->setPosition($block->getPartnerLogos()->count());
+                $em->persist($l);
+            }
+        }
+
+        // ── Team members ─────────────────────────────────────────────────────
+        if ($type === 'team') {
+            $delIds = array_filter(array_map('intval', (array)$r->request->all('delete_member')));
+            foreach ($block->getTeamMembers() as $m) {
+                if (in_array($m->getId(), $delIds, true)) { $em->remove($m); }
+            }
+            $items = $r->request->all('team') ?: [];
+            $files = $r->files->all('team') ?: [];
+            foreach ($items as $idx => $data) {
+                if (!empty($data['id'])) {
+                    foreach ($block->getTeamMembers() as $m) {
+                        if ($m->getId() === (int)$data['id'] && !in_array($m->getId(), $delIds, true)) {
+                            $m->setName($data['name'] ?? '');
+                            $m->setRole($data['role'] ?? null);
+                            $m->setBio($data['bio'] ?? null);
+                            $m->setLinkedinUrl($data['linkedinUrl'] ?? null);
+                            $m->setFacebookUrl($data['facebookUrl'] ?? null);
+                            $m->setInstagramUrl($data['instagramUrl'] ?? null);
+                            $m->setWhatsappUrl($data['whatsappUrl'] ?? null);
+                            $m->setPhone($data['phone'] ?? null);
+                            $m->setEmail($data['email'] ?? null);
+                            $m->setPosition($idx);
+                            if (isset($files[$idx]['imageFile']) && $files[$idx]['imageFile'] instanceof UploadedFile && $files[$idx]['imageFile']->isValid()) {
+                                $m->setImageFile($files[$idx]['imageFile']);
+                            }
+                        }
+                    }
+                } else {
+                    $m = new \App\Entity\PageBlockTeamMember();
+                    $m->setBlock($block);
+                    $m->setName($data['name'] ?? '');
+                    $m->setRole($data['role'] ?? null);
+                    $m->setBio($data['bio'] ?? null);
+                    $m->setLinkedinUrl($data['linkedinUrl'] ?? null);
+                    $m->setFacebookUrl($data['facebookUrl'] ?? null);
+                    $m->setInstagramUrl($data['instagramUrl'] ?? null);
+                    $m->setWhatsappUrl($data['whatsappUrl'] ?? null);
+                    $m->setPhone($data['phone'] ?? null);
+                    $m->setEmail($data['email'] ?? null);
+                    $m->setPosition($idx);
+                    if (isset($files[$idx]['imageFile']) && $files[$idx]['imageFile'] instanceof UploadedFile && $files[$idx]['imageFile']->isValid()) {
+                        $m->setImageFile($files[$idx]['imageFile']);
+                    }
+                    $em->persist($m);
+                }
+            }
+        }
+
+        // ── Banner (multi-slide via JSON config) ─────────────────────────────
+        if ($type === 'banner') {
+            $banners        = $r->request->all('banners') ?: [];
+            $files          = $r->files->all('banners') ?: [];
+            $savedBanners   = [];
+            $existingBanners = $block->getConfig()['banners'] ?? [];
+
+            foreach ($banners as $idx => $data) {
+                $slideImage = $data['image'] ?? null;
+
+                if (isset($files[$idx]['imageFile']) && $files[$idx]['imageFile'] instanceof UploadedFile && $files[$idx]['imageFile']->isValid()) {
+                    $uploadedFile = $files[$idx]['imageFile'];
+                    $extension    = $uploadedFile->guessExtension() ?: 'bin';
+                    $newFilename  = uniqid('banner_', true) . '.' . $extension;
+                    $targetDir    = $this->getParameter('kernel.project_dir') . '/public/uploads/page_block';
+                    $uploadedFile->move($targetDir, $newFilename);
+                    $slideImage = $newFilename;
+                }
+
+                if (empty($slideImage) && isset($existingBanners[$idx]['image'])) {
+                    $slideImage = $existingBanners[$idx]['image'];
+                }
+
+                $savedBanners[] = [
+                    'title'   => $data['title'] ?? '',
+                    'text'    => $data['text'] ?? '',
+                    'ctaText' => $data['ctaText'] ?? '',
+                    'ctaLink' => $data['ctaLink'] ?? '',
+                    'active'  => (isset($data['active']) && $data['active'] === '1') ? '1' : '0',
+                    'image'   => $slideImage,
+                ];
+            }
+
+            $cfg = $block->getConfig() ?: [];
+            $cfg['banners'] = $savedBanners;
+            // Preserve other config keys (not overwritten by banners key)
+            $reqCfg = $r->request->all('config') ?: [];
+            foreach ($reqCfg as $k => $v) {
+                if ($k !== 'banners') { $cfg[$k] = $v; }
+            }
+            $block->setConfig($cfg);
+
+            // Set primary image/title from first active slide for search/display purposes
+            $firstSlide = null;
+            foreach ($savedBanners as $b) {
+                if (($b['active'] ?? '0') === '1') { $firstSlide = $b; break; }
+            }
+            if (!$firstSlide && !empty($savedBanners)) { $firstSlide = $savedBanners[0]; }
+
+            if ($firstSlide) {
+                $block->setTitle($firstSlide['title'] ?? null);
+                $block->setText($firstSlide['text'] ?? null);
+                $block->setImage($firstSlide['image'] ?? null);
+            } else {
+                $block->setTitle(null);
+                $block->setText(null);
+                $block->setImage(null);
+            }
+        }
     }
 
     #[Route('/block/{id}/delete', name: 'block_delete', methods: ['POST'])]

@@ -1,0 +1,59 @@
+<form method="post" action="{{ action }}" class="af">
+    <input type="hidden" name="type" value="stats">
+    <div class="af-field">
+        <label>Título</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Nossos números">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="2">{{ block.text }}</textarea>
+    </div>
+    <fieldset style="border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-top:1rem">
+        <legend style="font-size:.85rem;font-weight:700;padding:0 .5rem">Estatísticas</legend>
+        <div id="stats-container" style="display:flex;flex-direction:column;gap:.75rem">
+            {% set stats = block.config.stats ?? [] %}
+            {% for i, s in stats %}
+            <div class="af-row stat-row">
+                <div class="af-field">
+                    <label>Número / Valor</label>
+                    <input type="text" name="config[stats][{{ i }}][value]" class="ai" value="{{ s.value ?? '' }}" placeholder="500+">
+                </div>
+                <div class="af-field">
+                    <label>Rótulo</label>
+                    <input type="text" name="config[stats][{{ i }}][label]" class="ai" value="{{ s.label ?? '' }}" placeholder="Pesquisas publicadas">
+                </div>
+                <div class="af-field" style="max-width:140px">
+                    <label>Ícone (FA class)</label>
+                    <input type="text" name="config[stats][{{ i }}][icon]" class="ai" value="{{ s.icon ?? '' }}" placeholder="fa-solid fa-star">
+                </div>
+            </div>
+            {% else %}
+            <div class="af-row stat-row">
+                <div class="af-field"><label>Número / Valor</label><input type="text" name="config[stats][0][value]" class="ai" placeholder="500+"></div>
+                <div class="af-field"><label>Rótulo</label><input type="text" name="config[stats][0][label]" class="ai" placeholder="Pesquisas publicadas"></div>
+                <div class="af-field" style="max-width:140px"><label>Ícone (FA class)</label><input type="text" name="config[stats][0][icon]" class="ai"></div>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-g" style="margin-top:.75rem;font-size:.8rem" onclick="addStat()">
+            <sl-icon name="plus-circle"></sl-icon> Adicionar estatística
+        </button>
+    </fieldset>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+<script>
+let statCount = {{ (block.config.stats ?? [])|length ?: 1 }};
+function addStat() {
+    const i = statCount++;
+    const row = document.createElement('div');
+    row.className = 'af-row stat-row';
+    row.innerHTML = `
+        <div class="af-field"><label>Número / Valor</label><input type="text" name="config[stats][${i}][value]" class="ai" placeholder="500+"></div>
+        <div class="af-field"><label>Rótulo</label><input type="text" name="config[stats][${i}][label]" class="ai" placeholder="Pesquisas publicadas"></div>
+        <div class="af-field" style="max-width:140px"><label>Ícone (FA class)</label><input type="text" name="config[stats][${i}][icon]" class="ai"></div>`;
+    document.getElementById('stats-container').appendChild(row);
+}
+</script>

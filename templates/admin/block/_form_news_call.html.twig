@@ -1,0 +1,32 @@
+<form method="post" action="{{ action }}" class="af">
+    <input type="hidden" name="type" value="news_call">
+    <div class="af-field">
+        <label>Título da seção</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Últimas notícias">
+    </div>
+    <div class="af-field">
+        <label>Número de notícias a exibir</label>
+        <input type="number" name="itemCount" class="ai" value="{{ block.itemCount ?? 3 }}" min="1" max="12" style="max-width:120px">
+    </div>
+    <div class="af-field">
+        <label>Filtrar por categoria (opcional)</label>
+        <select name="relatedCategoryId" class="as">
+            <option value="">— Todas as categorias —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ block.relatedCategory and block.relatedCategory.id == cat.id ? 'selected' }}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="af-field">
+        <label>Texto do link "ver mais"</label>
+        <input type="text" name="config[viewAllText]" class="ai" value="{{ block.config.viewAllText ?? 'Ver todas as notícias' }}">
+    </div>
+    <div class="af-field">
+        <label>Link "ver mais" (URL)</label>
+        <input type="text" name="config[viewAllUrl]" class="ai" value="{{ block.config.viewAllUrl ?? '' }}">
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

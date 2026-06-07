@@ -1,0 +1,102 @@
+<form method="post" action="{{ action }}" class="af" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="banner">
+    <div class="af-field">
+        <label>Título geral do bloco (para referência interna)</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Ex: Banner Principal">
+    </div>
+
+    <div id="banner-slides" style="display:flex;flex-direction:column;gap:1.5rem;margin-top:1rem">
+        {% set banners = block.config.banners ?? [] %}
+        {% for idx, b in banners %}
+        <div class="banner-slide" style="border:1px solid var(--border);border-radius:12px;padding:1.25rem;position:relative;background:var(--bg2)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                <strong style="font-size:.95rem">Slide #{{ idx + 1 }}</strong>
+                <label style="cursor:pointer;font-size:.8rem;color:var(--danger)">
+                    <input type="checkbox" name="banners[{{ idx }}][_delete]" style="display:none"> Remover slide
+                </label>
+            </div>
+            <input type="hidden" name="banners[{{ idx }}][image]" value="{{ b.image ?? '' }}">
+            <div class="af-row">
+                <div class="af-field">
+                    <label>Título</label>
+                    <input type="text" name="banners[{{ idx }}][title]" class="ai" value="{{ b.title ?? '' }}">
+                </div>
+                <div class="af-field" style="max-width:140px">
+                    <label>Ativo</label>
+                    <select name="banners[{{ idx }}][active]" class="as">
+                        <option value="1" {{ (b.active ?? '') == '1' ? 'selected' }}>Sim</option>
+                        <option value="0" {{ (b.active ?? '0') != '1' ? 'selected' }}>Não</option>
+                    </select>
+                </div>
+            </div>
+            <div class="af-field">
+                <label>Texto / Descrição</label>
+                <textarea name="banners[{{ idx }}][text]" class="ate" rows="2">{{ b.text ?? '' }}</textarea>
+            </div>
+            <div class="af-row">
+                <div class="af-field">
+                    <label>Texto do botão (CTA)</label>
+                    <input type="text" name="banners[{{ idx }}][ctaText]" class="ai" value="{{ b.ctaText ?? '' }}">
+                </div>
+                <div class="af-field">
+                    <label>Link do botão</label>
+                    <input type="text" name="banners[{{ idx }}][ctaLink]" class="ai" value="{{ b.ctaLink ?? '' }}">
+                </div>
+            </div>
+            <div class="af-field">
+                <label>Imagem de fundo</label>
+                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+                    {% if b.image %}
+                        <img src="{{ asset('uploads/page_block/' ~ b.image) }}" style="height:70px;border-radius:8px;object-fit:cover;border:1px solid var(--border)">
+                    {% endif %}
+                    <label for="banner-img-{{ idx }}" style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:8px;border:1px dashed var(--primary);color:var(--primary);font-size:.85rem;font-weight:600;cursor:pointer">
+                        <sl-icon name="upload"></sl-icon> {{ b.image ? 'Substituir' : 'Escolher imagem' }}
+                    </label>
+                    <input type="file" id="banner-img-{{ idx }}" name="banners[{{ idx }}][imageFile]" accept="image/*" style="display:none">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-g" style="margin-top:1rem" onclick="addBannerSlide()">
+        <sl-icon name="plus-circle"></sl-icon> Adicionar slide
+    </button>
+
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+<script>
+let bannerCount = {{ (block.config.banners ?? [])|length }};
+function addBannerSlide() {
+    const idx = bannerCount++;
+    const div = document.createElement('div');
+    div.className = 'banner-slide';
+    div.style.cssText = 'border:1px solid var(--border);border-radius:12px;padding:1.25rem;position:relative;background:var(--bg2)';
+    div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <strong style="font-size:.95rem">Novo Slide</strong>
+        </div>
+        <div class="af-row">
+            <div class="af-field"><label>Título</label><input type="text" name="banners[${idx}][title]" class="ai"></div>
+            <div class="af-field" style="max-width:140px"><label>Ativo</label>
+                <select name="banners[${idx}][active]" class="as"><option value="1">Sim</option><option value="0">Não</option></select>
+            </div>
+        </div>
+        <div class="af-field"><label>Texto</label><textarea name="banners[${idx}][text]" class="ate" rows="2"></textarea></div>
+        <div class="af-row">
+            <div class="af-field"><label>Texto do botão</label><input type="text" name="banners[${idx}][ctaText]" class="ai"></div>
+            <div class="af-field"><label>Link do botão</label><input type="text" name="banners[${idx}][ctaLink]" class="ai"></div>
+        </div>
+        <div class="af-field">
+            <label>Imagem de fundo</label>
+            <label style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:8px;border:1px dashed var(--primary);color:var(--primary);font-size:.85rem;font-weight:600;cursor:pointer">
+                <sl-icon name="upload"></sl-icon> Escolher imagem
+                <input type="file" name="banners[${idx}][imageFile]" accept="image/*" style="display:none">
+            </label>
+        </div>`;
+    document.getElementById('banner-slides').appendChild(div);
+}
+</script>

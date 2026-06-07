@@ -1,0 +1,28 @@
+<form method="post" action="{{ action }}" class="af">
+    <input type="hidden" name="type" value="page_list">
+    <div class="af-field">
+        <label>Título</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Nossas páginas">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="2">{{ block.text }}</textarea>
+    </div>
+    <div class="af-field">
+        <label>Número de páginas a exibir</label>
+        <input type="number" name="itemCount" class="ai" value="{{ block.itemCount ?? 6 }}" min="1" max="24" style="max-width:120px">
+    </div>
+    <div class="af-field">
+        <label>Filtrar por categoria (opcional)</label>
+        <select name="relatedCategoryId" class="as">
+            <option value="">— Sem filtro (todas) —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ block.relatedCategory and block.relatedCategory.id == cat.id ? 'selected' }}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

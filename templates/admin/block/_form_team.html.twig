@@ -1,0 +1,80 @@
+<form method="post" action="{{ action }}" class="af" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="team">
+    <div class="af-field">
+        <label>Título da seção</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Nossa equipe">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="2">{{ block.text }}</textarea>
+    </div>
+
+    <div id="team-container" style="display:flex;flex-direction:column;gap:1.25rem;margin-top:1rem">
+        {% for m in block.teamMembers %}
+        <div style="border:1px solid var(--border);border-radius:10px;padding:1rem;background:var(--bg2)">
+            <input type="hidden" name="team[{{ loop.index0 }}][id]" value="{{ m.id }}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+                <strong style="font-size:.85rem">{{ m.name }}</strong>
+                <label style="cursor:pointer;font-size:.8rem;color:var(--danger);display:flex;align-items:center;gap:.3rem">
+                    <input type="checkbox" name="delete_member[]" value="{{ m.id }}"> Remover
+                </label>
+            </div>
+            <div class="af-row">
+                <div class="af-field"><label>Nome <span class="req">*</span></label><input type="text" name="team[{{ loop.index0 }}][name]" class="ai" value="{{ m.name }}" required></div>
+                <div class="af-field"><label>Cargo</label><input type="text" name="team[{{ loop.index0 }}][role]" class="ai" value="{{ m.role }}"></div>
+            </div>
+            <div class="af-field"><label>Bio</label><textarea name="team[{{ loop.index0 }}][bio]" class="ate" rows="2">{{ m.bio }}</textarea></div>
+            <div class="af-row">
+                <div class="af-field"><label>LinkedIn</label><input type="url" name="team[{{ loop.index0 }}][linkedinUrl]" class="ai" value="{{ m.linkedinUrl }}"></div>
+                <div class="af-field"><label>Instagram</label><input type="url" name="team[{{ loop.index0 }}][instagramUrl]" class="ai" value="{{ m.instagramUrl }}"></div>
+                <div class="af-field"><label>WhatsApp</label><input type="url" name="team[{{ loop.index0 }}][whatsappUrl]" class="ai" value="{{ m.whatsappUrl }}"></div>
+            </div>
+            <div class="af-row">
+                <div class="af-field"><label>E-mail</label><input type="email" name="team[{{ loop.index0 }}][email]" class="ai" value="{{ m.email }}"></div>
+                <div class="af-field"><label>Telefone</label><input type="text" name="team[{{ loop.index0 }}][phone]" class="ai" value="{{ m.phone }}"></div>
+            </div>
+            <div class="af-field">
+                <label>Foto</label>
+                <div style="display:flex;align-items:center;gap:1rem">
+                    {% if m.image %}<img src="{{ asset('uploads/team_member_image/' ~ m.image) }}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">{% endif %}
+                    <input type="file" name="team[{{ loop.index0 }}][imageFile]" accept="image/*" class="ai" style="max-width:260px">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-g" style="margin-top:1rem" onclick="addMember()">
+        <sl-icon name="plus-circle"></sl-icon> Adicionar membro
+    </button>
+
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+<script>
+let mCount = {{ block.teamMembers|length }};
+function addMember() {
+    const i = mCount++;
+    const div = document.createElement('div');
+    div.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:1rem;background:var(--bg2)';
+    div.innerHTML = `
+        <div class="af-row">
+            <div class="af-field"><label>Nome <span class="req">*</span></label><input type="text" name="team[${i}][name]" class="ai" required></div>
+            <div class="af-field"><label>Cargo</label><input type="text" name="team[${i}][role]" class="ai"></div>
+        </div>
+        <div class="af-field"><label>Bio</label><textarea name="team[${i}][bio]" class="ate" rows="2"></textarea></div>
+        <div class="af-row">
+            <div class="af-field"><label>LinkedIn</label><input type="url" name="team[${i}][linkedinUrl]" class="ai"></div>
+            <div class="af-field"><label>Instagram</label><input type="url" name="team[${i}][instagramUrl]" class="ai"></div>
+            <div class="af-field"><label>WhatsApp</label><input type="url" name="team[${i}][whatsappUrl]" class="ai"></div>
+        </div>
+        <div class="af-row">
+            <div class="af-field"><label>E-mail</label><input type="email" name="team[${i}][email]" class="ai"></div>
+            <div class="af-field"><label>Telefone</label><input type="text" name="team[${i}][phone]" class="ai"></div>
+        </div>
+        <div class="af-field"><label>Foto</label><input type="file" name="team[${i}][imageFile]" accept="image/*" class="ai" style="max-width:260px"></div>`;
+    document.getElementById('team-container').appendChild(div);
+}
+</script>

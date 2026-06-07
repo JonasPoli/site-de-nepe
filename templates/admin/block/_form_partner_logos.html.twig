@@ -1,0 +1,45 @@
+<form method="post" action="{{ action }}" class="af" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="partner_logos">
+    <div class="af-field">
+        <label>Título</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Nossos parceiros">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="2">{{ block.text }}</textarea>
+    </div>
+
+    {% if block.partnerLogos|length > 0 %}
+    <div class="af-field">
+        <label>Logos existentes</label>
+        <div style="display:flex;flex-wrap:wrap;gap:1rem">
+            {% for l in block.partnerLogos %}
+            <div style="border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;position:relative;min-width:120px">
+                {% if l.logoFilename %}<img src="{{ asset('uploads/partner_logo/' ~ l.logoFilename) }}" style="max-height:50px;max-width:100px;object-fit:contain">{% endif %}
+                <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem">{{ l.name ?? 'Sem nome' }}</div>
+                <label style="font-size:.7rem;color:var(--danger);cursor:pointer">
+                    <input type="checkbox" name="delete_logo[]" value="{{ l.id }}"> Remover
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="af-field">
+        <label>Upload de logos (em massa)</label>
+        <input type="file" name="logoFiles[]" class="ai" multiple accept="image/*">
+        <p class="af-hint">Selecione múltiplos arquivos de logo. PNG com fundo transparente recomendado.</p>
+    </div>
+    <div class="af-field">
+        <label>Layout de exibição</label>
+        <select name="config[layout]" class="as">
+            <option value="row"  {{ (block.config.layout ?? 'row') == 'row' ? 'selected' }}>Linha (1 linha)</option>
+            <option value="grid" {{ (block.config.layout ?? '') == 'grid' ? 'selected' }}>Grid</option>
+        </select>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

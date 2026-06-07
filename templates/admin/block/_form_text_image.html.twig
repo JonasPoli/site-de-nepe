@@ -1,0 +1,65 @@
+<form method="post" action="{{ action }}" class="af" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="text_image">
+    <div class="af-field">
+        <label>Pré-título</label>
+        <input type="text" name="preTitle" class="ai" value="{{ block.preTitle }}" placeholder="Conheça nossos">
+    </div>
+    <div class="af-field">
+        <label>Título <span class="req">*</span></label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" required>
+    </div>
+    <div class="af-field">
+        <label>Texto (HTML)</label>
+        {{ include('admin/_rich_editor.html.twig', {
+            field_id: 'block-text',
+            field_name: 'text',
+            content: block.text,
+            height: 280
+        }) }}
+    </div>
+    <div class="af-field">
+        <label>Imagem</label>
+        <div style="display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap">
+            {% if block.image %}
+                <img id="img-prev" src="{{ vich_uploader_asset(block, 'imageFile') }}" style="height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border)">
+            {% else %}
+                <div id="img-prev" style="width:80px;height:80px;background:var(--bg3);border:1px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted)"><sl-icon name="image"></sl-icon></div>
+            {% endif %}
+            <div>
+                <label for="img-up" style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:8px;border:1px dashed var(--primary);color:var(--primary);font-size:.85rem;font-weight:600;cursor:pointer">
+                    <sl-icon name="upload"></sl-icon> Escolher imagem
+                </label>
+                <input type="file" id="img-up" name="imageFile" accept="image/*" style="display:none" onchange="prevImg(this,'img-prev')">
+                <p class="af-hint" style="margin-top:.4rem">JPG, PNG, WebP — máx. 5 MB</p>
+            </div>
+        </div>
+    </div>
+    <div class="af-field">
+        <label>Posição da imagem</label>
+        <select name="config[imagePosition]" class="as">
+            <option value="right" {{ (block.config.imagePosition ?? 'right') == 'right' ? 'selected' }}>Direita</option>
+            <option value="left"  {{ (block.config.imagePosition ?? '') == 'left' ? 'selected' }}>Esquerda</option>
+        </select>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>
+<script>
+function prevImg(input, targetId) {
+    if (!input.files || !input.files[0]) return;
+    const r = new FileReader();
+    r.onload = e => {
+        let el = document.getElementById(targetId);
+        if (el && el.tagName === 'DIV') {
+            const img = document.createElement('img');
+            img.id = targetId;
+            img.style.cssText = 'height:80px;border-radius:8px;object-fit:cover;border:1px solid var(--border)';
+            el.replaceWith(img); el = img;
+        }
+        if (el) el.src = e.target.result;
+    };
+    r.readAsDataURL(input.files[0]);
+}
+</script>

@@ -1,0 +1,43 @@
+<form method="post" action="{{ action }}" class="af" enctype="multipart/form-data">
+    <input type="hidden" name="type" value="gallery">
+    <div class="af-field">
+        <label>Pré-título</label>
+        <input type="text" name="preTitle" class="ai" value="{{ block.preTitle }}">
+    </div>
+    <div class="af-field">
+        <label>Título</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}">
+    </div>
+    <div class="af-field">
+        <label>Descrição</label>
+        <textarea name="text" class="ate" rows="3">{{ block.text }}</textarea>
+    </div>
+
+    {% if block.galleryImages|length > 0 %}
+    <div class="af-field">
+        <label>Imagens existentes</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.75rem">
+            {% for img in block.galleryImages %}
+            <div style="position:relative;display:inline-block">
+                <img src="{{ asset('uploads/page_block_gallery/' ~ img.filename) }}" style="width:100px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+                <label style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 4px;cursor:pointer;display:flex;align-items:center">
+                    <input type="checkbox" name="delete_gallery[]" value="{{ img.id }}" style="display:none" onchange="this.parentElement.style.background=this.checked?'rgba(220,38,38,.8)':'rgba(0,0,0,.6)'">
+                    <sl-icon name="trash" style="color:#fff;font-size:.85rem"></sl-icon>
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="af-hint">Marque o ícone de lixeira para remover uma imagem ao salvar.</p>
+    </div>
+    {% endif %}
+
+    <div class="af-field">
+        <label>Adicionar imagens</label>
+        <input type="file" name="galleryFiles[]" class="ai" multiple accept="image/*">
+        <p class="af-hint">Selecione múltiplas imagens. JPG, PNG, WebP — máx. 5 MB cada.</p>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

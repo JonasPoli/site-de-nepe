@@ -1,0 +1,41 @@
+<form method="post" action="{{ action }}" class="af">
+    <input type="hidden" name="type" value="blurbs4">
+    <div class="af-field">
+        <label>Pré-título</label>
+        <input type="text" name="preTitle" class="ai" value="{{ block.preTitle }}">
+    </div>
+    <div class="af-field">
+        <label>Título <span class="req">*</span></label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" required>
+    </div>
+    <div class="af-field">
+        <label>Descrição introdutória</label>
+        <textarea name="text" class="ate" rows="3">{{ block.text }}</textarea>
+    </div>
+    <fieldset style="border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-top:1rem">
+        <legend style="font-size:.85rem;font-weight:700;padding:0 .5rem">4 Blocos / Ícones</legend>
+        {% for i in 0..3 %}
+        <div style="border:1px dashed var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem">
+            <div style="font-size:.8rem;font-weight:700;margin-bottom:.75rem;color:var(--muted)">Bloco {{ i+1 }}</div>
+            <div class="af-row">
+                <div class="af-field">
+                    <label>Ícone (Font Awesome class)</label>
+                    <input type="text" name="config[blurbs][{{ i }}][icon]" class="ai" value="{{ block.config.blurbs[i].icon ?? '' }}" placeholder="fa-solid fa-star">
+                </div>
+                <div class="af-field">
+                    <label>Título do bloco</label>
+                    <input type="text" name="config[blurbs][{{ i }}][title]" class="ai" value="{{ block.config.blurbs[i].title ?? '' }}">
+                </div>
+            </div>
+            <div class="af-field">
+                <label>Descrição</label>
+                <textarea name="config[blurbs][{{ i }}][text]" class="ate" rows="2">{{ block.config.blurbs[i].text ?? '' }}</textarea>
+            </div>
+        </div>
+        {% endfor %}
+    </fieldset>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

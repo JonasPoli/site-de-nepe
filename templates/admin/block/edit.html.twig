@@ -1,8 +1,31 @@
-{% extends 'admin/nepe_base.html.twig' %}{% import 'admin/block/_form.html.twig' as f %}
+{% extends 'admin/nepe_base.html.twig' %}
 {% block title %}Editar Bloco{% endblock %}{% block page_title %}Editar Bloco{% endblock %}
 {% block body %}
-<div class="ph"><h1>{{ block.title ?? 'Editar Bloco' }}</h1>
-<a href="{{ path('admin_block_index', {sectionId: block.section.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Blocos</a></div>
-<div class="card">{{ f.block_form(block, path('admin_block_edit', {id: block.id})) }}</div>
+<div class="ph" style="margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:1.5rem">
+    <div>
+        <h1 style="margin:0;font-size:1.6rem;font-weight:800">
+            Editar Bloco: <span style="color:var(--primary)">{{ block.blockType.label() }}</span>
+        </h1>
+        <div style="display:flex;align-items:center;gap:1rem;margin-top:.5rem;font-size:.85rem;color:var(--muted);flex-wrap:wrap">
+            {% if block.section.page %}
+                <span><sl-icon name="file-earmark-text" style="vertical-align:middle"></sl-icon> Página: <strong style="color:var(--text)">{{ block.section.page.title }}</strong></span>
+            {% elseif block.section.category %}
+                <span><sl-icon name="folder" style="vertical-align:middle"></sl-icon> Categoria: <strong style="color:var(--text)">{{ block.section.category.name }}</strong></span>
+            {% endif %}
+            <span style="color:var(--border)">|</span>
+            <span><sl-icon name="grid-3x3-gap" style="vertical-align:middle"></sl-icon> Seção: <strong style="color:var(--text)">{{ (block.section.titlePart1 ~ ' ' ~ block.section.titlePart2)|trim ?: 'Seção #' ~ block.section.id }}</strong></span>
+        </div>
+    </div>
+    <a href="{{ path('admin_block_index', {sectionId: block.section.id}) }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar para Seção</a>
+</div>
+<div class="card">
+    {% include 'admin/block/_form_' ~ block.type ~ '.html.twig' with {
+        block: block,
+        section: block.section,
+        action: path('admin_block_edit', {id: block.id}),
+        categories: categories,
+        pages: pages ?? []
+    } %}
+</div>
 {% endblock %}
 {% block javascripts %}{{ parent() }}{% endblock %}

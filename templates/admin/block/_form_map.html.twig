@@ -1,0 +1,24 @@
+<form method="post" action="{{ action }}" class="af">
+    <input type="hidden" name="type" value="map">
+    <div class="af-field">
+        <label>Título</label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" placeholder="Como nos encontrar">
+    </div>
+    <div class="af-field">
+        <label>URL do embed do Google Maps <span class="req">*</span></label>
+        <input type="url" name="embedUrl" class="ai" value="{{ block.embedUrl }}" required placeholder="https://maps.google.com/maps?...">
+        <p class="af-hint">Cole o link de embed do Google Maps (vá em Google Maps → Compartilhar → Incorporar mapa → copie a URL do atributo src).</p>
+    </div>
+    <div class="af-field">
+        <label>Altura do mapa</label>
+        <select name="config[mapHeight]" class="as">
+            <option value="400" {{ (block.config.mapHeight ?? '400') == '400' ? 'selected' }}>400px</option>
+            <option value="500" {{ (block.config.mapHeight ?? '') == '500' ? 'selected' }}>500px</option>
+            <option value="600" {{ (block.config.mapHeight ?? '') == '600' ? 'selected' }}>600px</option>
+        </select>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

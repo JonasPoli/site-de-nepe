@@ -78,3 +78,27 @@ vich_uploader:
             upload_destination: '%kernel.project_dir%/public/uploads/study_material'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
             inject_on_load: true
+
+        page_block_gallery:
+            uri_prefix: /uploads/page_block_gallery
+            upload_destination: '%kernel.project_dir%/public/uploads/page_block_gallery'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            inject_on_load: true
+
+        testimonial_avatar:
+            uri_prefix: /uploads/testimonial_avatar
+            upload_destination: '%kernel.project_dir%/public/uploads/testimonial_avatar'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            inject_on_load: true
+
+        partner_logo:
+            uri_prefix: /uploads/partner_logo
+            upload_destination: '%kernel.project_dir%/public/uploads/partner_logo'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            inject_on_load: true
+
+        team_member_image:
+            uri_prefix: /uploads/team_member_image
+            upload_destination: '%kernel.project_dir%/public/uploads/team_member_image'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            inject_on_load: true
