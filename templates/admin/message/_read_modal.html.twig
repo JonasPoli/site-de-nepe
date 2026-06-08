@@ -7,23 +7,6 @@
                 · {{ conversation|length }} mensagem(ns)
             </div>
         </div>
-        <div style="display:flex;gap:.5rem">
-            <button type="button" class="btn btn-s btn-sm"
-                    id="btn-resolve"
-                    title="Marcar como resolvido"
-                    onclick="setMessageStatus({{ rootMessage.id }}, 'resolved', this)"
-                    {% if rootMessage.status == 'resolved' %}disabled style="opacity:.5"{% endif %}>
-                <sl-icon name="check2-all"></sl-icon>
-                {{ rootMessage.status == 'resolved' ? 'Resolvido ✓' : 'Resolver' }}
-            </button>
-            <button type="button" class="btn btn-g btn-sm"
-                    id="btn-ignore"
-                    title="Ignorar conversa"
-                    onclick="setMessageStatus({{ rootMessage.id }}, 'ignored', this)"
-                    {% if rootMessage.status == 'ignored' %}disabled style="opacity:.5"{% endif %}>
-                <sl-icon name="slash-circle"></sl-icon>
-            </button>
-        </div>
     </div>
 
     <div id="status-banner" style="display:none;padding:.6rem 1.5rem;font-size:.82rem;font-weight:600;background:rgba(34,197,94,.12);color:#4ade80;border-bottom:1px solid rgba(34,197,94,.2)">
@@ -51,61 +34,10 @@
 </div>
 
 <script>
-// Scroll to bottom of messages
 document.getElementById('conv-messages').scrollTop = 99999;
-
-// Ctrl+Enter to submit reply
 document.getElementById('reply-content').addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         document.getElementById('reply-form').submit();
     }
 });
-
-function setMessageStatus(id, status, btn) {
-    btn.disabled = true;
-    btn.style.opacity = '.5';
-
-    fetch('/admin/message/' + id + '/status/' + status, {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (!data.ok) throw new Error('Falha no servidor');
-
-        if (status === 'resolved') {
-            // Show success banner inside the conversation panel
-            const banner = document.getElementById('status-banner');
-            if (banner) banner.style.display = '';
-
-            // Update the btn label
-            btn.innerHTML = '<sl-icon name="check2-all"></sl-icon> Resolvido ✓';
-
-            // Dim the thread list item
-            const threadEl = document.querySelector('.thread-item.active');
-            if (threadEl) {
-                threadEl.style.opacity = '.5';
-                const subj = threadEl.querySelector('.thread-subject');
-                if (subj) subj.style.textDecoration = 'line-through';
-            }
-
-            // Disable reply form (conversation closed)
-            const replyArea = document.getElementById('reply-content');
-            const sendBtn = document.querySelector('#reply-form button[type=submit]');
-            if (replyArea) replyArea.disabled = true;
-            if (sendBtn) sendBtn.disabled = true;
-        }
-
-        if (status === 'ignored') {
-            btn.innerHTML = '<sl-icon name="slash-circle"></sl-icon> Ignorado';
-            const threadEl = document.querySelector('.thread-item.active');
-            if (threadEl) threadEl.style.opacity = '.35';
-        }
-    })
-    .catch(() => {
-        btn.disabled = false;
-        btn.style.opacity = '';
-        alert('Erro ao atualizar status. Tente novamente.');
-    });
-}
 </script>
