@@ -6,11 +6,13 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
-    # Custom error page handler (works in dev AND prod)
-    error_controller: App\Controller\ErrorController::show
-
     #esi: true
     #fragments: true
+
+# Custom error pages only in production (dev keeps the native debug exception page)
+when@prod:
+    framework:
+        error_controller: App\Controller\ErrorController::show
 
 when@test:
     framework:
