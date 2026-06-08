@@ -103,6 +103,7 @@
     </style>
 
     {% block stylesheets %}{% endblock %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 <body>
 
@@ -124,6 +125,7 @@
 {% include 'themes/nepe/_footer.html.twig' %}
 
 {% block javascripts %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const observer = new IntersectionObserver((entries) => {
