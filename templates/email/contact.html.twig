@@ -1,148 +1,251 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Novo contato</title>
+    <title>Nova mensagem de contato — {{ tenant is defined ? tenant.name : 'Site' }}</title>
+    <!--[if mso]>
+    <noscript>
+        <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+    </noscript>
+    <![endif]-->
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f8;
-            font-family: 'Inter', Arial, sans-serif;
-        }
-        .wrapper {
-            width: 100%;
-            padding: 40px 12px;
-            background: linear-gradient(135deg, #111827, #0f172a);
-        }
-        .card {
-            max-width: 640px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 28px;
-            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
-            overflow: hidden;
-        }
-        .hero {
-            padding: 40px;
-            background: radial-gradient(circle at top, rgba(56, 189, 248, 0.2), transparent 55%),
-                        radial-gradient(circle at right, rgba(129, 140, 248, 0.25), transparent 50%),
-                        #0f172a;
-            color: #ffffff;
-            text-align: center;
-        }
-        .hero h1 {
-            margin: 0;
-            font-size: 26px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        .hero p {
-            margin-top: 12px;
-            font-size: 15px;
-            color: rgba(255, 255, 255, 0.75);
-            line-height: 1.5;
-        }
-        .content {
-            padding: 32px 40px 40px;
-            color: #0f172a;
-        }
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-        .info-card {
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 18px;
-            padding: 18px 20px;
-            background-color: #f8fafc;
-        }
-        .info-card span {
-            display: block;
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #64748b;
-        }
-        .info-card strong {
-            display: block;
-            margin-top: 8px;
-            font-size: 16px;
-            color: #0f172a;
-            word-wrap: break-word;
-        }
-        .message-block {
-            border-radius: 22px;
-            background: linear-gradient(135deg, #e0f2fe, #e0e7ff);
-            padding: 28px;
-        }
-        .message-block span {
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            color: #0369a1;
-        }
-        .message-block p {
-            margin-top: 14px;
-            font-size: 15px;
-            line-height: 1.7;
-            color: #0f172a;
-        }
-        .footer {
-            text-align: center;
-            padding: 28px 30px 36px;
-            font-size: 12px;
-            color: #94a3b8;
-        }
-        @media (max-width: 600px) {
-            .hero, .content {
-                padding: 28px;
-            }
-            .card {
-                border-radius: 20px;
-            }
+        /* Reset */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+        body { margin: 0 !important; padding: 0 !important; background-color: #f0f2f8; }
+        * { box-sizing: border-box; }
+
+        /* Prevent blue links on iOS */
+        a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+
+        @media only screen and (max-width: 620px) {
+            .wrapper { padding: 16px 8px !important; }
+            .card { border-radius: 16px !important; }
+            .hero-cell { padding: 32px 24px !important; }
+            .content-cell { padding: 24px !important; }
+            .info-table td { display: block !important; width: 100% !important; padding: 10px 14px !important; }
+            .logo-img { max-height: 40px !important; }
         }
     </style>
 </head>
-<body>
-    <div class="wrapper">
-        <div class="card">
-            <div class="hero">
-                <h1>Mensagem Recebida</h1>
-                <p>Um novo contato foi enviado pelo site. Confira os detalhes abaixo.</p>
+<body style="margin:0;padding:0;background-color:#f0f2f8;font-family:Arial,Helvetica,sans-serif;">
+
+{# ── Resolve tenant brand values ── #}
+{% set primary   = (tenant is defined and tenant.primaryColor)   ? tenant.primaryColor   : '#6d28d9' %}
+{% set secondary = (tenant is defined and tenant.secondaryColor) ? tenant.secondaryColor : '#f59e0b' %}
+{% set site_name = (tenant is defined) ? tenant.name : 'Site' %}
+
+{# Build absolute logo URL: prefer logo (light bg), fall back to none #}
+{% set logo_url = null %}
+{% if tenant is defined and tenant.logo %}
+    {% set logo_url = (base_url is defined ? base_url : '') ~ '/uploads/tenant/logo/' ~ tenant.logo %}
+{% endif %}
+
+<!-- Wrapper -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td class="wrapper" style="padding:40px 16px;background-color:#f0f2f8;">
+
+    <!-- Card -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;">
+    <tr>
+    <td class="card" style="background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.12);">
+
+        <!-- ── HERO / HEADER ── -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+        <td class="hero-cell" align="center"
+            style="padding:40px 40px 32px;background-color:{{ primary }};background-image:linear-gradient(135deg,{{ primary }},color-mix(in srgb,{{ primary }} 70%,{{ secondary }}));">
+
+            {% if logo_url %}
+            <!-- Logo do tenant -->
+            <img class="logo-img"
+                 src="{{ logo_url }}"
+                 alt="{{ site_name }}"
+                 style="max-height:48px;max-width:220px;height:auto;width:auto;display:block;margin:0 auto 20px;"
+                 onerror="this.style.display='none'">
+            {% else %}
+            <!-- Fallback: nome do tenant como texto -->
+            <div style="display:inline-block;background:rgba(255,255,255,.15);border-radius:12px;padding:10px 22px;margin-bottom:20px;">
+                <span style="font-size:18px;font-weight:800;color:#ffffff;letter-spacing:.04em;">{{ site_name }}</span>
             </div>
-            <div class="content">
-                <div class="info-grid">
-                    <div class="info-card">
-                        <span>Nome</span>
-                        <strong>{{ name }}</strong>
-                    </div>
-                    <div class="info-card">
-                        <span>E-mail</span>
-                        <strong>{{ sender_email }}</strong>
-                    </div>
-                    <div class="info-card">
-                        <span>Telefone</span>
-                        <strong>{{ phone }}</strong>
-                    </div>
-                    <div class="info-card">
-                        <span>Enviado em</span>
-                        <strong>{{ submitted_at|date('d/m/Y H:i') }}</strong>
-                    </div>
-                </div>
-                <div class="message-block">
-                    <span>Mensagem</span>
-                    <p>{{ message|nl2br }}</p>
-                </div>
-            </div>
-            <div class="footer">
-                Você recebeu este e-mail porque o formulário de contato do site foi utilizado. Responda diretamente ao remetente para continuar a conversa.
-            </div>
-        </div>
-    </div>
+            {% endif %}
+
+            <h1 style="margin:0 0 10px;font-size:22px;font-weight:800;color:#ffffff;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">
+                📬 Nova mensagem de contato
+            </h1>
+            <p style="margin:0;font-size:14px;color:rgba(255,255,255,.82);line-height:1.6;font-family:Arial,Helvetica,sans-serif;">
+                Você recebeu uma mensagem pelo formulário de contato do site.
+            </p>
+        </td>
+        </tr>
+        </table>
+
+        <!-- ── ACCENT BAR ── -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+        <td style="height:4px;background:linear-gradient(90deg,{{ primary }},{{ secondary }});"></td>
+        </tr>
+        </table>
+
+        <!-- ── CONTENT ── -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+        <td class="content-cell" style="padding:36px 40px 32px;">
+
+            <!-- Intro -->
+            <p style="margin:0 0 28px;font-size:15px;color:#374151;line-height:1.7;font-family:Arial,Helvetica,sans-serif;">
+                Olá! Um visitante enviou uma mensagem pelo site de <strong>{{ site_name }}</strong>.
+                Confira os dados abaixo e responda diretamente ao remetente.
+            </p>
+
+            <!-- ── Info cards (2×2 grid via table) ── -->
+            <table class="info-table" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+            <tr>
+                <td style="padding:0 8px 12px 0;width:50%;vertical-align:top;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                    <td style="padding:16px 18px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+                        <span style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">Nome</span>
+                        <strong style="display:block;margin-top:6px;font-size:15px;color:#0f172a;word-break:break-word;font-family:Arial,Helvetica,sans-serif;">{{ name }}</strong>
+                    </td>
+                    </tr>
+                    </table>
+                </td>
+                <td style="padding:0 0 12px 8px;width:50%;vertical-align:top;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                    <td style="padding:16px 18px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+                        <span style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">E-mail</span>
+                        <strong style="display:block;margin-top:6px;font-size:15px;color:#0f172a;word-break:break-all;font-family:Arial,Helvetica,sans-serif;">
+                            <a href="mailto:{{ sender_email }}" style="color:{{ primary }};text-decoration:none;">{{ sender_email }}</a>
+                        </strong>
+                    </td>
+                    </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:0 8px 0 0;width:50%;vertical-align:top;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                    <td style="padding:16px 18px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+                        <span style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">Telefone</span>
+                        <strong style="display:block;margin-top:6px;font-size:15px;color:#0f172a;font-family:Arial,Helvetica,sans-serif;">{{ phone }}</strong>
+                    </td>
+                    </tr>
+                    </table>
+                </td>
+                <td style="padding:0 0 0 8px;width:50%;vertical-align:top;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                    <td style="padding:16px 18px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+                        <span style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">Enviado em</span>
+                        <strong style="display:block;margin-top:6px;font-size:15px;color:#0f172a;font-family:Arial,Helvetica,sans-serif;">{{ submitted_at|date('d/m/Y H:i') }}</strong>
+                    </td>
+                    </tr>
+                    </table>
+                </td>
+            </tr>
+            </table>
+
+            <!-- ── Message block ── -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+            <tr>
+            <td style="padding:24px;border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,{{ primary }} 12%,white),color-mix(in srgb,{{ secondary }} 10%,white));border-left:4px solid {{ primary }};">
+                <span style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:{{ primary }};margin-bottom:12px;font-family:Arial,Helvetica,sans-serif;">Mensagem</span>
+                <p style="margin:0;font-size:15px;line-height:1.8;color:#1e293b;white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;">{{ message|nl2br }}</p>
+            </td>
+            </tr>
+            </table>
+
+            <!-- ── Reply CTA ── -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+            <tr>
+            <td align="center" style="border-radius:50px;background-color:{{ primary }};">
+                <a href="mailto:{{ sender_email }}"
+                   style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;letter-spacing:.04em;border-radius:50px;">
+                    ↩ Responder a {{ name }}
+                </a>
+            </td>
+            </tr>
+            </table>
+
+        </td>
+        </tr>
+        </table>
+
+        <!-- ── DIVIDER ── -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+        <td style="padding:0 40px;"><div style="height:1px;background:#e2e8f0;"></div></td>
+        </tr>
+        </table>
+
+        <!-- ── FOOTER ── -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+        <td align="center" style="padding:28px 40px 36px;">
+
+            <!-- Social links -->
+            {% if tenant is defined %}
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px;">
+            <tr>
+                {% if tenant.instagramLink %}
+                <td style="padding:0 6px;">
+                    <a href="{{ tenant.instagramLink }}" style="display:inline-block;width:32px;height:32px;border-radius:50%;background:{{ primary }};text-align:center;line-height:32px;color:#fff;text-decoration:none;font-size:14px;font-family:Arial,Helvetica,sans-serif;" title="Instagram">ig</a>
+                </td>
+                {% endif %}
+                {% if tenant.facebookLink %}
+                <td style="padding:0 6px;">
+                    <a href="{{ tenant.facebookLink }}" style="display:inline-block;width:32px;height:32px;border-radius:50%;background:{{ primary }};text-align:center;line-height:32px;color:#fff;text-decoration:none;font-size:14px;font-family:Arial,Helvetica,sans-serif;" title="Facebook">fb</a>
+                </td>
+                {% endif %}
+                {% if tenant.youtubeLink %}
+                <td style="padding:0 6px;">
+                    <a href="{{ tenant.youtubeLink }}" style="display:inline-block;width:32px;height:32px;border-radius:50%;background:{{ primary }};text-align:center;line-height:32px;color:#fff;text-decoration:none;font-size:13px;font-family:Arial,Helvetica,sans-serif;" title="YouTube">yt</a>
+                </td>
+                {% endif %}
+                {% if tenant.linkedinLink %}
+                <td style="padding:0 6px;">
+                    <a href="{{ tenant.linkedinLink }}" style="display:inline-block;width:32px;height:32px;border-radius:50%;background:{{ primary }};text-align:center;line-height:32px;color:#fff;text-decoration:none;font-size:13px;font-family:Arial,Helvetica,sans-serif;" title="LinkedIn">in</a>
+                </td>
+                {% endif %}
+            </tr>
+            </table>
+            {% endif %}
+
+            <!-- Org info -->
+            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#374151;font-family:Arial,Helvetica,sans-serif;">{{ site_name }}</p>
+            {% if tenant is defined and tenant.address %}
+            <p style="margin:0 0 6px;font-size:12px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;">{{ tenant.address }}</p>
+            {% endif %}
+            {% if tenant is defined and tenant.contactEmail %}
+            <p style="margin:0 0 12px;font-size:12px;font-family:Arial,Helvetica,sans-serif;">
+                <a href="mailto:{{ tenant.contactEmail }}" style="color:{{ primary }};text-decoration:none;">{{ tenant.contactEmail }}</a>
+            </p>
+            {% endif %}
+
+            <p style="margin:0;font-size:11px;color:#cbd5e1;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">
+                Você recebeu este e-mail porque o formulário de contato do site de <strong>{{ site_name }}</strong> foi utilizado.<br>
+                Responda diretamente ao remetente para continuar a conversa.
+            </p>
+        </td>
+        </tr>
+        </table>
+
+    </td>
+    </tr>
+    </table>
+    <!-- /Card -->
+
+</td>
+</tr>
+</table>
+<!-- /Wrapper -->
+
 </body>
 </html>

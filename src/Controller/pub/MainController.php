@@ -13,12 +13,14 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Psr\Log\LoggerInterface;
+use App\Service\TenantContext;
 
 class MainController extends AbstractController
 {
-    public function __construct(private LoggerInterface $logger)
-    {
-    }
+    public function __construct(
+        private LoggerInterface $logger,
+        private TenantContext $tenantContext,
+    ) {}
     #[Route('/', name: 'pub_home')]
     public function home(): Response
     {
@@ -57,10 +59,12 @@ class MainController extends AbstractController
         }
 
         $context = [
-            'name' => $name,
+            'tenant'       => $this->tenantContext->getTenant(),
+            'base_url'     => $request->getSchemeAndHttpHost(),
+            'name'         => $name,
             'sender_email' => $email,
-            'phone' => $phone ?: '—',
-            'message' => $message,
+            'phone'        => $phone ?: '—',
+            'message'      => $message,
             'submitted_at' => new \DateTimeImmutable('now'),
         ];
 

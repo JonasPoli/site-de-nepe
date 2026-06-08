@@ -219,8 +219,10 @@ class NepePublicController extends AbstractController
             return $redirect;
         }
 
+        $tenant = $this->tenantContext->requireTenant();
+
         $contact = new ContactMessage();
-        $contact->setTenant($this->tenantContext->requireTenant());
+        $contact->setTenant($tenant);
         $contact->setSenderName($name);
         $contact->setSenderEmail($email);
         $contact->setMessage($message);
@@ -229,13 +231,17 @@ class NepePublicController extends AbstractController
 
         // Envia o e-mail de notificação imediatamente
         try {
+            $baseUrl = $request->getSchemeAndHttpHost();
+
             $emailMessage = (new TemplatedEmail())
-                ->from(new Address($this->params->get('emailFrom'), $this->tenantContext->getTenant()?->getName() ?? 'Site de Nepe'))
-                ->to($this->tenantContext->getTenant()?->getContactEmail() ?? $this->params->get('emailContactTo'))
+                ->from(new Address($this->params->get('emailFrom'), $tenant->getName()))
+                ->to($tenant->getContactEmail() ?? $this->params->get('emailContactTo'))
                 ->replyTo(new Address($email, $name))
                 ->subject(sprintf('Nova mensagem de contato: %s', $name))
                 ->htmlTemplate('email/contact.html.twig')
                 ->context([
+                    'tenant'       => $tenant,
+                    'base_url'     => $baseUrl,
                     'name'         => $name,
                     'sender_email' => $email,
                     'phone'        => '—',
