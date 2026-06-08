@@ -12,28 +12,52 @@
         <label>Descrição introdutória</label>
         <textarea name="text" class="ate" rows="3">{{ block.text }}</textarea>
     </div>
-    <fieldset style="border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-top:1rem">
-        <legend style="font-size:.85rem;font-weight:700;padding:0 .5rem">4 Blocos / Ícones</legend>
-        {% for i in 0..3 %}
-        <div style="border:1px dashed var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem">
-            <div style="font-size:.8rem;font-weight:700;margin-bottom:.75rem;color:var(--muted)">Bloco {{ i+1 }}</div>
-            <div class="af-row">
-                <div class="af-field">
-                    <label>Ícone (Font Awesome class)</label>
-                    <input type="text" name="config[blurbs][{{ i }}][icon]" class="ai" value="{{ block.config.blurbs[i].icon ?? '' }}" placeholder="fa-solid fa-star">
-                </div>
-                <div class="af-field">
-                    <label>Título do bloco</label>
-                    <input type="text" name="config[blurbs][{{ i }}][title]" class="ai" value="{{ block.config.blurbs[i].title ?? '' }}">
+
+    <div style="margin:2rem 0 1rem;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">
+            4 Blocos / Ícones
+        </span>
+    </div>
+
+    {% for i in 0..3 %}
+    {% set icon_val = block.config.blurbs[i].icon ?? '' %}
+    <div style="border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;background:var(--bg3)">
+        <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:1rem">
+            Bloco {{ i + 1 }}
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>Ícone (Font Awesome)</label>
+                <div class="icon-picker-wrap">
+                    <div class="icon-preview" id="blurb-prev-{{ i }}">
+                        {% if icon_val %}<i class="{{ icon_val }}"></i>{% endif %}
+                    </div>
+                    <input type="text"
+                           id="blurb-icon-{{ i }}"
+                           name="config[blurbs][{{ i }}][icon]"
+                           class="ai"
+                           value="{{ icon_val }}"
+                           placeholder="fa-solid fa-star"
+                           style="flex:1"
+                           oninput="document.getElementById('blurb-prev-{{ i }}').innerHTML = this.value ? '<i class=\''+this.value+'\'></i>' : ''">
+                    <button type="button" class="btn btn-g btn-sm"
+                            onclick="openIconPicker('blurb-icon-{{ i }}','blurb-prev-{{ i }}')">
+                        <sl-icon name="grid-3x3-gap"></sl-icon> Escolher
+                    </button>
                 </div>
             </div>
             <div class="af-field">
-                <label>Descrição</label>
-                <textarea name="config[blurbs][{{ i }}][text]" class="ate" rows="2">{{ block.config.blurbs[i].text ?? '' }}</textarea>
+                <label>Título do bloco</label>
+                <input type="text" name="config[blurbs][{{ i }}][title]" class="ai" value="{{ block.config.blurbs[i].title ?? '' }}">
             </div>
         </div>
-        {% endfor %}
-    </fieldset>
+        <div class="af-field">
+            <label>Descrição</label>
+            <textarea name="config[blurbs][{{ i }}][text]" class="ate" rows="2">{{ block.config.blurbs[i].text ?? '' }}</textarea>
+        </div>
+    </div>
+    {% endfor %}
+
     <div class="af-actions">
         <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
         <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
