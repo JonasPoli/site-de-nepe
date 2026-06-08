@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro {{ status_code }} — {% if currentTenant is defined and currentTenant %}{{ currentTenant.name }}{% else %}NEPE Brasil{% endif %}</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=optional" rel="stylesheet">
+    {% if currentTenant is defined and currentTenant %}{{ tenant_css_vars()|raw }}{% else %}
+    <style>:root { --color-primary:#6d28d9; --color-secondary:#f59e0b; --color-primary-rgb:109,40,217; --color-secondary-rgb:245,158,11; }</style>
+    {% endif %}
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', system-ui, sans-serif; background: #060612; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2rem; padding: 2rem; text-align: center; }
+    .code { font-size: clamp(6rem, 18vw, 11rem); font-weight: 900; line-height: 1; letter-spacing: -.05em; background: linear-gradient(135deg, rgba(var(--color-secondary-rgb),.7), rgba(var(--color-primary-rgb),.9)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    h1 { font-size: clamp(1.3rem, 3vw, 2rem); font-weight: 800; color: rgba(255,255,255,.8); }
+    p { color: rgba(255,255,255,.4); font-size: 1rem; }
+    a { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 2rem; border-radius: 50px; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); color: #fff; font-weight: 700; text-decoration: none; margin-top: 1rem; transition: transform .2s; }
+    a:hover { transform: translateY(-2px); opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="code">{{ status_code }}</div>
+    <h1>{{ status_text }}</h1>
+    <p>Algo deu errado. Tente novamente ou volte ao início.</p>
+    <a href="{{ path('pub_home') }}">← Voltar ao início</a>
+</body>
+</html>

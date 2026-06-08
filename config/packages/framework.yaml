@@ -6,6 +6,9 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    # Custom error page handler (works in dev AND prod)
+    error_controller: App\Controller\ErrorController::show
+
     #esi: true
     #fragments: true
 

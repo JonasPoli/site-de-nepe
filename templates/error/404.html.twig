@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página não encontrada — {% if currentTenant is defined and currentTenant %}{{ currentTenant.name }}{% else %}NEPE Brasil{% endif %}</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=optional" rel="stylesheet">
+
+    {% if currentTenant is defined and currentTenant %}
+        {{ tenant_css_vars()|raw }}
+    {% else %}
+    <style>
+        :root {
+            --color-primary: #6d28d9;
+            --color-secondary: #f59e0b;
+            --color-primary-rgb: 109,40,217;
+            --color-secondary-rgb: 245,158,11;
+        }
+    </style>
+    {% endif %}
+
+    <style>
+    :root { --font: 'Outfit', system-ui, sans-serif; --radius: 16px; --ease: cubic-bezier(0.34, 1.56, 0.64, 1); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: var(--font);
+        background: #060612;
+        color: #e2e8f0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+    }
+    a { color: var(--color-secondary); text-decoration: none; }
+    a:hover { opacity: .8; }
+
+    /* ── Mini Header ── */
+    .err-header {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        background: rgba(6,6,18,.8);
+        backdrop-filter: blur(20px) saturate(180%);
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        height: 68px; display: flex; align-items: center;
+    }
+    .err-header-inner {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;
+    }
+    .err-logo-text {
+        font-size: 1.35rem; font-weight: 900;
+        background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--color-secondary) 60%, #fff) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .err-logo img { height: 38px; width: auto; object-fit: contain; }
+    .err-home-btn {
+        display: inline-flex; align-items: center; gap: .45rem;
+        padding: .45rem 1.1rem; border-radius: 50px;
+        background: rgba(255,255,255,.07);
+        border: 1px solid rgba(255,255,255,.12);
+        color: #e2e8f0; font-size: .82rem; font-weight: 600; transition: all .2s;
+    }
+    .err-home-btn:hover {
+        background: rgba(var(--color-secondary-rgb),.15);
+        border-color: rgba(var(--color-secondary-rgb),.4);
+        color: var(--color-secondary); opacity: 1;
+    }
+
+    /* ── Hero ── */
+    .err-hero {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 9rem 1.5rem 5rem; position: relative; overflow: hidden;
+    }
+    .err-hero::before, .err-hero::after {
+        content: ''; position: absolute; border-radius: 50%;
+        filter: blur(90px); opacity: .22;
+        animation: blob-float 9s ease-in-out infinite; pointer-events: none;
+    }
+    .err-hero::before {
+        width: 650px; height: 650px;
+        background: radial-gradient(circle, rgba(var(--color-primary-rgb),.7), transparent 70%);
+        top: -200px; left: -200px;
+    }
+    .err-hero::after {
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(var(--color-secondary-rgb),.6), transparent 70%);
+        bottom: -120px; right: -150px; animation-delay: -4.5s;
+    }
+    @keyframes blob-float {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-35px) scale(1.06); }
+    }
+
+    /* Orbit rings */
+    .orb {
+        position: absolute; border-radius: 50%;
+        border: 1px dashed rgba(var(--color-secondary-rgb), .18);
+        pointer-events: none; top: 50%; left: 50%;
+    }
+    .orb-1 { width: 340px; height: 340px; transform: translate(-50%,-50%); animation: orb-spin 22s linear infinite; }
+    .orb-2 { width: 560px; height: 560px; transform: translate(-50%,-50%); animation: orb-spin 35s linear infinite reverse; border-color: rgba(var(--color-primary-rgb),.12); }
+    .orb-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--color-secondary); box-shadow: 0 0 18px var(--color-secondary); top: 0; left: 50%; transform: translateX(-50%) translateY(-50%); }
+    @keyframes orb-spin {
+        from { transform: translate(-50%,-50%) rotate(0deg); }
+        to   { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+
+    /* Content */
+    .err-content { position: relative; z-index: 2; text-align: center; max-width: 660px; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+
+    .err-icon { font-size: 4.5rem; line-height: 1; margin-bottom: .5rem; animation: icon-float 5s ease-in-out infinite; filter: drop-shadow(0 8px 24px rgba(var(--color-primary-rgb),.45)); display: block; }
+    @keyframes icon-float {
+        0%, 100% { transform: translateY(0) rotate(-6deg); }
+        50% { transform: translateY(-18px) rotate(6deg); }
+    }
+
+    .err-badge {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: linear-gradient(135deg, rgba(var(--color-secondary-rgb),.15), rgba(var(--color-primary-rgb),.1));
+        border: 1px solid rgba(var(--color-secondary-rgb),.3);
+        color: var(--color-secondary); font-size: .75rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .1em;
+        padding: .35rem 1rem; border-radius: 50px; margin-bottom: .75rem;
+    }
+    .glow-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-secondary); box-shadow: 0 0 14px var(--color-secondary); animation: blink 2s ease-in-out infinite; display: inline-block; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+    .err-code {
+        font-size: clamp(7rem, 20vw, 13rem); font-weight: 900; line-height: 1; letter-spacing: -.06em;
+        background: linear-gradient(135deg, rgba(var(--color-secondary-rgb),.8) 0%, rgba(var(--color-primary-rgb),.9) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        animation: pulse-glow 3.5s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+        0%, 100% { filter: drop-shadow(0 0 40px rgba(var(--color-primary-rgb),.3)); }
+        50% { filter: drop-shadow(0 0 80px rgba(var(--color-secondary-rgb),.55)); }
+    }
+
+    .err-title {
+        font-size: clamp(1.55rem, 4vw, 2.4rem); font-weight: 800; line-height: 1.2; margin: .5rem 0 1rem;
+        background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--color-secondary) 60%, #fff) 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .err-desc { color: rgba(255,255,255,.5); font-size: 1.05rem; line-height: 1.8; margin-bottom: 2.25rem; }
+
+    .err-actions { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; width: 100%; }
+    .btn { display: inline-flex; align-items: center; gap: .5rem; padding: .85rem 2rem; border-radius: 50px; font-weight: 700; font-size: .95rem; cursor: pointer; border: none; transition: all .3s var(--ease); letter-spacing: .02em; text-decoration: none; font-family: var(--font); }
+    .btn-primary { background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); color: #fff; box-shadow: 0 8px 32px rgba(var(--color-primary-rgb),.4); }
+    .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 48px rgba(var(--color-primary-rgb),.55); opacity: 1; }
+    .btn-ghost { background: rgba(255,255,255,.07); color: #e2e8f0; border: 1px solid rgba(255,255,255,.12); }
+    .btn-ghost:hover { background: rgba(255,255,255,.12); border-color: rgba(var(--color-secondary-rgb),.3); opacity: 1; }
+
+    /* ── Quick Links ── */
+    .err-links-section { padding: 3rem 1.5rem 3.5rem; background: rgba(255,255,255,.025); border-top: 1px solid rgba(255,255,255,.05); }
+    .err-links-inner { max-width: 860px; margin: 0 auto; text-align: center; }
+    .err-links-label { font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 1.4rem; }
+    .err-chips { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+    .err-chip {
+        display: inline-flex; align-items: center; gap: .5rem;
+        padding: .6rem 1.3rem; border-radius: 50px;
+        background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+        color: rgba(255,255,255,.7); font-size: .88rem; font-weight: 500; transition: all .25s;
+    }
+    .err-chip:hover { border-color: rgba(var(--color-secondary-rgb),.45); color: var(--color-secondary); background: rgba(var(--color-secondary-rgb),.08); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(var(--color-secondary-rgb),.15); opacity: 1; }
+    .err-chip svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── Footer ── */
+    .err-footer { padding: 1.4rem; text-align: center; color: rgba(255,255,255,.2); font-size: .8rem; border-top: 1px solid rgba(255,255,255,.04); }
+
+    @media (max-width: 640px) {
+        .orb { display: none; }
+        .err-actions { flex-direction: column; align-items: stretch; }
+        .btn { justify-content: center; }
+    }
+    </style>
+</head>
+<body>
+
+{# ── Mini Header ── #}
+<header class="err-header">
+    <div class="err-header-inner">
+        <a href="{{ path('pub_home') }}" class="err-logo" aria-label="Início">
+            {% if currentTenant is defined and currentTenant and currentTenant.logo %}
+                <img src="{{ vich_uploader_asset(currentTenant, 'logoFile') }}" alt="{{ currentTenant.name }}" height="38">
+            {% else %}
+                <span class="err-logo-text">
+                    {% if currentTenant is defined and currentTenant %}{{ currentTenant.name }}{% else %}NEPE Brasil{% endif %}
+                </span>
+            {% endif %}
+        </a>
+        <a href="{{ path('pub_home') }}" class="err-home-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6-.354.353V14.5A1.5 1.5 0 0 0 2.75 16h3.5a.5.5 0 0 0 .5-.5v-4h2.5v4a.5.5 0 0 0 .5.5h3.5A1.5 1.5 0 0 0 14.5 14.5V7.5l-.354-.354-6-6z"/>
+            </svg>
+            Página Inicial
+        </a>
+    </div>
+</header>
+
+{# ── Hero ── #}
+<section class="err-hero">
+    <div class="orb orb-1"><div class="orb-dot"></div></div>
+    <div class="orb orb-2"></div>
+
+    <div class="err-content">
+        <span class="err-icon" aria-hidden="true">🔭</span>
+
+        <div class="err-badge">
+            <span class="glow-dot"></span>
+            Erro 404
+        </div>
+
+        <div class="err-code" aria-hidden="true">404</div>
+
+        <h1 class="err-title">Esta página não existe</h1>
+        <p class="err-desc">
+            Parece que você se aventurou por um caminho inexplorado.<br>
+            A página pode ter sido movida, renomeada ou nunca existiu.
+        </p>
+
+        <div class="err-actions">
+            <a href="{{ path('pub_home') }}" class="btn btn-primary" id="btn-inicio">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6-.354.353V14.5A1.5 1.5 0 0 0 2.75 16h3.5a.5.5 0 0 0 .5-.5v-4h2.5v4a.5.5 0 0 0 .5.5h3.5A1.5 1.5 0 0 0 14.5 14.5V7.5l-.354-.354-6-6z"/>
+                </svg>
+                Voltar ao início
+            </a>
+            <button onclick="history.back()" class="btn btn-ghost" id="btn-voltar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                </svg>
+                Página anterior
+            </button>
+        </div>
+    </div>
+</section>
+
+{# ── Quick Links ── #}
+<div class="err-links-section">
+    <div class="err-links-inner">
+        <p class="err-links-label">Talvez você esteja procurando</p>
+        <div class="err-chips">
+            <a href="{{ path('pub_home') }}" class="err-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6-.354.353V14.5A1.5 1.5 0 0 0 2.75 16h3.5a.5.5 0 0 0 .5-.5v-4h2.5v4a.5.5 0 0 0 .5.5h3.5A1.5 1.5 0 0 0 14.5 14.5V7.5l-.354-.354-6-6z"/></svg>
+                Página Inicial
+            </a>
+            <a href="{{ path('pub_articles') }}" class="err-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M0 2.5A1.5 1.5 0 0 1 1.5 1h11A1.5 1.5 0 0 1 14 2.5v10.528c0 .3-.05.654-.238.972h.738a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 1 1 0v9a1.5 1.5 0 0 1-1.5 1.5H1.497A1.497 1.497 0 0 1 0 13.5zM12 14c.37 0 .654-.211.853-.441.092-.106.147-.279.147-.531V2.5a.5.5 0 0 0-.5-.5h-11a.5.5 0 0 0-.5.5v11c0 .278.223.5.497.5z"/><path d="M2 3h10v1H2zm0 2h10v1H2zm0 2h6v1H2z"/></svg>
+                Notícias
+            </a>
+            <a href="{{ path('pub_studies') }}" class="err-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/></svg>
+                Estudos
+            </a>
+            <a href="{{ path('pub_videos') }}" class="err-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1zm4 0v6h8V1zm8 8H4v6h8zM1 1v2h2V1zm2 3H1v2h2zM1 7v2h2V7zm2 3H1v2h2zm-2 3v2h2v-2zM15 1h-2v2h2zm-2 3v2h2V4zm2 3h-2v2h2zm-2 3v2h2v-2zm2 3h-2v2h2z"/></svg>
+                Vídeos
+            </a>
+            <a href="{{ path('pub_contact') }}" class="err-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/></svg>
+                Contato
+            </a>
+        </div>
+    </div>
+</div>
+
+{# ── Footer ── #}
+<footer class="err-footer">
+    &copy; {{ "now"|date("Y") }}
+    {% if currentTenant is defined and currentTenant %}{{ currentTenant.name }}{% else %}NEPE Brasil{% endif %}
+    &mdash; Todos os direitos reservados.
+</footer>
+
+</body>
+</html>
