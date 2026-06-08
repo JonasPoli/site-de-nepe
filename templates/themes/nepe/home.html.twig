@@ -610,15 +610,23 @@ document.addEventListener('DOMContentLoaded', function() {
         _heroTimer = setInterval(() => _heroGoTo(_heroCurrent + 1), 7000);
     }
 
-    // Contact alert auto-dismiss
+    // Contact alert: auto-scroll to form + auto-dismiss
     const alerts = document.querySelectorAll('.local-alert');
     if (alerts.length > 0) {
+        // Scroll para a seção #contato para que a mensagem fique visível
+        const contactSection = document.getElementById('contato');
+        if (contactSection) {
+            setTimeout(() => {
+                contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 120);
+        }
+        // Auto-dismiss após 6 s
         setTimeout(() => {
             alerts.forEach(alert => {
                 alert.classList.add('fade-out');
                 setTimeout(() => alert.remove(), 500);
             });
-        }, 5000);
+        }, 6000);
     }
 });
 </script>

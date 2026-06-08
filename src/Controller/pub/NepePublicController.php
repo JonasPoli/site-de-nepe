@@ -14,14 +14,25 @@ use App\Repository\StudyRepository;
 use App\Repository\VideoSupportRepository;
 use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Attribute\Route;
 
 class NepePublicController extends AbstractController
 {
-    public function __construct(private readonly TenantContext $tenantContext) {}
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly MailerInterface $mailer,
+        private readonly ParameterBagInterface $params,
+        private readonly LoggerInterface $logger,
+    ) {}
 
     private function theme(string $template): string
     {
@@ -215,6 +226,28 @@ class NepePublicController extends AbstractController
         $contact->setMessage($message);
         $em->persist($contact);
         $em->flush();
+
+        // Envia o e-mail de notificação imediatamente
+        try {
+            $emailMessage = (new TemplatedEmail())
+                ->from(new Address($this->params->get('emailFrom'), $this->tenantContext->getTenant()?->getName() ?? 'Site de Nepe'))
+                ->to($this->tenantContext->getTenant()?->getContactEmail() ?? $this->params->get('emailContactTo'))
+                ->replyTo(new Address($email, $name))
+                ->subject(sprintf('Nova mensagem de contato: %s', $name))
+                ->htmlTemplate('email/contact.html.twig')
+                ->context([
+                    'name'         => $name,
+                    'sender_email' => $email,
+                    'phone'        => '—',
+                    'message'      => $message,
+                    'submitted_at' => new \DateTimeImmutable('now'),
+                ]);
+
+            $this->mailer->send($emailMessage);
+        } catch (TransportExceptionInterface $e) {
+            // Mensagem já salva no banco; falha no e-mail não deve bloquear o usuário
+            $this->logger->error('Falha ao enviar e-mail de contato: ' . $e->getMessage(), ['exception' => $e]);
+        }
 
         $this->addFlash('contact_s', 'Mensagem enviada com sucesso!');
         return $redirect;
