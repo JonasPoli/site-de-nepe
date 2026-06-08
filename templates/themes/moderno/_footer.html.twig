@@ -40,9 +40,9 @@
 
     {# Col 3 — Notícias #}
     <div class="mf-col">
-        <h4 class="mf-col-title">Notícias</h4>
+        <h4 class="mf-col-title">Artigos</h4>
         <nav class="mf-nav">
-            <a href="{{ path('pub_articles') }}">Todas as notícias</a>
+            <a href="{{ path('pub_articles') }}">Todos os artigos</a>
             {% for cat in footerCategories %}<a href="{{ path('pub_articles') }}">{{ cat.name }}</a>{% endfor %}
         </nav>
     </div>
