@@ -72,12 +72,16 @@ vich_uploader:
             upload_destination: '%kernel.project_dir%/public/uploads/study_cover'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
             inject_on_load: true
+            delete_on_remove: true
+            delete_on_update: true
 
         study_material:
             uri_prefix: /uploads/study_material
             upload_destination: '%kernel.project_dir%/public/uploads/study_material'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
             inject_on_load: true
+            delete_on_remove: true
+            delete_on_update: true
 
         page_block_gallery:
             uri_prefix: /uploads/page_block_gallery

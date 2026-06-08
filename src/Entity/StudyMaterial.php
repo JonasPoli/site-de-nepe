@@ -17,7 +17,7 @@ class StudyMaterial
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Study::class, inversedBy: 'materials')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Study $study = null;
 
     /** Label shown to the user (e.g. "Slides do Módulo 1") */
