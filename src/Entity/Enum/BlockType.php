@@ -5,6 +5,7 @@ namespace App\Entity\Enum;
 enum BlockType: string
 {
     case TextImage     = 'text_image';
+    case TextOnly      = 'text_only';
     case Gallery       = 'gallery';
     case Newsletter    = 'newsletter';
     case Stats         = 'stats';
@@ -23,6 +24,7 @@ enum BlockType: string
     {
         return match($this) {
             self::TextImage     => 'Imagem + Texto',
+            self::TextOnly      => 'Apenas Texto',
             self::Gallery       => 'Galeria de Imagens',
             self::Newsletter    => 'Newsletter / Captura de E-mail',
             self::Stats         => 'Estatísticas',
@@ -43,6 +45,7 @@ enum BlockType: string
     {
         return match($this) {
             self::TextImage     => 'layout-split',
+            self::TextOnly      => 'justify-left',
             self::Gallery       => 'images',
             self::Newsletter    => 'envelope-open',
             self::Stats         => 'bar-chart-line',
