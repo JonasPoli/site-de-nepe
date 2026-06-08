@@ -11,6 +11,21 @@
     </div>
     {% endif %}
     {% for block in section.blocks %}
+    {% if block.type == 'text_only' %}
+    {# ── Apenas Texto: largura total, sem grid ── #}
+    {% set align = block.config ? (block.config.textAlign ?? 'left') : 'left' %}
+    {% set mwKey = block.config ? (block.config.maxWidth ?? 'full') : 'full' %}
+    {% set mw    = mwKey == 'narrow' ? '600px' : (mwKey == 'wide' ? '800px' : '100%') %}
+    <div class="mp-text-only" style="text-align:{{ align }};max-width:{{ mw }};">
+        {% if block.preTitle %}<span class="section-label"><span class="glow-dot"></span>{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<div class="prose-dark">{{ block.text|raw }}</div>{% endif %}
+        {% if block.config and (block.config.ctaText ?? null) and (block.config.ctaLink ?? null) %}
+            <a href="{{ block.config.ctaLink }}" class="mp-cta-btn">{{ block.config.ctaText }}</a>
+        {% endif %}
+    </div>
+    {% else %}
+    {# ── Default: zigzag (text_image e outros) ── #}
     <div class="mp-block {% if loop.index is even %}mp-reverse{% endif %}">
         {% if block.image %}<div class="mp-block-img"><img src="/uploads/page_block/{{ block.image }}" alt="{{ block.title ?? '' }}" loading="lazy"></div>{% endif %}
         <div class="mp-block-text">
@@ -19,6 +34,7 @@
             {% if block.text %}<div class="prose-dark">{{ block.text|raw }}</div>{% endif %}
         </div>
     </div>
+    {% endif %}
     {% endfor %}
 </section>
 {% endif %}{% endfor %}
@@ -37,5 +53,10 @@
 .mp-block-text h2{font-size:1.7rem;font-weight:800;color:#e2e8f0;margin:.75rem 0 1rem;}
 .prose-dark{color:rgba(255,255,255,.65);line-height:1.8;}
 .prose-dark a{color:var(--color-secondary);}
+/* ── Apenas Texto ── */
+.mp-text-only{max-width:100%;margin:0 auto 4rem;padding:0 1.5rem;}
+.mp-text-only h2{font-size:1.7rem;font-weight:800;color:#e2e8f0;margin:.75rem 0 1rem;}
+.mp-cta-btn{display:inline-flex;align-items:center;margin-top:1.5rem;background:var(--color-primary);color:#fff;padding:.75rem 2rem;border-radius:50px;font-weight:700;font-size:.9rem;text-decoration:none;transition:background .2s,transform .2s;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+.mp-cta-btn:hover{background:var(--color-secondary);color:#060612;transform:translateY(-2px);}
 @media(max-width:768px){.mp-block{grid-template-columns:1fr;}.mp-reverse .mp-block-img,.mp-reverse .mp-block-text{order:unset;}.mp-two-tone{flex-direction:column;}}
 </style>{% endblock %}

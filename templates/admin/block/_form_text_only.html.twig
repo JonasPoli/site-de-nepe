@@ -1,0 +1,52 @@
+<form method="post" action="{{ action }}" class="af">
+    <input type="hidden" name="type" value="text_only">
+    <div class="af-field">
+        <label>Pré-título</label>
+        <input type="text" name="preTitle" class="ai" value="{{ block.preTitle }}" placeholder="Saiba mais sobre">
+    </div>
+    <div class="af-field">
+        <label>Título <span class="req">*</span></label>
+        <input type="text" name="title" class="ai" value="{{ block.title }}" required>
+    </div>
+    <div class="af-field">
+        <label>Texto / Conteúdo (HTML)</label>
+        {{ include('admin/_rich_editor.html.twig', {
+            field_id: 'block-text',
+            field_name: 'text',
+            content: block.text,
+            height: 380
+        }) }}
+    </div>
+    <div class="af-row">
+        <div class="af-field">
+            <label>Texto do botão CTA</label>
+            <input type="text" name="config[ctaText]" class="ai" value="{{ block.config.ctaText ?? '' }}" placeholder="Saiba mais">
+        </div>
+        <div class="af-field">
+            <label>Link do botão CTA</label>
+            <input type="text" name="config[ctaLink]" class="ai" value="{{ block.config.ctaLink ?? '' }}" placeholder="https://...">
+        </div>
+    </div>
+    <div class="af-row">
+        <div class="af-field">
+            <label>Alinhamento do texto</label>
+            <select name="config[textAlign]" class="as">
+                <option value="left"   {{ (block.config.textAlign ?? 'left') == 'left'   ? 'selected' }}>Esquerda</option>
+                <option value="center" {{ (block.config.textAlign ?? '') == 'center' ? 'selected' }}>Centro</option>
+                <option value="right"  {{ (block.config.textAlign ?? '') == 'right'  ? 'selected' }}>Direita</option>
+            </select>
+        </div>
+        <div class="af-field">
+            <label>Largura máxima</label>
+            <select name="config[maxWidth]" class="as">
+                <option value="full"   {{ (block.config.maxWidth ?? 'full') == 'full'   ? 'selected' }}>Largura total</option>
+                <option value="wide"   {{ (block.config.maxWidth ?? '') == 'wide'   ? 'selected' }}>Larga (800px)</option>
+                <option value="narrow" {{ (block.config.maxWidth ?? '') == 'narrow' ? 'selected' }}>Estreita (600px)</option>
+            </select>
+        </div>
+    </div>
+    <div class="af-actions">
+        <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
+        <a href="{{ path('admin_block_index', {sectionId: block.section.id ?? section.id}) }}" class="btn btn-g">Cancelar</a>
+    </div>
+</form>

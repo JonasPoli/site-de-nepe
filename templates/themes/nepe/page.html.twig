@@ -50,6 +50,27 @@
 
         {# Blocks in zig-zag #}
         {% for block in section.blocks %}
+        {% if block.type == 'text_only' %}
+        {# ── Apenas Texto: full-width, no zigzag grid ─────────────── #}
+        {% set align  = block.config ? (block.config.textAlign ?? 'left') : 'left' %}
+        {% set mwKey  = block.config ? (block.config.maxWidth ?? 'full') : 'full' %}
+        {% set mw     = mwKey == 'narrow' ? '600px' : (mwKey == 'wide' ? '800px' : '100%') %}
+        <div class="text-only-block reveal-up delay-{{ loop.index0 * 100 }}" style="text-align:{{ align }};max-width:{{ mw }};">
+            {% if block.preTitle %}
+                <span class="pre-label">{{ block.preTitle }}</span>
+            {% endif %}
+            {% if block.title %}
+                <h2>{{ block.title }}</h2>
+            {% endif %}
+            {% if block.text %}
+                <div class="prose">{{ block.text|raw }}</div>
+            {% endif %}
+            {% if block.config and (block.config.ctaText ?? null) and (block.config.ctaLink ?? null) %}
+                <a href="{{ block.config.ctaLink }}" class="cta-btn" style="margin-top:1.5rem;display:inline-flex;">{{ block.config.ctaText }}</a>
+            {% endif %}
+        </div>
+        {% else %}
+        {# ── Default: zigzag (text_image and others) ──────────────── #}
         <div class="zigzag-block {% if loop.index is even %}zigzag-reverse{% endif %} reveal-up delay-{{ loop.index0 * 100 }}">
             {% if block.image %}
             <div class="zigzag-img">
@@ -70,6 +91,7 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
         {% endfor %}
     </section>
     {% endif %}
@@ -144,5 +166,33 @@
     .section-two-tone-title { flex-direction: column; }
     .title-secondary, .title-primary { text-align: center; }
 }
+
+/* ── Apenas Texto (text_only) ──────────────────────────────────────────── */
+.text-only-block {
+    margin: 0 auto 4rem;
+    padding: 0 1.5rem;
+}
+.text-only-block h2 {
+    font-size: 1.7rem; font-weight: 800; margin: 0.75rem 0 1rem;
+    color: var(--color-primary);
+}
+.text-only-block .prose {
+    color: #475569; line-height: 1.9; font-size: 1.05rem;
+}
+.text-only-block .prose p { margin-bottom: 1rem; }
+.text-only-block .prose ul, .text-only-block .prose ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+.text-only-block .prose li { margin-bottom: .4rem; }
+.text-only-block .prose h3 { font-size: 1.2rem; font-weight: 700; margin: 1.5rem 0 .5rem; color: var(--color-primary); }
+.text-only-block .prose a { color: var(--color-secondary); text-decoration: underline; }
+.text-only-block .prose strong, .text-only-block .prose b { font-weight: 700; }
+.cta-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: var(--color-primary); color: #fff;
+    padding: .75rem 2rem; border-radius: 50px;
+    font-weight: 700; font-size: .9rem; text-decoration: none;
+    transition: background .2s, transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 14px rgba(0,0,0,.15);
+}
+.cta-btn:hover { background: var(--color-secondary); color: #1a1c2e; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.2); }
 </style>
 {% endblock %}

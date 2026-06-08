@@ -9,6 +9,8 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace-autoloader.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {# Font Awesome Free — usado no icon picker e nos blocos #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -115,6 +117,32 @@
     .drag-h{cursor:grab;color:var(--muted)}
     .drag-h:active{cursor:grabbing}
     .sortable-ghost{opacity:.4;background:rgba(79,110,247,.1)}
+    /* Icon picker */
+    .icon-picker-wrap{display:flex;align-items:center;gap:.75rem}
+    .icon-preview{width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--primary)}
+    #icon-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,12,22,.85);backdrop-filter:blur(12px);z-index:9000;align-items:center;justify-content:center;transition:opacity .2s ease}
+    #icon-modal-overlay.open{display:flex}
+    #icon-modal{background:var(--bg2);border:1px solid rgba(255,255,255,.1);box-shadow:0 25px 60px rgba(0,0,0,.6), 0 0 80px rgba(79,110,247,.06);border-radius:20px;padding:1.75rem;width:min(720px,95vw);max-height:88vh;display:flex;flex-direction:column;gap:1.25rem;animation:modalScale .3s cubic-bezier(0.34, 1.56, 0.64, 1)}
+    @keyframes modalScale {
+        from { transform: scale(.92); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .icon-search-wrap{position:relative;display:flex;align-items:center}
+    .icon-search-wrap sl-icon{position:absolute;left:14px;color:var(--muted);font-size:1.2rem}
+    .icon-search-wrap input{padding-left:2.75rem;border-radius:12px;height:46px;font-size:.92rem}
+    .icon-search-wrap input:focus{box-shadow:0 0 12px rgba(79,110,247,.25);border-color:var(--primary)}
+    .icon-tabs{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+    .icon-tab{padding:.5rem 1.15rem;border-radius:24px;font-size:.78rem;font-weight:600;background:rgba(255,255,255,.02);color:var(--muted);border:1px solid var(--border);cursor:pointer;white-space:nowrap;transition:all var(--ease);font-family:inherit}
+    .icon-tab:hover{background:rgba(255,255,255,.06);color:var(--text)}
+    .icon-tab.active{background:linear-gradient(135deg, rgba(79,110,247,.2), rgba(79,110,247,.05));color:#818cf8;border-color:var(--primary);box-shadow:0 4px 12px rgba(79,110,247,.15)}
+    .icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:.65rem;overflow-y:auto;max-height:380px;padding-right:.25rem}
+    /* Custom scrollbar */
+    .icon-grid::-webkit-scrollbar{width:6px}
+    .icon-grid::-webkit-scrollbar-track{background:transparent}
+    .icon-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:10px}
+    .icon-grid::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.24)}
+    .icon-grid button{width:56px;height:56px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--text);font-size:1.35rem;display:flex;align-items:center;justify-content:center;transition:all .18s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
+    .icon-grid button:hover{background:linear-gradient(135deg, var(--primary), #6366f1);border-color:var(--primary);color:#fff;transform:scale(1.15) rotate(3deg);box-shadow:0 6px 18px rgba(79,110,247,.35)}
     @media(max-width:900px){
         .sb{transform:translateX(-100%)}
         .sb.open{transform:translateX(0)}
@@ -227,11 +255,398 @@
     </div>
 </div>
 
+{# ── Icon Picker Modal ── #}
+<div id="icon-modal-overlay">
+    <div id="icon-modal">
+        <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:.75rem">
+            <div style="display:flex;align-items:center;gap:.6rem">
+                <sl-icon name="star-fill" style="color:var(--primary);font-size:1.2rem;vertical-align:middle;filter:drop-shadow(0 0 8px rgba(79,110,247,0.4))"></sl-icon>
+                <span style="font-weight:800;font-size:1.15rem;letter-spacing:-.01em">Escolher Ícone Font Awesome</span>
+            </div>
+            <button onclick="closeIconPicker()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.4rem;display:flex;align-items:center;transition:color var(--ease)" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+        </div>
+        <div class="icon-search-wrap">
+            <sl-icon name="search"></sl-icon>
+            <input type="text" id="icon-search" class="ai" placeholder="Pesquisar mais de 1.200 ícones... ex: home, school, facebook" oninput="filterIcons(this.value)">
+        </div>
+        <div class="icon-tabs" id="icon-tabs-container">
+            <button class="icon-tab active" onclick="switchIconTab('all', this)">Todos</button>
+            <button class="icon-tab" onclick="switchIconTab('edu', this)">Educação &amp; Cursos</button>
+            <button class="icon-tab" onclick="switchIconTab('biz', this)">Negócios &amp; Web</button>
+            <button class="icon-tab" onclick="switchIconTab('brands', this)">Marcas &amp; Redes</button>
+            <button class="icon-tab" onclick="switchIconTab('media', this)">Interface &amp; Mídia</button>
+            <button class="icon-tab" onclick="switchIconTab('health', this)">Saúde &amp; Esporte</button>
+            <button class="icon-tab" onclick="switchIconTab('arrows', this)">Setas &amp; Navegação</button>
+        </div>
+        <div class="icon-grid" id="icon-grid-container"></div>
+
+        <!-- Live Preview Pane -->
+        <div id="icon-preview-pane" style="display:flex;align-items:center;gap:1.25rem;padding:0.85rem 1.15rem;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;margin-top:0.25rem;min-height:68px;transition:all var(--ease)">
+            <div id="icon-preview-pane-icon" style="font-size:2rem;width:48px;height:48px;background:rgba(79,110,247,0.1);border:1px solid rgba(79,110,247,0.25);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);transition:all .18s ease">
+                <i class="fa-solid fa-face-smile"></i>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.2rem">
+                <span id="icon-preview-pane-name" style="font-size:0.9rem;font-weight:700;font-family:monospace;color:var(--text);letter-spacing:0.02em">fa-solid fa-face-smile</span>
+                <span id="icon-preview-pane-desc" style="font-size:0.76rem;color:var(--muted)">Passe o mouse sobre qualquer ícone da lista para ver os detalhes em tempo real</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
     if(window.innerWidth<=900){
         document.getElementById('mob-btn').style.display='flex';
     }
+    loadIconsFromStylesheets();
+
+    // Configura o ouvinte de rolagem infinita (Infinite Scroll)
+    const grid = document.getElementById('icon-grid-container');
+    if (grid) {
+        grid.addEventListener('scroll', function() {
+            if (this.scrollTop + this.clientHeight >= this.scrollHeight - 40) {
+                appendMoreIcons();
+            }
+        });
+    }
+});
+
+// ── Icon Picker ────────────────────────────────────────────────────────────────
+let FA_ICONS = [];
+let _pickerTarget = null;
+let _pickerPreview = null;
+let _currentTab = 'all';
+let _currentList = [];
+let _renderLimit = 180;
+let _renderedCount = 0;
+
+function getIconPrefix(iconName) {
+    const brands = [
+        'instagram', 'facebook', 'facebook-f', 'youtube', 'linkedin', 'linkedin-in', 'whatsapp', 'twitter', 'tiktok', 'github',
+        'google', 'apple', 'microsoft', 'android', 'amazon', 'wordpress', 'paypal', 'stripe',
+        'spotify', 'slack', 'discord', 'figma', 'sass', 'html5', 'css3', 'js', 'react', 'vue',
+        'angular', 'node', 'python', 'php', 'docker', 'git', 'aws', 'digital-ocean', 'cloudflare',
+        'stack-overflow', 'medium', 'vimeo', 'tumblr', 'pinterest', 'snapchat', 'reddit', 'quora',
+        'telegram', 'skype', 'zoom', 'trello', 'behance', 'dribbble', 'flickr', 'deviantart',
+        'steam', 'twitch', 'xbox', 'playstation', 'nintendo-switch', 'google-play', 'app-store',
+        'line', 'weibo', 'weixin', 'vk', 'odnoklassniki', 'mailchimp', 'hubspot', 'salesforce',
+        'shopify', 'magento', 'joomla', 'drupal', 'ghost', 'medium-m', 'kickstarter', 'patreon',
+        'envato', 'wix', 'squarespace', 'behance-square', 'twitter-square', 'facebook-square', 'google-plus',
+        'tumblr-square', 'pinterest-square', 'youtube-square', 'git-square', 'github-square',
+        'whatsapp-square', 'linkedin-square', 'skype-business', 'cc-visa', 'cc-mastercard',
+        'cc-discover', 'cc-amex', 'cc-paypal', 'cc-stripe', 'cc-amazon-pay', 'cc-apple-pay',
+        'google-wallet', 'btc', 'ethereum', 'bitcoin'
+    ];
+    if (brands.includes(iconName) || brands.some(b => iconName.startsWith(b + '-'))) {
+        return 'fa-brands';
+    }
+    return 'fa-solid';
+}
+
+function loadIconsFromStylesheets() {
+    const iconSet = new Set();
+
+    const staticList = [
+        'house', 'star', 'heart', 'user', 'users', 'user-group', 'user-plus', 'user-minus', 'user-check', 'user-xmark',
+        'building', 'landmark', 'school', 'graduation-cap', 'book', 'book-open', 'book-reader', 'chalkboard',
+        'chalkboard-user', 'university', 'award', 'trophy', 'medal', 'certificate', 'briefcase', 'briefcase-medical',
+        'suitcase', 'folder', 'folder-open', 'folder-plus', 'folder-minus', 'folder-closed', 'file', 'file-lines',
+        'file-pdf', 'file-word', 'file-excel', 'file-powerpoint', 'file-csv', 'file-code', 'file-zipper', 'file-image',
+        'file-audio', 'file-video', 'file-signature', 'file-contract', 'file-invoice', 'file-invoice-dollar',
+        'clipboard', 'clipboard-list', 'clipboard-check', 'clipboard-question', 'copy', 'paste', 'floppy-disk',
+        'pen', 'pencil', 'pen-nib', 'pen-fancy', 'pen-to-square', 'brush', 'palette', 'highlighter', 'paint-roller',
+        'eraser', 'search', 'magnifying-glass', 'magnifying-glass-plus', 'magnifying-glass-minus', 'filter',
+        'funnel-dollar', 'sort', 'sort-up', 'sort-down', 'bars', 'bars-staggered', 'bars-progress', 'list',
+        'list-ol', 'list-ul', 'table', 'table-columns', 'table-cells', 'table-cells-large', 'ellipsis', 'ellipsis-vertical',
+        'check', 'check-double', 'circle-check', 'check-to-slot', 'times', 'xmark', 'circle-xmark', 'ban',
+        'info', 'info-circle', 'circle-info', 'question', 'question-circle', 'circle-question', 'exclamation',
+        'exclamation-circle', 'circle-exclamation', 'triangle-exclamation', 'shield', 'shield-halved', 'shield-heart',
+        'lock', 'lock-open', 'key', 'key-skeleton', 'gear', 'gears', 'cog', 'cogs', 'wrench', 'hammer',
+        'screwdriver-wrench', 'screwdriver', 'tools', 'trash', 'trash-can', 'trash-arrow-up', 'clock',
+        'clock-rotate-left', 'calendar', 'calendar-days', 'calendar-check', 'calendar-xmark', 'calendar-plus',
+        'calendar-minus', 'bell', 'bell-slash', 'eye', 'eye-slash', 'comment', 'comments', 'comment-dots',
+        'comment-medical', 'comment-slash', 'envelope', 'envelope-open', 'envelope-circle-check', 'phone',
+        'phone-volume', 'phone-slash', 'mobile', 'mobile-screen', 'tablet', 'tablet-screen-button', 'laptop',
+        'desktop', 'server', 'database', 'cloud', 'cloud-arrow-up', 'cloud-arrow-down', 'wifi', 'signal',
+        'globe', 'compass', 'map', 'map-pin', 'location-dot', 'location-arrow', 'route', 'road', 'traffic-light',
+        'gas-pump', 'charging-station', 'plug', 'battery-full', 'battery-three-quarters', 'battery-half',
+        'battery-quarter', 'battery-empty', 'bolt', 'bolt-lightning', 'fire', 'fire-flame-curved', 'leaf',
+        'tree', 'seedling', 'plant-wilt', 'sun', 'moon', 'cloud-sun', 'cloud-moon', 'wind', 'umbrella',
+        'snowflake', 'water', 'droplet', 'glass-water', 'mug-hot', 'coffee', 'utensils', 'spoon', 'knife',
+        'burger', 'pizza-slice', 'apple-whole', 'cake-candles', 'gift', 'shop', 'shopping-bag', 'shopping-cart',
+        'bag-shopping', 'cart-shopping', 'tag', 'tags', 'ticket', 'ticket-simple', 'credit-card', 'wallet',
+        'coins', 'dollar-sign', 'euro-sign', 'sterling-sign', 'percent', 'percentage', 'receipt',
+        'car', 'bus', 'plane', 'ship', 'bicycle', 'motorcycle', 'truck', 'truck-medical', 'train', 'subway',
+        'helicopter', 'anchor', 'flag', 'compass-drafting', 'ruler', 'tape', 'cube', 'cubes', 'shapes',
+        'arrow-up', 'arrow-down', 'arrow-left', 'arrow-right', 'arrow-up-long', 'arrow-down-long',
+        'arrow-left-long', 'arrow-right-long', 'arrows-rotate', 'rotate', 'recycle', 'hourglass',
+        'hourglass-half', 'stopwatch', 'gauge', 'calculator', 'plus', 'minus', 'divide', 'equals',
+        // Education
+        'graduation-cap', 'school', 'university', 'book', 'book-open', 'chalkboard-user', 'user-graduate',
+        'award', 'trophy', 'medal', 'certificate', 'microscope', 'flask', 'flask-vial', 'dna', 'brain',
+        'lightbulb', 'atom', 'globe-americas', 'globe-europe', 'globe-asia', 'map-location',
+        'music', 'laptop-code', 'terminal', 'code', 'puzzle-piece', 'gamepad', 'child', 'children',
+        'people-group', 'person-chalkboard', 'book-bookmark', 'bookmark', 'paperclip', 'magnet',
+        'hourglass-start', 'infinity', 'masks-theater', 'book-atlas', 'language', 'earth-americas', 'face-smile',
+        // Business
+        'store', 'money-bill', 'money-bill-wave', 'money-bills', 'piggy-bank', 'bank', 'chart-line',
+        'chart-bar', 'chart-pie', 'chart-column', 'chart-area', 'tachometer-alt', 'handshake',
+        'handshake-simple', 'handshake-angle', 'people-arrows', 'user-tie', 'users-gear',
+        'address-book', 'address-card', 'signature', 'stamp', 'scale-balanced', 'gavel',
+        'box', 'boxes-stacked', 'warehouse', 'dolly', 'industry', 'earth-europe', 'earth-asia',
+        'passport', 'vault',
+        // Media
+        'image', 'images', 'photo-film', 'camera', 'camera-retro', 'video', 'video-slash', 'film',
+        'play', 'pause', 'stop', 'backward', 'forward', 'forward-step', 'backward-step',
+        'volume-high', 'volume-low', 'volume-mute', 'volume-xmark', 'microphone', 'microphone-lines',
+        'headphones', 'tv', 'radio', 'podcast', 'rss', 'newspaper', 'bullhorn',
+        'share-nodes', 'link', 'link-slash', 'arrow-up-right-from-square', 'circle-play', 'circle-pause',
+        'circle-stop', 'sliders', 'toggle-on', 'toggle-off', 'window-maximize', 'window-restore',
+        'arrow-rotate-left', 'arrow-rotate-right',
+        // Health & Sport
+        'heart', 'heart-pulse', 'stethoscope', 'hospital', 'hospital-user',
+        'user-doctor', 'user-nurse', 'user-injured', 'kit-medical', 'pills', 'prescription-bottle',
+        'syringe', 'wheelchair', 'virus', 'virus-slash', 'microbe', 'lungs', 'spa', 'dumbbell',
+        'person-running', 'person-hiking', 'person-swimming', 'person-biking', 'person-walking',
+        'carrot', 'lemon', 'shield-heart', 'hand-holding-medical', 'weight-scale', 'child',
+        'football', 'basketball', 'baseball', 'soccer-ball', 'volleyball', 'golf-ball', 'bowling-ball',
+        'table-tennis-paddle-ball',
+        // Arrows
+        'arrow-up-right', 'arrow-up-left', 'arrow-down-right', 'arrow-down-left',
+        'arrows-up-down', 'arrows-left-right', 'repeat', 'arrows-spin',
+        'circle-arrow-up', 'circle-arrow-down', 'circle-arrow-left', 'circle-arrow-right',
+        'arrow-right-to-bracket', 'arrow-right-from-bracket', 'sign-in-alt', 'sign-out-alt',
+        'reply', 'share', 'map-location-dot', 'paper-plane',
+        // Brands
+        'instagram', 'facebook', 'facebook-f', 'youtube', 'linkedin', 'linkedin-in', 'whatsapp',
+        'twitter', 'tiktok', 'github', 'google', 'apple', 'microsoft', 'android', 'amazon',
+        'wordpress', 'paypal', 'stripe', 'spotify', 'slack', 'discord', 'figma', 'sass',
+        'html5', 'css3', 'js', 'react', 'vue', 'angular', 'node', 'python', 'php', 'docker',
+        'git', 'aws', 'digital-ocean', 'cloudflare', 'stack-overflow', 'medium', 'vimeo',
+        'tumblr', 'pinterest', 'snapchat', 'reddit', 'quora', 'telegram', 'skype', 'zoom',
+        'trello', 'behance', 'dribbble', 'flickr', 'deviantart', 'steam', 'twitch', 'xbox',
+        'playstation', 'nintendo-switch', 'google-play', 'app-store'
+    ];
+
+    staticList.forEach(name => iconSet.add(name));
+
+    try {
+        for (let sheet of document.styleSheets) {
+            try {
+                if (sheet.href && (sheet.href.includes('font-awesome') || sheet.href.includes('all.min.css'))) {
+                    const rules = sheet.cssRules || sheet.rules;
+                    if (rules) {
+                        for (let rule of rules) {
+                            if (rule.selectorText) {
+                                const matches = rule.selectorText.match(/\.fa-([a-z0-9-]+)::before/g);
+                                if (matches) {
+                                    for (let match of matches) {
+                                        const iconName = match.replace(/^\.fa-/, '').replace(/::before/, '');
+                                        if (!['lg', '2xs', 'xs', 'sm', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl', '10xl', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x', 'fw', 'ul', 'li', 'border', 'pull-left', 'pull-right', 'spin', 'pulse', 'rotate-90', 'rotate-180', 'rotate-270', 'flip-horizontal', 'flip-vertical', 'flip-both', 'stack', 'stack-1x', 'stack-2x', 'inverse', 'solid', 'regular', 'light', 'thin', 'duotone', 'brands'].includes(iconName)) {
+                                            iconSet.add(iconName);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // Cross-origin access could be blocked, ignore
+            }
+        }
+    } catch (globalErr) {
+        console.warn('Error loading Font Awesome dynamically from stylesheets:', globalErr);
+    }
+
+    FA_ICONS = Array.from(iconSet).map(name => {
+        const prefix = getIconPrefix(name);
+        return `${prefix} fa-${name}`;
+    }).sort();
+}
+
+function openIconPicker(inputId, previewId) {
+    _pickerTarget = document.getElementById(inputId);
+    _pickerPreview = document.getElementById(previewId);
+
+    loadIconsFromStylesheets();
+
+    document.getElementById('icon-search').value = '';
+
+    const tabs = document.querySelectorAll('.icon-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    if (tabs[0]) tabs[0].classList.add('active');
+    _currentTab = 'all';
+
+    renderIcons(FA_ICONS, true);
+    document.getElementById('icon-modal-overlay').classList.add('open');
+    document.getElementById('icon-search').focus();
+
+    if (_pickerTarget && _pickerTarget.value) {
+        previewIcon(_pickerTarget.value);
+    } else {
+        resetPanePreview();
+    }
+}
+
+function closeIconPicker() {
+    document.getElementById('icon-modal-overlay').classList.remove('open');
+}
+
+function switchIconTab(category, btn) {
+    const tabs = document.querySelectorAll('.icon-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    _currentTab = category;
+    document.getElementById('icon-search').value = '';
+
+    const list = getCategorizedIcons(category);
+    renderIcons(list, true);
+}
+
+function getCategorizedIcons(category) {
+    if (category === 'all') return FA_ICONS;
+
+    return FA_ICONS.filter(ic => {
+        const parts = ic.split(' ');
+        const prefix = parts[0];
+        const name = parts[1].replace('fa-', '');
+
+        if (category === 'brands') return prefix === 'fa-brands';
+
+        if (category === 'edu') {
+            const keywords = ['graduation', 'book', 'school', 'teacher', 'university', 'college', 'pencil', 'pen', 'brain', 'microscope', 'flask', 'award', 'trophy', 'medal', 'calculator', 'ruler', 'certificate', 'shapes', 'palette', 'dna', 'atlas', 'language'];
+            return keywords.some(k => name.includes(k));
+        }
+        if (category === 'biz') {
+            const keywords = ['briefcase', 'building', 'store', 'shop', 'shopping', 'credit', 'wallet', 'piggy', 'bank', 'chart', 'tachometer', 'handshake', 'globe', 'server', 'database', 'cloud', 'wifi', 'shield', 'key', 'lock', 'envelope', 'phone', 'bell', 'dollar', 'euro', 'coin', 'receipt', 'invoice', 'vault', 'stamp', 'signature'];
+            return keywords.some(k => name.includes(k));
+        }
+        if (category === 'media') {
+            const keywords = ['image', 'photo', 'video', 'play', 'music', 'microphone', 'headphones', 'camera', 'film', 'gear', 'tool', 'wrench', 'hammer', 'trash', 'edit', 'check', 'times', 'info', 'question', 'exclamation', 'search', 'filter', 'sort', 'list', 'bars', 'ellipsis', 'clock', 'calendar'];
+            return keywords.some(k => name.includes(k));
+        }
+        if (category === 'health') {
+            const keywords = ['heart', 'stethoscope', 'hospital', 'doctor', 'nurse', 'injured', 'kit', 'pills', 'syringe', 'wheelchair', 'virus', 'microbe', 'lungs', 'spa', 'dumbbell', 'running', 'hiking', 'swimming', 'biking', 'walking', 'bicycle', 'carrot', 'lemon', 'sport', 'soccer', 'football', 'basketball', 'baseball', 'tennis', 'trophy', 'medal', 'volleyball', 'golf', 'bowling', 'child'];
+            return keywords.some(k => name.includes(k));
+        }
+        if (category === 'arrows') {
+            const keywords = ['arrow', 'chevron', 'caret', 'exchange', 'rotate', 'sync', 'repeat', 'spin', 'location', 'compass', 'map-pin', 'direction', 'route', 'road', 'sign', 'plane', 'paper-plane'];
+            return keywords.some(k => name.includes(k));
+        }
+        return false;
+    });
+}
+
+function filterIcons(q) {
+    const term = q.toLowerCase().trim().replace(/^fa-(solid|brands|regular)\s+fa-/, '').replace(/fa-/,'');
+    const baseList = getCategorizedIcons(_currentTab);
+
+    if (!term) { renderIcons(baseList, true); return; }
+
+    const filtered = baseList.filter(ic => ic.toLowerCase().includes(term));
+    renderIcons(filtered, true);
+}
+
+function renderIcons(list, resetScroll = true) {
+    _currentList = list;
+    const grid = document.getElementById('icon-grid-container');
+    if (!grid) return;
+
+    if (resetScroll) {
+        grid.scrollTop = 0;
+        _renderedCount = 0;
+        grid.innerHTML = '';
+    }
+
+    if (list.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">Nenhum ícone encontrado.</div>';
+        return;
+    }
+
+    appendMoreIcons();
+}
+
+function appendMoreIcons() {
+    const grid = document.getElementById('icon-grid-container');
+    if (!grid) return;
+
+    const start = _renderedCount;
+    const end = Math.min(start + _renderLimit, _currentList.length);
+    if (start >= _currentList.length) return;
+
+    const nextBatch = _currentList.slice(start, end);
+    const html = nextBatch.map(ic =>
+        `<button type="button" onclick="selectIcon('${ic}')" onmouseenter="previewIcon('${ic}')" title="${ic}"><i class="${ic}"></i></button>`
+    ).join('');
+
+    const indicator = document.getElementById('scroll-load-indicator');
+    if (indicator) indicator.remove();
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    while (tempDiv.firstChild) {
+        grid.appendChild(tempDiv.firstChild);
+    }
+
+    _renderedCount = end;
+
+    if (_renderedCount < _currentList.length) {
+        const sentinel = document.createElement('div');
+        sentinel.id = 'scroll-load-indicator';
+        sentinel.style.gridColumn = '1 / -1';
+        sentinel.style.textAlign = 'center';
+        sentinel.style.padding = '1rem 0';
+        sentinel.style.fontSize = '0.78rem';
+        sentinel.style.color = 'var(--muted)';
+        sentinel.innerText = `Role para carregar mais... (${_renderedCount} de ${_currentList.length})`;
+        grid.appendChild(sentinel);
+    }
+}
+
+function selectIcon(cls) {
+    if (_pickerTarget) _pickerTarget.value = cls;
+    if (_pickerPreview) _pickerPreview.innerHTML = `<i class="${cls}"></i>`;
+    closeIconPicker();
+}
+
+function previewIcon(cls) {
+    const paneIcon = document.getElementById('icon-preview-pane-icon');
+    const paneName = document.getElementById('icon-preview-pane-name');
+    const paneDesc = document.getElementById('icon-preview-pane-desc');
+    if (!paneIcon || !paneName || !paneDesc) return;
+
+    paneIcon.innerHTML = `<i class="${cls}"></i>`;
+    paneName.innerText = cls;
+
+    const parts = cls.split(' ');
+    const type = parts[0] === 'fa-brands' ? 'Marca / Logotipo' : 'Estilo Sólido';
+    const name = parts[1].replace('fa-', '');
+    paneDesc.innerText = `Ícone "${name}" • Tipo: ${type}`;
+
+    paneIcon.style.transform = 'scale(1.1)';
+    paneIcon.style.borderColor = 'rgba(79, 110, 247, 0.5)';
+    paneIcon.style.boxShadow = '0 0 12px rgba(79, 110, 247, 0.25)';
+}
+
+function resetPanePreview() {
+    const paneIcon = document.getElementById('icon-preview-pane-icon');
+    const paneName = document.getElementById('icon-preview-pane-name');
+    const paneDesc = document.getElementById('icon-preview-pane-desc');
+    if (!paneIcon || !paneName || !paneDesc) return;
+
+    paneIcon.innerHTML = `<i class="fa-solid fa-face-smile"></i>`;
+    paneName.innerText = 'fa-solid fa-face-smile';
+    paneDesc.innerText = 'Passe o mouse sobre qualquer ícone da lista para ver os detalhes em tempo real';
+
+    paneIcon.style.transform = 'scale(1)';
+    paneIcon.style.borderColor = 'rgba(79, 110, 247, 0.25)';
+    paneIcon.style.boxShadow = 'none';
+}
+
+document.getElementById('icon-modal-overlay').addEventListener('click', function(e){
+    if(e.target === this) closeIconPicker();
 });
 </script>
 {% block javascripts %}{% endblock %}
