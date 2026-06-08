@@ -59,6 +59,11 @@ class TenantSubscriber implements EventSubscriberInterface
         // Store tenant for use in controllers/templates
         $this->tenantContext->setTenant($tenant);
 
+        // Admin routes bypass tenant isolation — admins manage entities across tenants
+        if (str_starts_with($request->getPathInfo(), '/admin')) {
+            return;
+        }
+
         // Enable the Doctrine filter and parameterize it
         $filter = $this->em->getFilters()->enable('tenant_filter');
         $filter->setParameter('tenant_id', $tenant->getId(), 'integer');
