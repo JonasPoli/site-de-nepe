@@ -84,7 +84,11 @@
                 <img src="{{ featured.thumbnailUrl }}" alt="{{ featured.title }}" loading="lazy">
                 <div class="vl-feat-overlay">
                     <div class="vl-play-big">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                        <svg viewBox="0 0 80 80" width="80" height="80" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="40" cy="40" r="40" fill="rgba(0,0,0,0.55)"/>
+                            <circle cx="40" cy="40" r="38" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                            <polygon points="32,24 32,56 60,40" fill="white"/>
+                        </svg>
                     </div>
                 </div>
                 {% if featured.category %}
@@ -121,7 +125,10 @@
                     <img src="{{ video.thumbnailUrl }}" alt="{{ video.title }}" loading="lazy">
                     <div class="vl-card-overlay">
                         <div class="vl-play-sm">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                            <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="28" cy="28" r="28" fill="rgba(0,0,0,0.55)"/>
+                                <polygon points="22,17 22,39 42,28" fill="white"/>
+                            </svg>
                         </div>
                     </div>
                 </a>
@@ -231,12 +238,11 @@
 .vl-feat-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: background .3s; }
 .vl-featured:hover .vl-feat-overlay { background: rgba(0,0,0,.1); }
 .vl-play-big {
-    width: 72px; height: 72px; border-radius: 50%;
-    background: white; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 32px rgba(0,0,0,.3);
-    transition: transform .2s;
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,.5));
+    transition: transform .25s, filter .25s;
 }
-.vl-featured:hover .vl-play-big { transform: scale(1.1); }
+.vl-featured:hover .vl-play-big { transform: scale(1.12); filter: drop-shadow(0 12px 32px rgba(0,0,0,.6)); }
 .vl-feat-tag {
     position: absolute; top: 1.25rem; left: 1.25rem;
     padding: .3rem .85rem; border-radius: 50px;
@@ -276,7 +282,12 @@
 .vl-card:hover .vl-card-thumb img { transform: scale(1.05); opacity: 1; }
 .vl-card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .25s; }
 .vl-card:hover .vl-card-overlay { opacity: 1; }
-.vl-play-sm { width: 50px; height: 50px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.vl-play-sm {
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.4));
+    transition: transform .2s, filter .2s;
+}
+.vl-card:hover .vl-play-sm { transform: scale(1.1); filter: drop-shadow(0 6px 18px rgba(0,0,0,.5)); }
 .vl-card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
 .vl-card-cat { display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, transparent); padding: .2rem .6rem; border-radius: 50px; margin-bottom: .6rem; }
 .vl-card-body h3 { font-size: 1rem; font-weight: 700; margin: 0 0 auto; line-height: 1.45; }

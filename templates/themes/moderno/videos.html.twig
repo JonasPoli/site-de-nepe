@@ -9,7 +9,13 @@
 {% for video in videos %}
 <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="m-gallery-item">
     <div class="m-gallery-thumb" style="background-image:url('{{ video.thumbnailUrl }}')">
-        <div class="m-gallery-play"><svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg></div>
+        <div class="m-gallery-play">
+            <svg viewBox="0 0 56 56" width="44" height="44" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="28" cy="28" r="28" fill="rgba(0,0,0,0.6)"/>
+                <circle cx="28" cy="28" r="27" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                <polygon points="22,17 22,39 42,28" fill="white"/>
+            </svg>
+        </div>
     </div>
     <p class="m-gallery-title">{{ video.title }}</p>
 </a>
