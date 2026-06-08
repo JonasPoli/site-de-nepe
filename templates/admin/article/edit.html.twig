@@ -18,36 +18,120 @@
 </div>
 
 {% if messages|length > 0 %}
-<div class="card" style="margin-top: 2rem;">
-    <h3 style="margin-bottom: 1rem; font-size: 1.2rem; font-weight: 700;">Feedback e Revisões</h3>
-    <div style="display: flex; flex-direction: column; gap: 1rem;">
+<div class="card" style="margin-top:2rem">
+    <h3 style="margin-bottom:1.25rem;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">
+        <sl-icon name="chat-dots" style="vertical-align:-.1em"></sl-icon>
+        Feedback e Revisões
+    </h3>
+    <div style="display:flex;flex-direction:column;gap:.5rem">
         {% for conv in messages %}
             {% set contact = (conv.sender == app.user) ? conv.recipient : conv.sender %}
-            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg3); display: flex; gap: 1rem; align-items: center; cursor: pointer;" onclick="openMessageModal({{ conv.id }})">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
-                    {{ contact.name|first }}
-                </div>
-                <div style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                        <strong style="font-size: 0.95rem;">{{ conv.subject ?: 'Sem assunto' }}</strong>
-                        <span style="font-size: 0.75rem; color: var(--muted);">{{ conv.sentAt|date('d/m/Y H:i') }}</span>
+            <div class="fb-thread-item" onclick="openMsgModal({{ conv.id }})">
+                <div class="fb-avatar">{{ contact.name|first|upper }}</div>
+                <div class="fb-body">
+                    <div class="fb-top">
+                        <strong>{{ conv.subject ?: 'Sem assunto' }}</strong>
+                        <span class="fb-date">{{ conv.sentAt|date('d/m/Y H:i') }}</span>
                     </div>
-                    <div style="font-size: 0.85rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px;">
-                        {{ conv.content }}
-                    </div>
+                    <div class="fb-preview">{{ conv.content|striptags|slice(0,120) }}{% if conv.content|length > 120 %}…{% endif %}</div>
                 </div>
+                <sl-icon name="chevron-right" style="color:var(--muted);flex-shrink:0;font-size:.9rem"></sl-icon>
             </div>
         {% endfor %}
     </div>
 </div>
 {% endif %}
 
-{# Modal de Chat #}
-<dialog id="message-modal" style="padding: 0; border: none; border-radius: var(--radius); background: transparent; width: 100%; max-width: 600px;" onclick="if(event.target===this) this.close()">
-    <div id="message-modal-content" style="background: var(--bg2); min-height: 200px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;">
-        <sl-spinner style="font-size: 2rem;"></sl-spinner>
+{# ── Modal de Conversa ── #}
+<div id="fb-overlay" class="fb-overlay" onclick="if(event.target===this) closeMsgModal()">
+    <div class="fb-modal" role="dialog" aria-modal="true">
+        <div class="fb-modal-header">
+            <div style="display:flex;align-items:center;gap:.6rem">
+                <sl-icon name="chat-text" style="color:var(--primary)"></sl-icon>
+                <span style="font-weight:700;font-size:.95rem">Conversa</span>
+            </div>
+            <button type="button" class="fb-close-btn" onclick="closeMsgModal()" aria-label="Fechar">
+                <sl-icon name="x-lg"></sl-icon>
+            </button>
+        </div>
+        <div id="fb-modal-body" class="fb-modal-body">
+            <div class="fb-loading"><sl-spinner style="font-size:2rem"></sl-spinner></div>
+        </div>
     </div>
-</dialog>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* ── Thread items ── */
+.fb-thread-item {
+    display: flex; align-items: center; gap: 1rem;
+    padding: .875rem 1rem; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg3);
+    cursor: pointer; transition: background .18s, border-color .18s;
+}
+.fb-thread-item:hover {
+    background: rgba(79,110,247,.08);
+    border-color: rgba(79,110,247,.3);
+}
+.fb-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary), #f59e0b);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: .9rem;
+}
+.fb-body { flex: 1; min-width: 0; }
+.fb-top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: .2rem; }
+.fb-top strong { font-size: .9rem; font-weight: 600; }
+.fb-date { font-size: .72rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+.fb-preview { font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Overlay ── */
+.fb-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(8px) saturate(120%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s ease;
+}
+.fb-overlay.open { opacity: 1; pointer-events: all; }
+
+/* ── Modal ── */
+.fb-modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%; max-width: 640px;
+    max-height: min(700px, 90vh);
+    display: flex; flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04);
+    transform: translateY(20px) scale(.96);
+    transition: transform .28s cubic-bezier(.34,1.56,.64,1);
+    overflow: hidden;
+}
+.fb-overlay.open .fb-modal { transform: translateY(0) scale(1); }
+
+.fb-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg3);
+}
+.fb-close-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 1rem; padding: .3rem .45rem;
+    border-radius: 7px; display: flex; align-items: center;
+    transition: background .15s, color .15s;
+}
+.fb-close-btn:hover { background: rgba(255,255,255,.08); color: var(--text); }
+
+.fb-modal-body { flex: 1; overflow-y: auto; min-height: 0; }
+.fb-loading { display: flex; align-items: center; justify-content: center; padding: 4rem; }
+</style>
 {% endblock %}
 
 {% block javascripts %}
@@ -59,16 +143,28 @@ function autoSlug(v){
         .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 }
 
-function openMessageModal(id) {
-    const dialog = document.getElementById('message-modal');
-    const content = document.getElementById('message-modal-content');
-    dialog.showModal();
-    content.innerHTML = '<div style="padding: 3rem; display: flex; justify-content: center;"><sl-spinner style="font-size: 2rem;"></sl-spinner></div>';
+function openMsgModal(id) {
+    const overlay = document.getElementById('fb-overlay');
+    const body    = document.getElementById('fb-modal-body');
+    body.innerHTML = '<div class="fb-loading"><sl-spinner style="font-size:2rem"></sl-spinner></div>';
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
 
     fetch('/admin/message/' + id)
         .then(res => res.text())
-        .then(html => { content.innerHTML = html; })
-        .catch(err => { content.innerHTML = '<div style="padding: 2rem; color: var(--danger);">Erro ao carregar a conversa.</div>'; });
+        .then(html => { body.innerHTML = html; })
+        .catch(() => {
+            body.innerHTML = '<div style="padding:2rem;color:var(--danger)">Erro ao carregar a conversa.</div>';
+        });
 }
+
+function closeMsgModal() {
+    document.getElementById('fb-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMsgModal();
+});
 </script>
 {% endblock %}
