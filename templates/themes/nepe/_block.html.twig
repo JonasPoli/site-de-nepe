@@ -1,0 +1,33 @@
+{# Dispatcher de blocos — tema NEPE #}
+{% set t = block.type %}
+{% if t == 'text_image' %}
+    {% include 'themes/nepe/blocks/_text_image.html.twig' %}
+{% elseif t == 'text_only' %}
+    {% include 'themes/nepe/blocks/_text_only.html.twig' %}
+{% elseif t == 'banner' %}
+    {% include 'themes/nepe/blocks/_banner.html.twig' %}
+{% elseif t == 'blurbs4' %}
+    {% include 'themes/nepe/blocks/_blurbs4.html.twig' %}
+{% elseif t == 'gallery' %}
+    {% include 'themes/nepe/blocks/_gallery.html.twig' %}
+{% elseif t == 'stats' %}
+    {% include 'themes/nepe/blocks/_stats.html.twig' %}
+{% elseif t == 'newsletter' %}
+    {% include 'themes/nepe/blocks/_newsletter.html.twig' %}
+{% elseif t == 'news_call' %}
+    {% include 'themes/nepe/blocks/_news_call.html.twig' %}
+{% elseif t == 'map' %}
+    {% include 'themes/nepe/blocks/_map.html.twig' %}
+{% elseif t == 'sub_categories' %}
+    {% include 'themes/nepe/blocks/_sub_categories.html.twig' %}
+{% elseif t == 'page_list' %}
+    {% include 'themes/nepe/blocks/_page_list.html.twig' %}
+{% elseif t == 'testimonials' %}
+    {% include 'themes/nepe/blocks/_testimonials.html.twig' %}
+{% elseif t == 'partner_logos' %}
+    {% include 'themes/nepe/blocks/_partner_logos.html.twig' %}
+{% elseif t == 'team' %}
+    {% include 'themes/nepe/blocks/_team.html.twig' %}
+{% elseif t == 'contact' %}
+    {% include 'themes/nepe/blocks/_contact.html.twig' %}
+{% endif %}

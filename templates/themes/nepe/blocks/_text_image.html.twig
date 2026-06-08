@@ -1,0 +1,25 @@
+{% if block.title or block.text or block.preTitle or block.image %}
+{% set pos = block.config ? (block.config.imagePosition ?? 'right') : 'right' %}
+<div class="nepe-block nepe-text-image {{ pos == 'left' ? 'nti-reverse' : '' }} reveal-up">
+    <div class="nti-text">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<div class="prose nti-body">{{ block.text|raw }}</div>{% endif %}
+        {% if block.config and (block.config.ctaText ?? null) and (block.config.ctaLink ?? null) %}
+            <a href="{{ block.config.ctaLink }}" class="cta-btn" style="margin-top:1.5rem;display:inline-flex">{{ block.config.ctaText }}</a>
+        {% endif %}
+    </div>
+    {% if block.image %}
+    <div class="nti-img-wrap">
+        <img src="/uploads/page_block/{{ block.image }}" alt="{{ block.title ?? '' }}" loading="lazy" class="nti-img">
+    </div>
+    {% endif %}
+</div>
+<style>
+.nepe-text-image{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;margin:3rem 0}
+.nti-reverse{direction:rtl}.nti-reverse>*{direction:ltr}
+.nti-body{margin-top:1rem;line-height:1.8;color:var(--color-text-muted,#6b7280)}
+.nti-img{border-radius:1rem;object-fit:cover;width:100%;aspect-ratio:4/3;box-shadow:0 20px 60px rgba(0,0,0,.1)}
+@media(max-width:768px){.nepe-text-image{grid-template-columns:1fr}.nti-reverse{direction:ltr}}
+</style>
+{% endif %}

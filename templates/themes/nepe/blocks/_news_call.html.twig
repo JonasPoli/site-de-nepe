@@ -1,0 +1,37 @@
+{% set articles = latestArticles ?? [] %}
+<div class="nepe-block reveal-up">
+    {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+    {% if block.title %}<h2 style="margin-bottom:.5rem">{{ block.title }}</h2>{% endif %}
+    {% if block.text %}<p style="color:var(--color-text-muted,#6b7280);margin-bottom:2rem">{{ block.text }}</p>{% endif %}
+    {% if articles|length > 0 %}
+    <div class="nc-grid">
+        {% for article in articles|slice(0, block.config.count ?? 3) %}
+        <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="nc-card">
+            {% if article.coverImage %}
+            <div class="nc-img" style="background-image:url('{{ asset('uploads/article/' ~ article.coverImage) }}')"></div>
+            {% endif %}
+            <div class="nc-body">
+                {% if article.category %}<span class="nc-cat">{{ article.category.name }}</span>{% endif %}
+                <h3 class="nc-title">{{ article.title }}</h3>
+                <p class="nc-date">{{ article.publishedAt ? article.publishedAt|date('d/m/Y') : '' }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if block.config and block.config.ctaLink %}
+    <div style="text-align:center;margin-top:2rem">
+        <a href="{{ block.config.ctaLink }}" class="cta-btn">{{ block.config.ctaText ?? 'Ver todos os artigos' }}</a>
+    </div>
+    {% endif %}
+</div>
+<style>
+.nc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+.nc-card{display:flex;flex-direction:column;border-radius:1rem;overflow:hidden;border:1px solid var(--color-border,#e5e7eb);background:#fff;transition:transform .25s,box-shadow .25s;text-decoration:none;color:inherit}
+.nc-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.1)}
+.nc-img{height:180px;background-size:cover;background-position:center}
+.nc-body{padding:1.25rem}
+.nc-cat{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-primary);background:color-mix(in srgb,var(--color-primary) 10%,transparent);padding:.2rem .6rem;border-radius:50px;display:inline-block;margin-bottom:.6rem}
+.nc-title{font-size:1rem;font-weight:700;line-height:1.4;margin-bottom:.5rem;color:var(--color-text,#111)}
+.nc-date{font-size:.78rem;color:var(--color-text-muted,#6b7280)}
+</style>

@@ -176,12 +176,13 @@ class NepePublicController extends AbstractController
         EntityManagerInterface $em,
         NewsletterSubscriberRepository $repo,
     ): Response {
-        $email = trim((string) $request->request->get('email'));
-        $name  = trim((string) $request->request->get('name'));
+        $email  = trim((string) $request->request->get('email'));
+        $name   = trim((string) $request->request->get('name'));
+        $tenant = $this->tenantContext->requireTenant();
 
-        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL) && !$repo->emailExists($email)) {
+        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL) && !$repo->emailExists($email, $tenant)) {
             $sub = new NewsletterSubscriber();
-            $sub->setTenant($this->tenantContext->requireTenant());
+            $sub->setTenant($tenant);
             $sub->setEmail($email);
             $sub->setName($name);
             $em->persist($sub);

@@ -454,9 +454,11 @@ class AdminContentController extends AbstractController
     // ── Newsletter ────────────────────────────────────────────────────────────
 
     #[Route('/newsletter', name: 'newsletter_index')]
-    public function newsletterIndex(NewsletterSubscriberRepository $repo): Response
+    public function newsletterIndex(NewsletterSubscriberRepository $repo, TenantContext $tc): Response
     {
-        return $this->render('admin/newsletter/index.html.twig', ['subscribers' => $repo->findAll()]);
+        $tenant = $tc->getTenant();
+        $subscribers = $tenant ? $repo->findByTenant($tenant) : [];
+        return $this->render('admin/newsletter/index.html.twig', ['subscribers' => $subscribers]);
     }
 
     #[Route('/newsletter/{id}/delete', name: 'newsletter_delete', methods: ['POST'])]

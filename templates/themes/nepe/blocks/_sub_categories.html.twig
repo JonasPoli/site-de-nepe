@@ -1,0 +1,25 @@
+{% set subs = block.relatedCategory ? block.relatedCategory.children : [] %}
+{% if subs|length > 0 %}
+<div class="nepe-block reveal-up">
+    {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+    {% if block.title %}<h2 style="margin-bottom:1.5rem">{{ block.title }}</h2>{% endif %}
+    {% if block.text %}<p style="color:var(--color-text-muted,#6b7280);margin-bottom:2rem">{{ block.text }}</p>{% endif %}
+    <div class="nepe-subcats">
+        {% for sub in subs %}
+        <a href="{{ path('pub_category_show', {slug: sub.slug}) }}" class="nepe-subcat-card">
+            {% if sub.icon %}<div class="nsc-icon"><i class="{{ sub.icon }}"></i></div>{% endif %}
+            <h3 class="nsc-name">{{ sub.name }}</h3>
+            {% if sub.description %}<p class="nsc-desc">{{ sub.description|slice(0,100) }}</p>{% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+<style>
+.nepe-subcats{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem}
+.nepe-subcat-card{display:block;padding:1.75rem 1.5rem;border:1px solid var(--color-border,#e5e7eb);border-radius:1rem;background:#fff;transition:transform .25s,border-color .25s;text-decoration:none;color:inherit}
+.nepe-subcat-card:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--color-primary) 40%,transparent)}
+.nsc-icon{font-size:1.75rem;color:var(--color-secondary,#f59e0b);margin-bottom:.75rem}
+.nsc-name{font-size:1rem;font-weight:700;margin-bottom:.4rem;color:var(--color-text,#111)}
+.nsc-desc{font-size:.85rem;color:var(--color-text-muted,#6b7280);line-height:1.6}
+</style>
+{% endif %}

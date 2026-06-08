@@ -1,0 +1,43 @@
+{% set config = block.config ?? {} %}
+{% set stats_list = [] %}
+{% if config.stats is defined and config.stats is iterable %}
+    {% for s in config.stats %}
+        {% if s.number is defined and s.number %}
+            {% set stats_list = stats_list|merge([{'number': s.number, 'label': s.label ?? null, 'description': s.description ?? null}]) %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% if stats_list|length == 0 %}
+    {% for i in 1..4 %}
+        {% set num = config['stat' ~ i ~ '_number'] ?? null %}
+        {% if num %}{% set stats_list = stats_list|merge([{'number': num, 'label': config['stat' ~ i ~ '_label'] ?? null, 'description': config['stat' ~ i ~ '_description'] ?? null}]) %}{% endif %}
+    {% endfor %}
+{% endif %}
+{% if block.title or block.text or block.preTitle or stats_list|length > 0 %}
+<div class="nepe-block nepe-stats-block reveal-up">
+    {% if block.preTitle %}<span class="pre-label" style="display:block;text-align:center">{{ block.preTitle }}</span>{% endif %}
+    {% if block.title %}<h2 style="text-align:center;margin-bottom:1rem">{{ block.title }}</h2>{% endif %}
+    {% if block.text %}<p style="text-align:center;color:var(--color-text-muted,#6b7280);max-width:640px;margin:0 auto 2.5rem">{{ block.text }}</p>{% endif %}
+    {% if stats_list|length > 0 %}
+    <div class="nepe-stats-grid" style="--cols:{{ stats_list|length }}">
+        {% for s in stats_list %}
+        <div class="nepe-stat-card">
+            <div class="nsc-number">{{ s.number }}</div>
+            {% if s.label %}<div class="nsc-label">{{ s.label }}</div>{% endif %}
+            {% if s.description %}<div class="nsc-desc">{{ s.description }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+<style>
+.nepe-stats-block{margin:3rem 0}
+.nepe-stats-grid{display:grid;grid-template-columns:repeat(var(--cols,4),1fr);border:1px solid var(--color-border,#e5e7eb);border-radius:1.25rem;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.05)}
+.nepe-stat-card{padding:2.5rem 2rem;text-align:center;border-right:1px solid var(--color-border,#e5e7eb)}
+.nepe-stat-card:last-child{border-right:none}
+.nsc-number{font-size:2.5rem;font-weight:900;color:var(--color-primary);line-height:1;margin-bottom:.4rem}
+.nsc-label{font-size:.95rem;font-weight:700;color:var(--color-text,#111)}
+.nsc-desc{font-size:.82rem;color:var(--color-text-muted,#6b7280);margin-top:.25rem}
+@media(max-width:640px){.nepe-stats-grid{grid-template-columns:repeat(2,1fr)}.nepe-stat-card{border-right:none;border-bottom:1px solid var(--color-border,#e5e7eb)}}
+</style>
+{% endif %}
