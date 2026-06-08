@@ -1,0 +1,42 @@
+{% set logos = block.partnerLogos %}
+{% if logos|length > 0 %}
+<div class="nb-partners reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
+    {% set style = block.config ? (block.config.style ?? 'grid') : 'grid' %}
+    {% set cols = block.config ? (block.config.columns ?? 4) : 4 %}
+    {% if style == 'carousel' %}
+    <div class="nb-logo-carousel-wrap">
+        <div class="nb-logo-carousel">
+            {% for logo in logos %}{% include 'themes/nepe/blocks/_partner_logo_item.html.twig' %}{% endfor %}
+            {% for logo in logos %}{% include 'themes/nepe/blocks/_partner_logo_item.html.twig' %}{% endfor %}
+        </div>
+    </div>
+    <style>
+    .nb-logo-carousel-wrap{overflow:hidden}
+    .nb-logo-carousel{display:flex;gap:1.5rem;animation:nbScrollLogos 22s linear infinite;width:max-content}
+    .nb-logo-carousel:hover{animation-play-state:paused}
+    @keyframes nbScrollLogos{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    </style>
+    {% else %}
+    <div class="nb-logo-grid" style="--cols:{{ cols }}">
+        {% for logo in logos %}{% include 'themes/nepe/blocks/_partner_logo_item.html.twig' %}{% endfor %}
+    </div>
+    {% endif %}
+</div>
+<style>
+.nb-partners{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-logo-grid{display:grid;grid-template-columns:repeat(var(--cols,4),1fr);gap:1.25rem}
+.nb-logo-item{display:flex;align-items:center;justify-content:center;padding:1.5rem;background:#fff;border:1px solid #e8ecf0;border-radius:var(--radius);transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.nb-logo-item:hover{border-color:color-mix(in srgb,var(--color-primary) 30%,transparent);transform:scale(1.04);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.nb-logo-item img{max-height:60px;max-width:140px;object-fit:contain;filter:grayscale(100%) opacity(.55);transition:.3s}
+.nb-logo-item:hover img{filter:none;opacity:1}
+.nb-logo-item .nb-logo-name{font-size:.85rem;font-weight:600;color:#6b7280;text-align:center}
+@media(max-width:640px){.nb-logo-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+{% endif %}

@@ -14,30 +14,35 @@
     {% endfor %}
 {% endif %}
 {% if block.title or block.text or block.preTitle or stats_list|length > 0 %}
-<div class="nepe-block nepe-stats-block reveal-up">
-    {% if block.preTitle %}<span class="pre-label" style="display:block;text-align:center">{{ block.preTitle }}</span>{% endif %}
-    {% if block.title %}<h2 style="text-align:center;margin-bottom:1rem">{{ block.title }}</h2>{% endif %}
-    {% if block.text %}<p style="text-align:center;color:var(--color-text-muted,#6b7280);max-width:640px;margin:0 auto 2.5rem">{{ block.text }}</p>{% endif %}
+<div class="nb-stats reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header" style="margin-bottom:2.5rem">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
     {% if stats_list|length > 0 %}
-    <div class="nepe-stats-grid" style="--cols:{{ stats_list|length }}">
+    <div class="nb-stats-grid" style="--cols:{{ stats_list|length }}">
         {% for s in stats_list %}
-        <div class="nepe-stat-card">
-            <div class="nsc-number">{{ s.number }}</div>
-            {% if s.label %}<div class="nsc-label">{{ s.label }}</div>{% endif %}
-            {% if s.description %}<div class="nsc-desc">{{ s.description }}</div>{% endif %}
+        <div class="nb-stat-item">
+            <div class="nb-stat-number">{{ s.number }}</div>
+            {% if s.label %}<div class="nb-stat-label">{{ s.label }}</div>{% endif %}
+            {% if s.description %}<div class="nb-stat-desc">{{ s.description }}</div>{% endif %}
         </div>
         {% endfor %}
     </div>
     {% endif %}
 </div>
 <style>
-.nepe-stats-block{margin:3rem 0}
-.nepe-stats-grid{display:grid;grid-template-columns:repeat(var(--cols,4),1fr);border:1px solid var(--color-border,#e5e7eb);border-radius:1.25rem;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.05)}
-.nepe-stat-card{padding:2.5rem 2rem;text-align:center;border-right:1px solid var(--color-border,#e5e7eb)}
-.nepe-stat-card:last-child{border-right:none}
-.nsc-number{font-size:2.5rem;font-weight:900;color:var(--color-primary);line-height:1;margin-bottom:.4rem}
-.nsc-label{font-size:.95rem;font-weight:700;color:var(--color-text,#111)}
-.nsc-desc{font-size:.82rem;color:var(--color-text-muted,#6b7280);margin-top:.25rem}
-@media(max-width:640px){.nepe-stats-grid{grid-template-columns:repeat(2,1fr)}.nepe-stat-card{border-right:none;border-bottom:1px solid var(--color-border,#e5e7eb)}}
+.nb-stats{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-stats-grid{display:grid;grid-template-columns:repeat(var(--cols,4),1fr);border-radius:var(--radius);overflow:hidden;background:#fff;border:1px solid #e8ecf0;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.nb-stat-item{padding:2.5rem 2rem;text-align:center;border-right:1px solid #e8ecf0;transition:background .3s}
+.nb-stat-item:last-child{border-right:none}
+.nb-stat-item:hover{background:color-mix(in srgb,var(--color-primary) 4%,#fff)}
+.nb-stat-number{font-size:clamp(2rem,4vw,3rem);font-weight:900;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:.4rem}
+.nb-stat-label{font-size:.95rem;font-weight:700;color:#1a1c2e;margin-bottom:.25rem}
+.nb-stat-desc{font-size:.82rem;color:#6b7280}
+@media(max-width:640px){.nb-stats-grid{grid-template-columns:repeat(2,1fr)}.nb-stat-item{border-right:none;border-bottom:1px solid #e8ecf0}.nb-stat-item:nth-child(even){border-left:1px solid #e8ecf0}}
 </style>
 {% endif %}

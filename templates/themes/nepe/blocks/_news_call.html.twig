@@ -1,37 +1,48 @@
 {% set articles = latestArticles ?? [] %}
-<div class="nepe-block reveal-up">
-    {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
-    {% if block.title %}<h2 style="margin-bottom:.5rem">{{ block.title }}</h2>{% endif %}
-    {% if block.text %}<p style="color:var(--color-text-muted,#6b7280);margin-bottom:2rem">{{ block.text }}</p>{% endif %}
+<div class="nb-news-call reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
     {% if articles|length > 0 %}
-    <div class="nc-grid">
+    <div class="nb-nc-grid">
         {% for article in articles|slice(0, block.config.count ?? 3) %}
-        <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="nc-card">
+        <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="nb-nc-card">
             {% if article.coverImage %}
-            <div class="nc-img" style="background-image:url('{{ asset('uploads/article/' ~ article.coverImage) }}')"></div>
+            <div class="nb-nc-img" style="background-image:url('{{ asset('uploads/article/' ~ article.coverImage) }}')"></div>
+            {% else %}
+            <div class="nb-nc-img nb-nc-img-ph"><i class="fa-solid fa-newspaper"></i></div>
             {% endif %}
-            <div class="nc-body">
-                {% if article.category %}<span class="nc-cat">{{ article.category.name }}</span>{% endif %}
-                <h3 class="nc-title">{{ article.title }}</h3>
-                <p class="nc-date">{{ article.publishedAt ? article.publishedAt|date('d/m/Y') : '' }}</p>
+            <div class="nb-nc-body">
+                {% if article.category %}<span class="nb-nc-cat">{{ article.category.name }}</span>{% endif %}
+                <h3 class="nb-nc-title">{{ article.title }}</h3>
+                {% if article.publishedAt %}<p class="nb-nc-date"><i class="fa-regular fa-calendar"></i> {{ article.publishedAt|date('d/m/Y') }}</p>{% endif %}
             </div>
         </a>
         {% endfor %}
     </div>
+    {% else %}
+    <p style="text-align:center;color:#6b7280;padding:2rem 0">Nenhum artigo publicado ainda.</p>
     {% endif %}
     {% if block.config and block.config.ctaLink %}
-    <div style="text-align:center;margin-top:2rem">
+    <div style="text-align:center;margin-top:2.5rem">
         <a href="{{ block.config.ctaLink }}" class="cta-btn">{{ block.config.ctaText ?? 'Ver todos os artigos' }}</a>
     </div>
     {% endif %}
 </div>
 <style>
-.nc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
-.nc-card{display:flex;flex-direction:column;border-radius:1rem;overflow:hidden;border:1px solid var(--color-border,#e5e7eb);background:#fff;transition:transform .25s,box-shadow .25s;text-decoration:none;color:inherit}
-.nc-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.1)}
-.nc-img{height:180px;background-size:cover;background-position:center}
-.nc-body{padding:1.25rem}
-.nc-cat{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-primary);background:color-mix(in srgb,var(--color-primary) 10%,transparent);padding:.2rem .6rem;border-radius:50px;display:inline-block;margin-bottom:.6rem}
-.nc-title{font-size:1rem;font-weight:700;line-height:1.4;margin-bottom:.5rem;color:var(--color-text,#111)}
-.nc-date{font-size:.78rem;color:var(--color-text-muted,#6b7280)}
+.nb-news-call{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-nc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+.nb-nc-card{display:flex;flex-direction:column;border-radius:var(--radius);overflow:hidden;border:1px solid #e8ecf0;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.04);transition:transform .3s,box-shadow .3s;text-decoration:none;color:inherit}
+.nb-nc-card:hover{transform:translateY(-8px);box-shadow:0 20px 48px rgba(0,0,0,.12);opacity:1}
+.nb-nc-img{height:190px;background-size:cover;background-position:center;transition:transform .5s ease}
+.nb-nc-card:hover .nb-nc-img{transform:scale(1.04)}
+.nb-nc-img-ph{display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--color-primary) 6%,#f8f9fc);color:color-mix(in srgb,var(--color-primary) 50%,#ccc);font-size:2.5rem}
+.nb-nc-body{padding:1.35rem;flex:1;display:flex;flex-direction:column;gap:.5rem}
+.nb-nc-cat{display:inline-block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-primary);background:color-mix(in srgb,var(--color-secondary) 20%,transparent);padding:.2rem .65rem;border-radius:50px;width:fit-content}
+.nb-nc-title{font-size:1rem;font-weight:700;line-height:1.4;color:#1a1c2e;margin:0;flex:1}
+.nb-nc-date{font-size:.78rem;color:#9ca3af;display:flex;align-items:center;gap:.4rem;margin:0}
 </style>

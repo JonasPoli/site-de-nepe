@@ -1,0 +1,47 @@
+{% set testimonials = block.testimonials %}
+{% if testimonials|length > 0 %}
+<div class="nb-testimonials reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
+    <div class="nb-testi-grid">
+        {% for t in testimonials %}
+        <div class="nb-testi-card reveal-up delay-{{ loop.index0 * 100 }}">
+            <div class="nb-testi-stars">
+                {% for s in 1..t.rating %}<i class="fa-solid fa-star"></i>{% endfor %}
+                {% if t.rating < 5 %}{% for s in (t.rating+1)..5 %}<i class="fa-regular fa-star"></i>{% endfor %}{% endif %}
+            </div>
+            <p class="nb-testi-text">"{{ t.text }}"</p>
+            <div class="nb-testi-author">
+                {% if t.avatar %}
+                    <img src="{{ asset('uploads/testimonial_avatar/' ~ t.avatar) }}" alt="{{ t.name }}" class="nb-testi-avatar" loading="lazy">
+                {% else %}
+                    <div class="nb-testi-avatar nb-testi-avatar-ph"><i class="fa-solid fa-user"></i></div>
+                {% endif %}
+                <div>
+                    <div class="nb-testi-name">{{ t.name }}</div>
+                    {% if t.role %}<div class="nb-testi-role">{{ t.role }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<style>
+.nb-testimonials{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-testi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+.nb-testi-card{padding:2rem;background:#fff;border-radius:var(--radius);border:1px solid #e8ecf0;box-shadow:0 2px 12px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:1rem;transition:transform .3s,box-shadow .3s}
+.nb-testi-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.1)}
+.nb-testi-stars{color:var(--color-secondary);font-size:.9rem}
+.nb-testi-text{color:#475569;font-size:.95rem;line-height:1.75;flex:1;font-style:italic;margin:0}
+.nb-testi-author{display:flex;align-items:center;gap:.85rem;margin-top:auto}
+.nb-testi-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.nb-testi-avatar-ph{background:color-mix(in srgb,var(--color-primary) 10%,transparent);display:flex;align-items:center;justify-content:center;color:var(--color-primary);font-size:1.1rem}
+.nb-testi-name{font-weight:700;color:#1a1c2e;font-size:.9rem}
+.nb-testi-role{font-size:.8rem;color:#6b7280}
+</style>
+{% endif %}

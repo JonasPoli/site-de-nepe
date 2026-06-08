@@ -1,0 +1,70 @@
+{% set bSlides = [] %}
+{% if block.config.banners is defined and block.config.banners is not empty %}
+    {% for b in block.config.banners %}
+        {% if (b.active ?? '1') == '1' %}{% set bSlides = bSlides|merge([b]) %}{% endif %}
+    {% endfor %}
+{% endif %}
+{% if bSlides is empty and block.title is not empty %}
+    {% set bSlides = [{'title': block.title,'text': block.text,'ctaText': block.config.ctaText ?? '','ctaLink': block.config.ctaLink ?? '','image': block.image}] %}
+{% endif %}
+{% if bSlides is not empty %}
+{% if bSlides|length == 1 %}
+{% set b = bSlides[0] %}
+{% set hasContent = b.title or b.text or b.ctaText or block.preTitle %}
+<div class="nepe-banner-block reveal-up">
+    {% if b.image %}
+        <div class="nbb-bg" style="background-image:url('/uploads/page_block/{{ b.image }}')"></div>
+        {% if hasContent %}<div class="nbb-overlay"></div>{% endif %}
+    {% else %}
+        <div class="nbb-gradient"></div>
+    {% endif %}
+    {% if hasContent %}
+    <div class="nbb-content">
+        {% if block.preTitle %}<span class="nbb-pretitle">{{ block.preTitle }}</span>{% endif %}
+        {% if b.title %}<h2 class="nbb-title">{{ b.title }}</h2>{% endif %}
+        {% if b.text %}<p class="nbb-text">{{ b.text }}</p>{% endif %}
+        {% if b.ctaText %}<a href="{{ b.ctaLink ?: '#' }}" class="nbb-cta">{{ b.ctaText }}</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="nepe-banner-block swiper nbb-swiper-{{ block.id }} reveal-up">
+    <div class="swiper-wrapper">
+        {% for b in bSlides %}
+        <div class="swiper-slide nbb-slide">
+            {% set hasContent = b.title or b.text or b.ctaText or block.preTitle %}
+            {% if b.image %}
+                <div class="nbb-bg" style="background-image:url('/uploads/page_block/{{ b.image }}')"></div>
+                {% if hasContent %}<div class="nbb-overlay"></div>{% endif %}
+            {% else %}
+                <div class="nbb-gradient"></div>
+            {% endif %}
+            {% if hasContent %}
+            <div class="nbb-content">
+                {% if block.preTitle %}<span class="nbb-pretitle">{{ block.preTitle }}</span>{% endif %}
+                {% if b.title %}<h2 class="nbb-title">{{ b.title }}</h2>{% endif %}
+                {% if b.text %}<p class="nbb-text">{{ b.text }}</p>{% endif %}
+                {% if b.ctaText %}<a href="{{ b.ctaLink ?: '#' }}" class="nbb-cta">{{ b.ctaText }}</a>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="swiper-pagination swiper-pagination-{{ block.id }}"></div>
+    <div class="swiper-button-next swiper-button-next-{{ block.id }}"></div>
+    <div class="swiper-button-prev swiper-button-prev-{{ block.id }}"></div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof Swiper !== 'undefined') {
+        new Swiper('.nbb-swiper-{{ block.id }}', {
+            loop: true, effect: 'fade', fadeEffect: { crossFade: true },
+            autoplay: { delay: 5000, disableOnInteraction: false },
+            pagination: { el: '.swiper-pagination-{{ block.id }}', clickable: true },
+            navigation: { nextEl: '.swiper-button-next-{{ block.id }}', prevEl: '.swiper-button-prev-{{ block.id }}' }
+        });
+    }
+});
+</script>
+{% endif %}
+{% endif %}

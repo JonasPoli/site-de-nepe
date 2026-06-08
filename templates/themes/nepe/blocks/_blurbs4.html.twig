@@ -1,16 +1,22 @@
 {% set blurbs = block.config.blurbs ?? [] %}
-<div class="nepe-block blurbs4-block reveal-up">
-    {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
-    {% if block.title %}<h2 class="blurbs4-title">{{ block.title }}</h2>{% endif %}
-    {% if block.text %}<p class="blurbs4-lead">{{ block.text }}</p>{% endif %}
+<div class="nb-blurbs4 reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
     {% if blurbs|length > 0 %}
-    <div class="blurbs4-grid">
+    <div class="nb-blurbs-grid">
         {% for b in blurbs %}
         {% if b.title or b.icon %}
-        <div class="blurbs4-card">
-            {% if b.icon %}<div class="blurbs4-icon"><i class="{{ b.icon }}"></i></div>{% endif %}
-            {% if b.title %}<h3 class="blurbs4-card-title">{{ b.title }}</h3>{% endif %}
-            {% if b.text %}<p class="blurbs4-card-text">{{ b.text }}</p>{% endif %}
+        <div class="nb-blurb-card reveal-up delay-{{ loop.index0 * 100 }}">
+            {% if b.icon %}
+            <div class="nb-blurb-icon"><i class="{{ b.icon }}"></i></div>
+            {% endif %}
+            {% if b.title %}<h3 class="nb-blurb-title">{{ b.title }}</h3>{% endif %}
+            {% if b.text %}<p class="nb-blurb-text">{{ b.text }}</p>{% endif %}
         </div>
         {% endif %}
         {% endfor %}
@@ -18,13 +24,17 @@
     {% endif %}
 </div>
 <style>
-.blurbs4-block{margin:3rem 0;text-align:center}
-.blurbs4-title{font-size:clamp(1.75rem,3.5vw,2.5rem);font-weight:800;margin:.5rem 0 1rem}
-.blurbs4-lead{color:var(--color-text-muted,#6b7280);max-width:640px;margin:0 auto 2.5rem;font-size:1.05rem;line-height:1.7}
-.blurbs4-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;text-align:left}
-.blurbs4-card{padding:2rem 1.5rem;border:1px solid var(--color-border,#e5e7eb);border-radius:1rem;background:#fff;transition:transform .25s,box-shadow .25s}
-.blurbs4-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.08)}
-.blurbs4-icon{font-size:2rem;color:var(--color-primary);margin-bottom:1rem}
-.blurbs4-card-title{font-size:1.05rem;font-weight:700;margin-bottom:.5rem;color:var(--color-text,#111827)}
-.blurbs4-card-text{font-size:.9rem;color:var(--color-text-muted,#6b7280);line-height:1.7}
+.nb-blurbs4{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-section-header{text-align:center;margin-bottom:3rem}
+.nb-section-title{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800;margin:.5rem 0 1rem;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nb-section-lead{color:#6b7280;max-width:600px;margin:0 auto;font-size:1.05rem;line-height:1.7}
+.nb-blurbs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem}
+.nb-blurb-card{padding:2rem 1.75rem;border-radius:var(--radius);background:#fff;border:1px solid #e8ecf0;box-shadow:0 2px 12px rgba(0,0,0,.04);transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.nb-blurb-card:hover{transform:translateY(-8px);box-shadow:0 16px 40px rgba(0,0,0,.1);border-color:color-mix(in srgb,var(--color-primary) 35%,transparent)}
+.nb-blurb-icon{width:52px;height:52px;border-radius:12px;background:color-mix(in srgb,var(--color-primary) 10%,transparent);color:var(--color-primary);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.25rem;transition:background .3s,transform .3s}
+.nb-blurb-card:hover .nb-blurb-icon{background:var(--color-primary);color:#fff;transform:scale(1.1) rotate(-5deg)}
+.nb-blurb-title{font-size:1.05rem;font-weight:700;color:#1a1c2e;margin-bottom:.5rem;line-height:1.3}
+.nb-blurb-text{font-size:.88rem;color:#6b7280;line-height:1.7;margin:0}
+@media(max-width:640px){.nb-blurbs-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:400px){.nb-blurbs-grid{grid-template-columns:1fr}}
 </style>

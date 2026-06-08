@@ -1,11 +1,11 @@
 {% set align = block.config ? (block.config.textAlign ?? 'left') : 'left' %}
 {% set mwKey = block.config ? (block.config.maxWidth ?? 'full') : 'full' %}
 {% set mw    = mwKey == 'narrow' ? '600px' : (mwKey == 'wide' ? '800px' : '100%') %}
-<div class="nepe-block reveal-up" style="text-align:{{ align }};max-width:{{ mw }}">
+<div class="text-only-block reveal-up" style="text-align:{{ align }};max-width:{{ mw }};">
     {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
     {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
     {% if block.text %}<div class="prose">{{ block.text|raw }}</div>{% endif %}
     {% if block.config and (block.config.ctaText ?? null) and (block.config.ctaLink ?? null) %}
-        <a href="{{ block.config.ctaLink }}" class="cta-btn" style="margin-top:1.5rem;display:inline-flex">{{ block.config.ctaText }}</a>
+        <a href="{{ block.config.ctaLink }}" class="cta-btn" style="margin-top:1.5rem;display:inline-flex;">{{ block.config.ctaText }}</a>
     {% endif %}
 </div>

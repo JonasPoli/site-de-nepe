@@ -1,51 +1,63 @@
 {% set images = block.galleryImages %}
 {% if images|length > 0 %}
-<div class="nepe-block">
-    {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
-    {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
-    {% if block.text %}<p style="color:var(--color-text-muted,#6b7280);margin:.75rem 0 2rem">{{ block.text }}</p>{% endif %}
-    <div class="nepe-gallery" id="gallery-{{ block.id }}">
-        <div class="ng-track">
+<div class="nb-gallery reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead" style="margin-bottom:1.5rem">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
+    <div class="nb-gallery-wrap" id="nbg-{{ block.id }}">
+        <div class="nb-gallery-track">
             {% for img in images %}
-            <div class="ng-slide" onclick="openLightbox('{{ block.id }}',{{ loop.index0 }})">
-                <img src="{{ asset('uploads/page_block_gallery/' ~ img.filename) }}" alt="{{ img.caption }}" loading="lazy">
-                {% if img.caption %}<p class="ng-caption">{{ img.caption }}</p>{% endif %}
+            <div class="nb-gallery-slide" onclick="nbOpenLightbox('{{ block.id }}',{{ loop.index0 }})">
+                <img src="{{ asset('uploads/page_block_gallery/' ~ img.filename) }}" alt="{{ img.caption ?? '' }}" loading="lazy">
+                {% if img.caption %}<p class="nb-gallery-caption">{{ img.caption }}</p>{% endif %}
             </div>
             {% endfor %}
         </div>
         {% if images|length > 1 %}
-        <button class="ng-btn ng-prev" onclick="slideGallery('{{ block.id }}',-1)"><i class="fa-solid fa-chevron-left"></i></button>
-        <button class="ng-btn ng-next" onclick="slideGallery('{{ block.id }}',1)"><i class="fa-solid fa-chevron-right"></i></button>
-        <div class="ng-dots">{% for img in images %}<span class="ng-dot {{ loop.first ? 'active' : '' }}" onclick="goSlide('{{ block.id }}',{{ loop.index0 }})"></span>{% endfor %}</div>
+        <button class="nb-gal-btn nb-gal-prev" onclick="nbSlide('{{ block.id }}',-1)" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="nb-gal-btn nb-gal-next" onclick="nbSlide('{{ block.id }}',1)" aria-label="Próximo"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="nb-gal-dots">{% for img in images %}<span class="nb-gal-dot{{ loop.first ? ' active' : '' }}" onclick="nbGoSlide('{{ block.id }}',{{ loop.index0 }})"></span>{% endfor %}</div>
         {% endif %}
     </div>
 </div>
-<div class="nepe-lightbox" id="lb-{{ block.id }}" style="display:none" onclick="closeLightbox('{{ block.id }}')">
-    <button onclick="closeLightbox('{{ block.id }}')" style="position:fixed;top:1rem;right:1.5rem;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer">&times;</button>
-    <img id="lb-img-{{ block.id }}" src="" style="max-width:90vw;max-height:88vh;border-radius:12px">
+<div class="nb-lightbox" id="nblb-{{ block.id }}" style="display:none" onclick="nbCloseLightbox('{{ block.id }}')">
+    <button onclick="nbCloseLightbox('{{ block.id }}')" class="nb-lb-close">&times;</button>
+    <img id="nb-lb-img-{{ block.id }}" src="" alt="">
 </div>
 <style>
-.nepe-gallery{position:relative;overflow:hidden;border-radius:1rem}
-.ng-track{display:flex;transition:transform .4s ease}
-.ng-slide{min-width:100%;cursor:zoom-in}
-.ng-slide img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:1rem}
-.ng-caption{text-align:center;font-size:.85rem;color:var(--color-text-muted,#6b7280);padding:.5rem 0}
-.ng-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border:none;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#111;cursor:pointer;font-size:1rem;transition:.2s;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.ng-prev{left:.75rem}.ng-next{right:.75rem}
-.ng-btn:hover{background:var(--color-primary);color:#fff}
-.ng-dots{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}
-.ng-dot{width:8px;height:8px;border-radius:50%;background:var(--color-border,#d1d5db);cursor:pointer;transition:.2s}
-.ng-dot.active{background:var(--color-primary)}
-.nepe-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:zoom-out}
+.nb-gallery{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-gallery-wrap{position:relative;overflow:hidden;border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,.1)}
+.nb-gallery-track{display:flex;transition:transform .45s cubic-bezier(.4,0,.2,1)}
+.nb-gallery-slide{min-width:100%;cursor:zoom-in}
+.nb-gallery-slide img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.nb-gallery-caption{text-align:center;font-size:.85rem;color:#6b7280;padding:.6rem 1rem;background:#fff}
+.nb-gal-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:none;border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:#1a1c2e;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:background .25s,color .25s,transform .25s}
+.nb-gal-btn:hover{background:var(--color-primary);color:#fff;transform:translateY(-50%) scale(1.08)}
+.nb-gal-prev{left:.75rem}.nb-gal-next{right:.75rem}
+.nb-gal-dots{position:absolute;bottom:.75rem;left:50%;transform:translateX(-50%);display:flex;gap:.4rem}
+.nb-gal-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:.2s;border:1px solid rgba(255,255,255,.3)}
+.nb-gal-dot.active{background:#fff;width:24px;border-radius:4px}
+.nb-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.93);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:zoom-out}
+.nb-lb-close{position:fixed;top:1rem;right:1.5rem;background:none;border:none;color:#fff;font-size:2.5rem;cursor:pointer;line-height:1;opacity:.7;transition:opacity .2s}
+.nb-lb-close:hover{opacity:1}
+#nblb-{{ block.id }} img{max-width:90vw;max-height:88vh;border-radius:var(--radius);box-shadow:0 24px 80px rgba(0,0,0,.6)}
 </style>
 <script>
 (function(){
-window.galleries=window.galleries||{};
-window.slideGallery=window.slideGallery||function(id,dir){const g=window.galleries[id]||(window.galleries[id]={idx:0,total:document.querySelectorAll('#gallery-'+id+' .ng-slide').length});g.idx=(g.idx+dir+g.total)%g.total;document.querySelector('#gallery-'+id+' .ng-track').style.transform='translateX(-'+g.idx*100+'%)';document.querySelectorAll('#gallery-'+id+' .ng-dot').forEach((d,i)=>d.classList.toggle('active',i===g.idx))};
-window.goSlide=window.goSlide||function(id,idx){window.galleries[id]={idx,total:document.querySelectorAll('#gallery-'+id+' .ng-slide').length};window.slideGallery(id,0)};
-window.openLightbox=window.openLightbox||function(id,idx){const imgs=document.querySelectorAll('#gallery-'+id+' .ng-slide img');document.getElementById('lb-img-'+id).src=imgs[idx].src;document.getElementById('lb-'+id).style.display='flex'};
-window.closeLightbox=window.closeLightbox||function(id){document.getElementById('lb-'+id).style.display='none'};
-const cid='{{ block.id }}';window.galleries[cid]={idx:0,total:document.querySelectorAll('#gallery-'+cid+' .ng-slide').length};
+const gId='{{ block.id }}';
+window.__nbg=window.__nbg||{};
+window.__nbg[gId]={idx:0,total:{{ images|length }}};
+function getSlides(){return document.querySelectorAll('#nbg-'+gId+' .nb-gallery-slide')}
+function getDots(){return document.querySelectorAll('#nbg-'+gId+' .nb-gal-dot')}
+window.nbSlide=window.nbSlide||function(id,d){const g=window.__nbg[id];g.idx=(g.idx+d+g.total)%g.total;sync(id)};
+window.nbGoSlide=window.nbGoSlide||function(id,i){window.__nbg[id].idx=i;sync(id)};
+function sync(id){const g=window.__nbg[id];document.querySelector('#nbg-'+id+' .nb-gallery-track').style.transform='translateX(-'+g.idx*100+'%)';document.querySelectorAll('#nbg-'+id+' .nb-gal-dot').forEach((d,i)=>d.classList.toggle('active',i===g.idx))}
+window.nbOpenLightbox=window.nbOpenLightbox||function(id,i){const imgs=document.querySelectorAll('#nbg-'+id+' .nb-gallery-slide img');document.getElementById('nb-lb-img-'+id).src=imgs[i].src;document.getElementById('nblb-'+id).style.display='flex'};
+window.nbCloseLightbox=window.nbCloseLightbox||function(id){document.getElementById('nblb-'+id).style.display='none'};
 })();
 </script>
 {% endif %}

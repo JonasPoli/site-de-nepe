@@ -1,0 +1,9 @@
+{% if logo.logoFilename %}
+<div class="nb-logo-item">
+    <img src="{{ asset('uploads/partner_logo/' ~ logo.logoFilename) }}" alt="{{ logo.name }}" loading="lazy">
+</div>
+{% elseif logo.name %}
+<div class="nb-logo-item">
+    <span class="nb-logo-name">{{ logo.name }}</span>
+</div>
+{% endif %}

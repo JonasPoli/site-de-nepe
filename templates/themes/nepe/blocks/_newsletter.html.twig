@@ -1,24 +1,28 @@
-<div class="nepe-block nepe-newsletter reveal-up">
-    {% if block.preTitle %}<span class="pre-label" style="display:block;text-align:center">{{ block.preTitle }}</span>{% endif %}
-    {% if block.title %}<h2 style="text-align:center;margin-bottom:.75rem">{{ block.title }}</h2>{% endif %}
-    {% if block.text %}<p style="text-align:center;color:var(--color-text-muted,#6b7280);max-width:600px;margin:0 auto 2rem">{{ block.text }}</p>{% endif %}
-    <form action="{{ path('pub_newsletter') }}" method="post" class="nl-form">
+<div class="nb-newsletter reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
+    <form action="{{ path('pub_newsletter') }}" method="post" class="nb-nl-form">
         <input type="hidden" name="_token" value="{{ csrf_token('newsletter') }}">
-        <div class="nl-row">
-            <input type="text"  name="name"  class="nl-input" placeholder="Seu nome" required>
-            <input type="email" name="email" class="nl-input" placeholder="Seu e-mail" required>
-            <button type="submit" class="nl-btn">
-                {% if block.config and block.config.buttonText %}{{ block.config.buttonText }}{% else %}Inscrever-se{% endif %}
+        <div class="nb-nl-row">
+            <input type="text"  name="name"  class="nb-nl-input" placeholder="Seu nome">
+            <input type="email" name="email" class="nb-nl-input" placeholder="Seu e-mail" required>
+            <button type="submit" class="nb-nl-btn">
+                {{ block.config.buttonText ?? 'Inscrever-se' }}
             </button>
         </div>
     </form>
 </div>
 <style>
-.nepe-newsletter{text-align:center;padding:3rem 2rem;border-radius:1.5rem;background:linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 8%,#fff),color-mix(in srgb,var(--color-secondary,#f59e0b) 6%,#fff));border:1px solid color-mix(in srgb,var(--color-primary) 20%,transparent)}
-.nl-form{max-width:640px;margin:0 auto}
-.nl-row{display:flex;gap:.75rem;flex-wrap:wrap}
-.nl-input{flex:1;min-width:180px;padding:.75rem 1rem;border:1px solid var(--color-border,#d1d5db);border-radius:.6rem;font-size:.95rem;background:#fff}
-.nl-input:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--color-primary) 20%,transparent)}
-.nl-btn{padding:.75rem 1.75rem;background:var(--color-primary);color:#fff;border:none;border-radius:.6rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s}
-.nl-btn:hover{opacity:.88}
+.nb-newsletter{max-width:780px;margin:0 auto 4rem;padding:2.5rem 2rem;background:linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 7%,#fff),color-mix(in srgb,var(--color-secondary) 5%,#fff));border:1px solid color-mix(in srgb,var(--color-primary) 18%,transparent);border-radius:1.25rem;box-shadow:0 4px 24px rgba(0,0,0,.06);text-align:center}
+.nb-nl-form{margin-top:1.5rem}
+.nb-nl-row{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center}
+.nb-nl-input{flex:1;min-width:180px;padding:.75rem 1.1rem;border:1px solid #d1d5db;border-radius:50px;font-size:.95rem;background:#fff;outline:none;transition:border-color .25s,box-shadow .25s}
+.nb-nl-input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--color-primary) 18%,transparent)}
+.nb-nl-btn{padding:.75rem 1.75rem;background:var(--color-primary);color:#fff;border:none;border-radius:50px;font-weight:700;cursor:pointer;white-space:nowrap;font-size:.95rem;transition:background .25s,transform .2s,box-shadow .2s}
+.nb-nl-btn:hover{background:var(--color-secondary);color:#1a1c2e;transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
 </style>

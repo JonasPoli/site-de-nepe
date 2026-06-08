@@ -1,38 +1,45 @@
 {% set cat = block.relatedCategory %}
-<div class="nepe-block reveal-up">
-    {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
-    {% if block.title %}<h2 style="margin-bottom:.5rem">{{ block.title }}</h2>{% endif %}
-    {% if block.text %}<p style="color:var(--color-text-muted,#6b7280);margin-bottom:2rem">{{ block.text }}</p>{% endif %}
-    {% set pages = cat ? cat.pages : [] %}
+{% set pages = cat ? cat.pages : [] %}
+<div class="nb-page-list reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
     {% if pages|length > 0 %}
-    <div class="nepe-page-list">
+    <div class="nb-pl-grid">
         {% for page in pages|slice(0, block.itemCount ?? 99) %}
-        <a href="{{ path('pub_page_show', {slug: page.slug}) }}" class="npl-card">
+        <a href="{{ path('pub_page_show', {slug: page.slug}) }}" class="nb-pl-card reveal-up delay-{{ loop.index0 * 100 }}">
             {% if page.coverImage %}
-            <div class="npl-img" style="background-image:url('{{ asset('uploads/page_cover/' ~ page.coverImage) }}')"></div>
+            <div class="nb-pl-img" style="background-image:url('{{ asset('uploads/page_cover/' ~ page.coverImage) }}')"></div>
             {% else %}
-            <div class="npl-img npl-placeholder"><i class="fa-solid fa-file-lines"></i></div>
+            <div class="nb-pl-img nb-pl-img-ph"><i class="fa-solid fa-file-lines"></i></div>
             {% endif %}
-            <div class="npl-body">
-                <h3 class="npl-title">{{ page.title }}</h3>
-                {% if page.seoDescription %}<p class="npl-desc">{{ page.seoDescription|slice(0,120) }}…</p>{% endif %}
-                <span class="npl-cta">Ler mais →</span>
+            <div class="nb-pl-body">
+                <h3 class="nb-pl-title">{{ page.title }}</h3>
+                {% if page.seoDescription %}<p class="nb-pl-desc">{{ page.seoDescription|slice(0,110) }}…</p>{% endif %}
+                <span class="nb-pl-cta">Ler mais <i class="fa-solid fa-arrow-right"></i></span>
             </div>
         </a>
         {% endfor %}
     </div>
     {% else %}
-    <p style="color:var(--color-text-muted,#6b7280)">Nenhuma página encontrada.</p>
+    <p style="text-align:center;color:#9ca3af;padding:2rem">Nenhuma página encontrada.</p>
     {% endif %}
 </div>
 <style>
-.nepe-page-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
-.npl-card{display:flex;flex-direction:column;border:1px solid var(--color-border,#e5e7eb);border-radius:1rem;overflow:hidden;background:#fff;transition:transform .25s,box-shadow .25s;text-decoration:none;color:inherit}
-.npl-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.1)}
-.npl-img{height:160px;background-size:cover;background-position:center}
-.npl-placeholder{display:flex;align-items:center;justify-content:center;background:#f9fafb;color:var(--color-text-muted,#9ca3af);font-size:2rem}
-.npl-body{padding:1.25rem;flex:1;display:flex;flex-direction:column}
-.npl-title{font-weight:700;margin-bottom:.5rem;font-size:1rem;color:var(--color-text,#111)}
-.npl-desc{font-size:.85rem;color:var(--color-text-muted,#6b7280);flex:1;margin-bottom:.75rem;line-height:1.6}
-.npl-cta{color:var(--color-primary);font-weight:600;font-size:.85rem}
+.nb-page-list{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+.nb-pl-card{display:flex;flex-direction:column;border-radius:var(--radius);overflow:hidden;border:1px solid #e8ecf0;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.04);transition:transform .3s,box-shadow .3s;text-decoration:none;color:inherit}
+.nb-pl-card:hover{transform:translateY(-8px);box-shadow:0 20px 48px rgba(0,0,0,.12);opacity:1}
+.nb-pl-img{height:170px;background-size:cover;background-position:center;transition:transform .5s ease}
+.nb-pl-card:hover .nb-pl-img{transform:scale(1.04)}
+.nb-pl-img-ph{display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--color-primary) 6%,#f8f9fc);color:color-mix(in srgb,var(--color-primary) 50%,#ccc);font-size:2.5rem}
+.nb-pl-body{padding:1.35rem;flex:1;display:flex;flex-direction:column;gap:.5rem}
+.nb-pl-title{font-size:1rem;font-weight:700;color:#1a1c2e;line-height:1.4;margin:0;flex:1}
+.nb-pl-desc{font-size:.85rem;color:#6b7280;line-height:1.6;margin:0}
+.nb-pl-cta{display:inline-flex;align-items:center;gap:.35rem;font-size:.83rem;font-weight:700;color:var(--color-primary);margin-top:.5rem;transition:gap .2s}
+.nb-pl-card:hover .nb-pl-cta{gap:.6rem}
 </style>

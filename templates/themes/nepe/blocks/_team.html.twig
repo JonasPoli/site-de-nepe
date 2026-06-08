@@ -1,0 +1,54 @@
+{% set members = block.teamMembers %}
+{% if members|length > 0 %}
+<div class="nb-team reveal-up">
+    {% if block.preTitle or block.title or block.text %}
+    <div class="nb-section-header">
+        {% if block.preTitle %}<span class="pre-label">{{ block.preTitle }}</span>{% endif %}
+        {% if block.title %}<h2 class="nb-section-title">{{ block.title }}</h2>{% endif %}
+        {% if block.text %}<p class="nb-section-lead">{{ block.text }}</p>{% endif %}
+    </div>
+    {% endif %}
+    <div class="nb-team-grid">
+        {% for m in members %}
+        <div class="nb-team-card reveal-up delay-{{ loop.index0 * 100 }}">
+            <div class="nb-team-img-wrap">
+                {% if m.image %}
+                    <img src="{{ asset('uploads/team_member_image/' ~ m.image) }}" alt="{{ m.name }}" class="nb-team-img" loading="lazy">
+                {% else %}
+                    <div class="nb-team-img-ph"><i class="fa-solid fa-user"></i></div>
+                {% endif %}
+            </div>
+            <div class="nb-team-body">
+                <h3 class="nb-team-name">{{ m.name }}</h3>
+                {% if m.role %}<p class="nb-team-role">{{ m.role }}</p>{% endif %}
+                {% if m.bio %}<p class="nb-team-bio">{{ m.bio }}</p>{% endif %}
+                {% if m.linkedinUrl or m.instagramUrl or m.email %}
+                <div class="nb-team-socials">
+                    {% if m.linkedinUrl %}<a href="{{ m.linkedinUrl }}" target="_blank" class="nb-social-link"><i class="fa-brands fa-linkedin-in"></i></a>{% endif %}
+                    {% if m.instagramUrl %}<a href="{{ m.instagramUrl }}" target="_blank" class="nb-social-link"><i class="fa-brands fa-instagram"></i></a>{% endif %}
+                    {% if m.email %}<a href="mailto:{{ m.email }}" class="nb-social-link"><i class="fa-solid fa-envelope"></i></a>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<style>
+.nb-team{max-width:1100px;margin:0 auto 4rem;padding:0 1.5rem}
+.nb-team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem}
+.nb-team-card{background:#fff;border-radius:var(--radius);border:1px solid #e8ecf0;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05);transition:transform .3s,box-shadow .3s}
+.nb-team-card:hover{transform:translateY(-8px);box-shadow:0 20px 48px rgba(0,0,0,.12)}
+.nb-team-img-wrap{width:100%;aspect-ratio:1;overflow:hidden;background:color-mix(in srgb,var(--color-primary) 8%,#f8f9fc)}
+.nb-team-img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.nb-team-card:hover .nb-team-img{transform:scale(1.06)}
+.nb-team-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;color:color-mix(in srgb,var(--color-primary) 40%,white)}
+.nb-team-body{padding:1.5rem}
+.nb-team-name{font-size:1.05rem;font-weight:700;color:#1a1c2e;margin:0 0 .25rem}
+.nb-team-role{font-size:.85rem;color:var(--color-primary);font-weight:600;margin:0 0 .75rem;text-transform:uppercase;letter-spacing:.04em}
+.nb-team-bio{font-size:.85rem;color:#6b7280;line-height:1.65;margin:0 0 1rem}
+.nb-team-socials{display:flex;gap:.5rem}
+.nb-social-link{width:34px;height:34px;border-radius:8px;background:#f3f4f6;color:#6b7280;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:background .25s,color .25s,transform .25s}
+.nb-social-link:hover{background:var(--color-primary);color:#fff;transform:scale(1.1)}
+</style>
+{% endif %}
