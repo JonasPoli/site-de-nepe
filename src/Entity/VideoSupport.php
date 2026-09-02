@@ -8,8 +8,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: VideoSupportRepository::class)]
+#[Vich\Uploadable]
 class VideoSupport implements TenantAwareInterface
 {
     #[ORM\Id]
@@ -34,6 +37,16 @@ class VideoSupport implements TenantAwareInterface
     /** YouTube video ID — e.g. dQw4w9WgXcQ */
     #[ORM\Column(length: 30)]
     private string $youtubeId = '';
+
+    /** Imagem personalizada para thumbnail (opcional) */
+    #[Vich\UploadableField(mapping: 'video_thumb', fileNameProperty: 'customThumbnail')]
+    private ?File $customThumbnailFile = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $customThumbnail = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $customThumbnailUpdatedAt = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -76,9 +89,37 @@ class VideoSupport implements TenantAwareInterface
     public function getYoutubeId(): string { return $this->youtubeId; }
     public function setYoutubeId(string $youtubeId): static { $this->youtubeId = $youtubeId; return $this; }
 
+    public function getCustomThumbnailFile(): ?File { return $this->customThumbnailFile; }
+    public function setCustomThumbnailFile(?File $file): static
+    {
+        $this->customThumbnailFile = $file;
+        if ($file) { $this->customThumbnailUpdatedAt = new \DateTimeImmutable(); }
+        return $this;
+    }
+
+    public function getCustomThumbnail(): ?string { return $this->customThumbnail; }
+    public function setCustomThumbnail(?string $customThumbnail): static { $this->customThumbnail = $customThumbnail; return $this; }
+
+    public function getCustomThumbnailUpdatedAt(): ?\DateTimeImmutable { return $this->customThumbnailUpdatedAt; }
+    public function setCustomThumbnailUpdatedAt(?\DateTimeImmutable $customThumbnailUpdatedAt): static { $this->customThumbnailUpdatedAt = $customThumbnailUpdatedAt; return $this; }
+
+    public function hasCustomThumbnail(): bool
+    {
+        return !empty($this->customThumbnail);
+    }
+
+    public function getYoutubeThumbnailUrl(): string
+    {
+        return $this->youtubeId !== '' ? sprintf('https://img.youtube.com/vi/%s/maxresdefault.jpg', $this->youtubeId) : '';
+    }
+
     public function getThumbnailUrl(): string
     {
-        return sprintf('https://img.youtube.com/vi/%s/maxresdefault.jpg', $this->youtubeId);
+        if (!empty($this->customThumbnail)) {
+            return '/uploads/video_thumb/' . $this->customThumbnail;
+        }
+
+        return $this->getYoutubeThumbnailUrl();
     }
 
     public function getEmbedUrl(): string

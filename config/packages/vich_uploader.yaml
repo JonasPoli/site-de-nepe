@@ -61,6 +61,14 @@ vich_uploader:
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
             inject_on_load: true
 
+        video_thumb:
+            uri_prefix: /uploads/video_thumb
+            upload_destination: '%kernel.project_dir%/public/uploads/video_thumb'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            inject_on_load: true
+            delete_on_remove: true
+            delete_on_update: true
+
         article_gallery:
             uri_prefix: /uploads/article_gallery
             upload_destination: '%kernel.project_dir%/public/uploads/article_gallery'

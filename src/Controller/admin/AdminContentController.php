@@ -988,6 +988,15 @@ class AdminContentController extends AbstractController
         $video->setDescription($r->request->get('description') ?: null);
         $video->setMaterialsHtml($r->request->get('materialsHtml') ?: null);
 
+        // ── Custom Thumbnail ──────────────────────────────────────────────────
+        $thumbFile = $r->files->get('customThumbnailFile');
+        if ($thumbFile instanceof UploadedFile) {
+            $video->setCustomThumbnailFile($thumbFile);
+        } elseif ($r->request->getBoolean('remove_custom_thumbnail')) {
+            $video->setCustomThumbnail(null);
+            $video->setCustomThumbnailFile(null);
+        }
+
         // ── Category ──────────────────────────────────────────────────────────
         $catId = (int) $r->request->get('category');
         $category = $catId ? $em->getReference(\App\Entity\Category::class, $catId) : null;

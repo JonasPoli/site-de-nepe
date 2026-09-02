@@ -11,7 +11,7 @@
 {% block og_tags %}
 {{ parent() }}
 <meta property="og:title" content="{{ video.title }}">
-<meta property="og:image" content="{{ video.thumbnailUrl }}">
+<meta property="og:image" content="{{ video.thumbnailUrl starts with 'http' ? video.thumbnailUrl : app.request.schemeAndHttpHost ~ video.thumbnailUrl }}">
 <meta property="og:video" content="https://www.youtube.com/watch?v={{ video.youtubeId }}">
 {% endblock %}
 

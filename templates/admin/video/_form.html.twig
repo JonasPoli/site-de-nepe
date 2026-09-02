@@ -8,24 +8,68 @@
         </div>
         <div class="af-field">
             <label>YouTube ID <span class="req">*</span></label>
-            <input type="text" name="youtubeId" class="ai" value="{{ video.youtubeId }}" required placeholder="dQw4w9WgXcQ"
-                   oninput="previewYT(this.value)">
+            <input type="text" name="youtubeId" id="video_youtube_id" class="ai" value="{{ video.youtubeId }}" required placeholder="dQw4w9WgXcQ"
+                   oninput="onYoutubeIdChange(this.value)">
+            <p class="af-hint">Ex: dQw4w9WgXcQ (código após <code>v=</code> na URL do YouTube)</p>
         </div>
     </div>
+
+    {# ── Miniatura (Thumbnail) ── #}
     <div class="af-field">
-        <label>Pré-visualização</label>
-        <div id="yt-preview" style="width:100%;max-width:360px;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--bg3)">
-            {% if video.youtubeId %}
-            <img src="{{ video.thumbnailUrl }}" style="width:100%;height:100%;object-fit:cover" id="yt-thumb">
-            {% else %}
-            <img id="yt-thumb" style="width:100%;height:100%;object-fit:cover;display:none">
-            {% endif %}
+        <label>Miniatura (Thumbnail)</label>
+        
+        <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-start;margin-bottom:1rem">
+            {# Preview #}
+            <div style="width:100%;max-width:360px">
+                <div id="thumb-preview-box" style="width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center">
+                    <img id="thumb-preview" src="{{ video.thumbnailUrl }}" alt="Preview da miniatura"
+                         style="width:100%;height:100%;object-fit:cover;{{ video.thumbnailUrl ? '' : 'display:none;' }}">
+                    <div id="thumb-placeholder" style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem;{{ video.thumbnailUrl ? 'display:none;' : '' }}">
+                        <sl-icon name="image" style="font-size:2rem;display:block;margin:0 auto .5rem;opacity:.5"></sl-icon>
+                        Nenhuma miniatura disponível
+                    </div>
+                    <div id="thumb-source-badge" style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.75);color:#fff;font-size:.72rem;padding:.2rem .55rem;border-radius:6px;backdrop-filter:blur(4px);display:flex;align-items:center;gap:.35rem">
+                        {% if video.hasCustomThumbnail %}
+                            <sl-icon name="image"></sl-icon> Personalizada
+                        {% elseif video.youtubeId %}
+                            <sl-icon name="youtube"></sl-icon> Padrão do YouTube
+                        {% else %}
+                            <sl-icon name="dash"></sl-icon> Indefinida
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Controls #}
+            <div style="flex:1;min-width:280px;display:flex;flex-direction:column;gap:.75rem">
+                <div>
+                    <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:.35rem">Subir miniatura personalizada</label>
+                    <input type="file" name="customThumbnailFile" id="customThumbnailFileInput" accept="image/*" onchange="previewCustomThumb(this)"
+                           style="font-size:.85rem;padding:.4rem 0">
+                    <p class="af-hint">Formatos: JPG, PNG, WEBP. Proporção recomendada: 16:9 (ex: 1280x720).</p>
+                </div>
+
+                {% if video.hasCustomThumbnail %}
+                <div style="padding:.75rem;background:var(--bg2);border-radius:8px;border:1px solid var(--border)">
+                    <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.85rem;color:#ef4444;font-weight:500">
+                        <input type="checkbox" name="remove_custom_thumbnail" value="1" id="removeCustomThumbCheckbox"
+                               onchange="onToggleRemoveCustomThumb(this)" style="accent-color:#ef4444">
+                        Remover miniatura personalizada e usar padrão do YouTube
+                    </label>
+                </div>
+                {% endif %}
+                
+                <p class="af-hint" style="margin:0">
+                    💡 Se nenhuma imagem personalizada for enviada, a miniatura oficial em alta resolução do YouTube será utilizada automaticamente.
+                </p>
+            </div>
         </div>
     </div>
+
     <div class="af-row">
         <div class="af-field">
             <label>Slug</label>
-            <input type="text" name="slug" class="ai" value="{{ video.slug }}">
+            <input type="text" name="slug" class="ai" value="{{ video.slug }}" placeholder="gerado automaticamente">
         </div>
         <div class="af-field">
             <label>Categoria</label>
@@ -94,12 +138,104 @@
 </form>
 
 <script>
-// YouTube preview
-function previewYT(id){
-    const img = document.getElementById('yt-thumb');
-    if(!id){img.style.display='none';return;}
-    img.src='https://img.youtube.com/vi/'+id+'/maxresdefault.jpg';
-    img.style.display='block';
+// Thumbnail logic
+const initialCustomThumbUrl = '{{ video.hasCustomThumbnail ? video.thumbnailUrl : '' }}';
+const initialYoutubeId = '{{ video.youtubeId }}';
+let isCustomFileSelected = false;
+
+function getYoutubeThumbUrl(id) {
+    if (!id || id.trim() === '') return '';
+    return 'https://img.youtube.com/vi/' + id.trim() + '/maxresdefault.jpg';
+}
+
+function updateBadge(type) {
+    const badge = document.getElementById('thumb-source-badge');
+    if (!badge) return;
+    if (type === 'custom') {
+        badge.innerHTML = '<sl-icon name="image"></sl-icon> Personalizada (novo upload)';
+        badge.style.display = 'flex';
+    } else if (type === 'custom-saved') {
+        badge.innerHTML = '<sl-icon name="image"></sl-icon> Personalizada';
+        badge.style.display = 'flex';
+    } else if (type === 'youtube') {
+        badge.innerHTML = '<sl-icon name="youtube"></sl-icon> Padrão do YouTube';
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function updatePreviewDisplay(url, type) {
+    const img = document.getElementById('thumb-preview');
+    const placeholder = document.getElementById('thumb-placeholder');
+    if (url) {
+        img.src = url;
+        img.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
+        updateBadge(type);
+    } else {
+        img.src = '';
+        img.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        updateBadge('none');
+    }
+}
+
+function previewCustomThumb(input) {
+    const removeCb = document.getElementById('removeCustomThumbCheckbox');
+    if (removeCb) removeCb.checked = false;
+
+    if (input.files && input.files[0]) {
+        isCustomFileSelected = true;
+        const reader = new FileReader();
+        reader.onload = e => {
+            updatePreviewDisplay(e.target.result, 'custom');
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        isCustomFileSelected = false;
+        refreshPreview();
+    }
+}
+
+function onToggleRemoveCustomThumb(cb) {
+    if (cb.checked) {
+        const fileInput = document.getElementById('customThumbnailFileInput');
+        if (fileInput) fileInput.value = '';
+        isCustomFileSelected = false;
+        const ytId = document.getElementById('video_youtube_id')?.value || initialYoutubeId;
+        const ytUrl = getYoutubeThumbUrl(ytId);
+        updatePreviewDisplay(ytUrl, ytUrl ? 'youtube' : 'none');
+    } else {
+        refreshPreview();
+    }
+}
+
+function onYoutubeIdChange(ytId) {
+    const removeCb = document.getElementById('removeCustomThumbCheckbox');
+    const isRemoveChecked = removeCb ? removeCb.checked : false;
+
+    if (!isCustomFileSelected && (!initialCustomThumbUrl || isRemoveChecked)) {
+        const ytUrl = getYoutubeThumbUrl(ytId);
+        updatePreviewDisplay(ytUrl, ytUrl ? 'youtube' : 'none');
+    }
+}
+
+function refreshPreview() {
+    const removeCb = document.getElementById('removeCustomThumbCheckbox');
+    const isRemoveChecked = removeCb ? removeCb.checked : false;
+
+    if (isCustomFileSelected) {
+        return;
+    }
+
+    if (initialCustomThumbUrl && !isRemoveChecked) {
+        updatePreviewDisplay(initialCustomThumbUrl, 'custom-saved');
+    } else {
+        const ytId = document.getElementById('video_youtube_id')?.value || initialYoutubeId;
+        const ytUrl = getYoutubeThumbUrl(ytId);
+        updatePreviewDisplay(ytUrl, ytUrl ? 'youtube' : 'none');
+    }
 }
 
 // Dynamic material file rows
@@ -128,3 +264,4 @@ function addMaterialRow(){
 }
 </script>
 {% endmacro %}
+

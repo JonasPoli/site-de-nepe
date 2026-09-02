@@ -7,7 +7,14 @@
     <tbody>
     {% for v in videos %}
     <tr>
-        <td><img src="{{ v.thumbnailUrl }}" alt="" style="width:80px;height:45px;object-fit:cover;border-radius:4px"></td>
+        <td>
+            <div style="position:relative;width:80px;height:45px;border-radius:4px;overflow:hidden;background:var(--bg3)">
+                <img src="{{ v.thumbnailUrl }}" alt="" style="width:100%;height:100%;object-fit:cover">
+                {% if v.hasCustomThumbnail %}
+                    <span title="Miniatura personalizada" style="position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,.75);color:#38bdf8;font-size:.65rem;padding:1px 4px;border-radius:3px;line-height:1">📷</span>
+                {% endif %}
+            </div>
+        </td>
         <td style="font-weight:600;max-width:220px">{{ v.title }}</td>
         <td>{{ v.category ? v.category.name : '—' }}</td>
         <td><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:4px;font-size:.8rem">{{ v.youtubeId }}</code></td>

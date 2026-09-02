@@ -1,5 +1,11 @@
 {% extends 'themes/moderno/base.html.twig' %}
 {% block title %}{{ video.title }}{% endblock %}
+{% block og_tags %}
+{{ parent() }}
+<meta property="og:title" content="{{ video.title }}">
+<meta property="og:image" content="{{ video.thumbnailUrl starts with 'http' ? video.thumbnailUrl : app.request.schemeAndHttpHost ~ video.thumbnailUrl }}">
+<meta property="og:video" content="https://www.youtube.com/watch?v={{ video.youtubeId }}">
+{% endblock %}
 {% block body %}
 <div class="container mv-page">
     <header class="mv-header">
