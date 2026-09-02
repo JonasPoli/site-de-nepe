@@ -52,9 +52,18 @@ class BibliaApiController extends AbstractController
 
         $tenant = null;
         if ($tenantParam) {
-            $tenant = is_numeric($tenantParam)
-                ? $this->tenantRepo->find((int) $tenantParam)
-                : $this->tenantRepo->findOneBy(['domain' => $tenantParam]);
+            if (is_numeric($tenantParam)) {
+                $tenant = $this->tenantRepo->find((int) $tenantParam);
+            } else {
+                $cleanParam = trim($tenantParam);
+                $tenant = $this->tenantRepo->findOneBy(['domain' => $cleanParam])
+                    ?? $this->tenantRepo->createQueryBuilder('t')
+                        ->where('t.domain LIKE :term OR t.name LIKE :term')
+                        ->setParameter('term', '%' . $cleanParam . '%')
+                        ->setMaxResults(1)
+                        ->getQuery()
+                        ->getOneOrNullResult();
+            }
         }
 
         $vStart = $verseStart !== null && $verseStart > 0 ? $verseStart : null;
