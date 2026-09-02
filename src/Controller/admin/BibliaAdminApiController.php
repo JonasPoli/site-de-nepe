@@ -27,9 +27,9 @@ class BibliaAdminApiController extends AbstractController
     public function passage(Request $request): JsonResponse
     {
         $book = $request->query->get('book');
-        $chapter = $request->query->getInt('chapter');
-        $start = $request->query->getInt('start') ?: null;
-        $end = $request->query->getInt('end') ?: null;
+        $chapter = (int) $request->query->get('chapter');
+        $start = (int) $request->query->get('start') ?: null;
+        $end = (int) $request->query->get('end') ?: null;
 
         if (!$book || $chapter <= 0) {
             return new JsonResponse(['error' => 'Parâmetros inválidos (book e chapter são obrigatórios).'], 400);

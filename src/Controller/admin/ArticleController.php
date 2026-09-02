@@ -224,9 +224,9 @@ class ArticleController extends AbstractController
         if ($r->request->get('has_biblia_ref') && $r->request->get('biblia_book_id')) {
             $bookId = (int) $r->request->get('biblia_book_id');
             $article->setBibliaBook($bookId ? $em->getReference(\App\Entity\BibliaBook::class, $bookId) : null);
-            $article->setBibliaChapter($r->request->getInt('biblia_chapter') ?: null);
-            $article->setBibliaVerseStart($r->request->getInt('biblia_verse_start') ?: null);
-            $article->setBibliaVerseEnd($r->request->getInt('biblia_verse_end') ?: null);
+            $article->setBibliaChapter((int) $r->request->get('biblia_chapter') ?: null);
+            $article->setBibliaVerseStart((int) $r->request->get('biblia_verse_start') ?: null);
+            $article->setBibliaVerseEnd((int) $r->request->get('biblia_verse_end') ?: null);
         } else {
             $article->setBibliaBook(null);
             $article->setBibliaChapter(null);

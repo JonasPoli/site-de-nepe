@@ -1088,9 +1088,9 @@ class AdminContentController extends AbstractController
         if ($r->request->get('has_biblia_ref') && $r->request->get('biblia_book_id')) {
             $bookId = (int) $r->request->get('biblia_book_id');
             $entity->setBibliaBook($bookId ? $em->getReference(\App\Entity\BibliaBook::class, $bookId) : null);
-            $entity->setBibliaChapter($r->request->getInt('biblia_chapter') ?: null);
-            $entity->setBibliaVerseStart($r->request->getInt('biblia_verse_start') ?: null);
-            $entity->setBibliaVerseEnd($r->request->getInt('biblia_verse_end') ?: null);
+            $entity->setBibliaChapter((int) $r->request->get('biblia_chapter') ?: null);
+            $entity->setBibliaVerseStart((int) $r->request->get('biblia_verse_start') ?: null);
+            $entity->setBibliaVerseEnd((int) $r->request->get('biblia_verse_end') ?: null);
         } else {
             $entity->setBibliaBook(null);
             $entity->setBibliaChapter(null);

@@ -101,9 +101,9 @@ class BibliaApiController extends AbstractController
     public function passage(Request $request): JsonResponse
     {
         $bookParam = $request->query->get('book');
-        $chapter = $request->query->getInt('chapter');
-        $start = $request->query->getInt('start') ?: $request->query->getInt('verse_start');
-        $end = $request->query->getInt('end') ?: $request->query->getInt('verse_end');
+        $chapter = (int) $request->query->get('chapter');
+        $start = (int) ($request->query->get('start') ?: $request->query->get('verse_start')) ?: null;
+        $end = (int) ($request->query->get('end') ?: $request->query->get('verse_end')) ?: null;
 
         if (!$bookParam || $chapter <= 0) {
             return new JsonResponse([
