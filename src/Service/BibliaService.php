@@ -148,21 +148,32 @@ class BibliaService
 
     /**
      * Busca todos os conteúdos associados ao trecho pesquisado.
-     * Utiliza regra de sobreposição de intervalos:
+     * Se verseStart e verseEnd forem nulos, retorna todos os conteúdos do capítulo.
+     * Se informados, utiliza regra de sobreposição de intervalos:
      * C_start <= Q_end AND C_end >= Q_start (onde se C_end for nulo, C_end = C_start).
      *
+     * @param ?string $type Filtro opcional de tipo ('article', 'video', 'study'/'material', 'page')
      * @return array<int, array<string, mixed>>
      */
-    public function findContentsByPericope(int|string|BibliaBook $bookIdentifier, int $chapter, ?int $verseStart = null, ?int $verseEnd = null, ?Tenant $tenant = null): array
-    {
+    public function findContentsByPericope(
+        int|string|BibliaBook $bookIdentifier,
+        int $chapter,
+        ?int $verseStart = null,
+        ?int $verseEnd = null,
+        ?Tenant $tenant = null,
+        ?string $type = null
+    ): array {
         $book = $bookIdentifier instanceof BibliaBook ? $bookIdentifier : $this->bookRepo->findBySlugOrAbbrevOrId($bookIdentifier);
         if (!$book) {
             return [];
         }
 
-        $qStart = $verseStart ?: 1;
+        $typeNormalized = $type ? strtolower(trim($type)) : null;
+        $searchAllVerses = ($verseStart === null && $verseEnd === null);
+
+        $qStart = $verseStart;
         $qEnd = $verseEnd ?: $qStart;
-        if ($qEnd < $qStart) {
+        if ($qStart !== null && $qEnd !== null && $qEnd < $qStart) {
             $tmp = $qStart;
             $qStart = $qEnd;
             $qEnd = $tmp;
@@ -171,99 +182,119 @@ class BibliaService
         $results = [];
 
         // 1. Artigos Publicados
-        $artQb = $this->articleRepo->createQueryBuilder('a')
-            ->leftJoin('a.tenant', 't')
-            ->leftJoin('a.bibliaBook', 'b')
-            ->addSelect('t', 'b')
-            ->where('a.bibliaBook = :book')
-            ->andWhere('a.bibliaChapter = :chap')
-            ->andWhere('a.status = :published')
-            ->andWhere('a.bibliaVerseStart <= :qEnd')
-            ->andWhere('(a.bibliaVerseEnd >= :qStart OR (a.bibliaVerseEnd IS NULL AND a.bibliaVerseStart >= :qStart))')
-            ->setParameter('book', $book)
-            ->setParameter('chap', $chapter)
-            ->setParameter('published', ArticleStatus::Published)
-            ->setParameter('qStart', $qStart)
-            ->setParameter('qEnd', $qEnd);
+        if ($typeNormalized === null || in_array($typeNormalized, ['article', 'noticia', 'artigo', 'articles', 'noticias', 'artigos'], true)) {
+            $artQb = $this->articleRepo->createQueryBuilder('a')
+                ->leftJoin('a.tenant', 't')
+                ->leftJoin('a.bibliaBook', 'b')
+                ->addSelect('t', 'b')
+                ->where('a.bibliaBook = :book')
+                ->andWhere('a.bibliaChapter = :chap')
+                ->andWhere('a.status = :published')
+                ->setParameter('book', $book)
+                ->setParameter('chap', $chapter)
+                ->setParameter('published', ArticleStatus::Published);
 
-        if ($tenant) {
-            $artQb->andWhere('a.tenant = :tenant')->setParameter('tenant', $tenant);
-        }
+            if (!$searchAllVerses) {
+                $artQb->andWhere('a.bibliaVerseStart <= :qEnd')
+                      ->andWhere('(a.bibliaVerseEnd >= :qStart OR (a.bibliaVerseEnd IS NULL AND a.bibliaVerseStart >= :qStart))')
+                      ->setParameter('qStart', $qStart)
+                      ->setParameter('qEnd', $qEnd);
+            }
 
-        /** @var Article $article */
-        foreach ($artQb->getQuery()->getResult() as $article) {
-            $results[] = $this->formatArticleResult($article);
+            if ($tenant) {
+                $artQb->andWhere('a.tenant = :tenant')->setParameter('tenant', $tenant);
+            }
+
+            /** @var Article $article */
+            foreach ($artQb->getQuery()->getResult() as $article) {
+                $results[] = $this->formatArticleResult($article);
+            }
         }
 
         // 2. Vídeos
-        $vidQb = $this->videoRepo->createQueryBuilder('v')
-            ->leftJoin('v.tenant', 't')
-            ->leftJoin('v.bibliaBook', 'b')
-            ->addSelect('t', 'b')
-            ->where('v.bibliaBook = :book')
-            ->andWhere('v.bibliaChapter = :chap')
-            ->andWhere('v.bibliaVerseStart <= :qEnd')
-            ->andWhere('(v.bibliaVerseEnd >= :qStart OR (v.bibliaVerseEnd IS NULL AND v.bibliaVerseStart >= :qStart))')
-            ->setParameter('book', $book)
-            ->setParameter('chap', $chapter)
-            ->setParameter('qStart', $qStart)
-            ->setParameter('qEnd', $qEnd);
+        if ($typeNormalized === null || in_array($typeNormalized, ['video', 'videos', 'youtube'], true)) {
+            $vidQb = $this->videoRepo->createQueryBuilder('v')
+                ->leftJoin('v.tenant', 't')
+                ->leftJoin('v.bibliaBook', 'b')
+                ->addSelect('t', 'b')
+                ->where('v.bibliaBook = :book')
+                ->andWhere('v.bibliaChapter = :chap')
+                ->setParameter('book', $book)
+                ->setParameter('chap', $chapter);
 
-        if ($tenant) {
-            $vidQb->andWhere('v.tenant = :tenant')->setParameter('tenant', $tenant);
-        }
+            if (!$searchAllVerses) {
+                $vidQb->andWhere('v.bibliaVerseStart <= :qEnd')
+                      ->andWhere('(v.bibliaVerseEnd >= :qStart OR (v.bibliaVerseEnd IS NULL AND v.bibliaVerseStart >= :qStart))')
+                      ->setParameter('qStart', $qStart)
+                      ->setParameter('qEnd', $qEnd);
+            }
 
-        /** @var VideoSupport $video */
-        foreach ($vidQb->getQuery()->getResult() as $video) {
-            $results[] = $this->formatVideoResult($video);
+            if ($tenant) {
+                $vidQb->andWhere('v.tenant = :tenant')->setParameter('tenant', $tenant);
+            }
+
+            /** @var VideoSupport $video */
+            foreach ($vidQb->getQuery()->getResult() as $video) {
+                $results[] = $this->formatVideoResult($video);
+            }
         }
 
         // 3. Estudos / Materiais
-        $studyQb = $this->studyRepo->createQueryBuilder('s')
-            ->leftJoin('s.tenant', 't')
-            ->leftJoin('s.bibliaBook', 'b')
-            ->addSelect('t', 'b')
-            ->where('s.bibliaBook = :book')
-            ->andWhere('s.bibliaChapter = :chap')
-            ->andWhere('s.active = :active')
-            ->andWhere('s.bibliaVerseStart <= :qEnd')
-            ->andWhere('(s.bibliaVerseEnd >= :qStart OR (s.bibliaVerseEnd IS NULL AND s.bibliaVerseStart >= :qStart))')
-            ->setParameter('book', $book)
-            ->setParameter('chap', $chapter)
-            ->setParameter('active', true)
-            ->setParameter('qStart', $qStart)
-            ->setParameter('qEnd', $qEnd);
+        if ($typeNormalized === null || in_array($typeNormalized, ['study', 'material', 'estudo', 'studies', 'materials', 'estudos', 'materiais'], true)) {
+            $studyQb = $this->studyRepo->createQueryBuilder('s')
+                ->leftJoin('s.tenant', 't')
+                ->leftJoin('s.bibliaBook', 'b')
+                ->addSelect('t', 'b')
+                ->where('s.bibliaBook = :book')
+                ->andWhere('s.bibliaChapter = :chap')
+                ->andWhere('s.active = :active')
+                ->setParameter('book', $book)
+                ->setParameter('chap', $chapter)
+                ->setParameter('active', true);
 
-        if ($tenant) {
-            $studyQb->andWhere('s.tenant = :tenant')->setParameter('tenant', $tenant);
-        }
+            if (!$searchAllVerses) {
+                $studyQb->andWhere('s.bibliaVerseStart <= :qEnd')
+                        ->andWhere('(s.bibliaVerseEnd >= :qStart OR (s.bibliaVerseEnd IS NULL AND s.bibliaVerseStart >= :qStart))')
+                        ->setParameter('qStart', $qStart)
+                        ->setParameter('qEnd', $qEnd);
+            }
 
-        /** @var Study $study */
-        foreach ($studyQb->getQuery()->getResult() as $study) {
-            $results[] = $this->formatStudyResult($study);
+            if ($tenant) {
+                $studyQb->andWhere('s.tenant = :tenant')->setParameter('tenant', $tenant);
+            }
+
+            /** @var Study $study */
+            foreach ($studyQb->getQuery()->getResult() as $study) {
+                $results[] = $this->formatStudyResult($study);
+            }
         }
 
         // 4. Páginas
-        $pageQb = $this->pageRepo->createQueryBuilder('p')
-            ->leftJoin('p.tenant', 't')
-            ->leftJoin('p.bibliaBook', 'b')
-            ->addSelect('t', 'b')
-            ->where('p.bibliaBook = :book')
-            ->andWhere('p.bibliaChapter = :chap')
-            ->andWhere('p.bibliaVerseStart <= :qEnd')
-            ->andWhere('(p.bibliaVerseEnd >= :qStart OR (p.bibliaVerseEnd IS NULL AND p.bibliaVerseStart >= :qStart))')
-            ->setParameter('book', $book)
-            ->setParameter('chap', $chapter)
-            ->setParameter('qStart', $qStart)
-            ->setParameter('qEnd', $qEnd);
+        if ($typeNormalized === null || in_array($typeNormalized, ['page', 'pagina', 'pages', 'paginas'], true)) {
+            $pageQb = $this->pageRepo->createQueryBuilder('p')
+                ->leftJoin('p.tenant', 't')
+                ->leftJoin('p.bibliaBook', 'b')
+                ->addSelect('t', 'b')
+                ->where('p.bibliaBook = :book')
+                ->andWhere('p.bibliaChapter = :chap')
+                ->setParameter('book', $book)
+                ->setParameter('chap', $chapter);
 
-        if ($tenant) {
-            $pageQb->andWhere('p.tenant = :tenant')->setParameter('tenant', $tenant);
-        }
+            if (!$searchAllVerses) {
+                $pageQb->andWhere('p.bibliaVerseStart <= :qEnd')
+                       ->andWhere('(p.bibliaVerseEnd >= :qStart OR (p.bibliaVerseEnd IS NULL AND p.bibliaVerseStart >= :qStart))')
+                       ->setParameter('qStart', $qStart)
+                       ->setParameter('qEnd', $qEnd);
+            }
 
-        /** @var Page $page */
-        foreach ($pageQb->getQuery()->getResult() as $page) {
-            $results[] = $this->formatPageResult($page);
+            if ($tenant) {
+                $pageQb->andWhere('p.tenant = :tenant')->setParameter('tenant', $tenant);
+            }
+
+            /** @var Page $page */
+            foreach ($pageQb->getQuery()->getResult() as $page) {
+                $results[] = $this->formatPageResult($page);
+            }
         }
 
         return $results;

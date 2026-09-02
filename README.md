@@ -155,6 +155,168 @@ Targets **Symfony UX 2.22 -- 2.28+**, Symfony 7.2 / 7.4 / 8.0, PHP 8.4+.
 
 Documented features include `<twig:Turbo:Stream:*>` component syntax (UX 2.22), `TurboStreamResponse` helper, LiveProp URL binding with validation modifiers, `defer` / `lazy` loading for LiveComponents, UX Toolkit (copy-paste UI components), Iconify on-demand icons with `ux:icons:lock` CLI, and UX Map with Leaflet/Google Maps renderers including polygons, polylines, circles and `ComponentWithMapTrait`.
 
+## Sistema de Indexação Bíblica & API Multi-Tenant
+
+Este sistema conta com integração nativa com o texto bíblico na versão **Almeida Revista e Corrigida (ARC)**, permitindo indexar e relacionar Artigos, Vídeos, Materiais/Estudos e Páginas a versículos ou perícopes completas.
+
+### 1. Importação da Base Bíblica
+Os dados bíblicos (66 livros, 31.414 metadados de versículos e 31.106 versículos ARC) estão compactados no repositório em `data/biblia_arc.json.gz` (~1.8 MB). Para importar ou atualizar:
+
+```bash
+php bin/console app:biblia:import
+```
+> O comando é 100% idempotente (`ON DUPLICATE KEY UPDATE`) e executa em ~1 segundo.
+
+---
+
+### 2. Associação no Painel Administrativo
+Ao criar ou editar qualquer **Artigo**, **Vídeo**, **Material/Estudo** ou **Página**, o painel administrativo disponibiliza um componente de seleção em cascata:
+1. **Ativar Associação**: Marque a opção *"Associar versículo ou perícope a este conteúdo"*.
+2. **Seleção em Cascata**:
+   - **Testamento** (Antigo / Novo Testamento)
+   - **Livro** (com busca/filtro inteligente por nome ou sigla)
+   - **Capítulo** (carrega a quantidade real de capítulos)
+   - **Versículo Inicial**
+   - **Versículo Final** (opcional, para definir perícope/intervalo)
+3. **Pré-visualização Dinâmica**: Exibe em tempo real o texto sagrado ARC formatado com números e títulos.
+
+---
+
+### 3. API Pública Multi-Tenant (`/api/biblia`)
+
+A API permite que aplicações externas (como buscadores e aplicativos bíblicos) consultem os conteúdos produzidos pelos tenants da plataforma.
+
+#### Endpoints
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/api/biblia/contents` | Consulta conteúdos associados a um capítulo, versículo ou perícope com URLs multi-tenant |
+| `GET` | `/api/biblia/passage` | Retorna o texto bíblico ARC formatado de um trecho |
+
+---
+
+#### Parâmetros da Rota `/api/biblia/contents`
+
+| Parâmetro | Tipo | Obrigatório? | Descrição | Exemplos |
+|---|---|:---:|---|---|
+| `book` | string / int | **Sim** | ID, sigla (abbrev) ou nome do livro bíblico | `jo`, `joao`, `43`, `gn`, `genesis` |
+| `chapter` | int | **Sim** | Número do capítulo | `3`, `1`, `14` |
+| `verse_start` / `verse` | int | Não | Versículo inicial. Se omitido, retorna **todos os conteúdos do capítulo inteiro**. | `16`, `1` |
+| `verse_end` | int | Não | Versículo final da perícope. Se omitido, assume o valor de `verse_start`. | `17`, `21` |
+| `type` | string | Não | Filtra pelo tipo de conteúdo: `study` (ou `material`), `article` (ou `noticia`), `video`, `page` | `study`, `material`, `video`, `article` |
+| `tenant` | string / int | Não | Filtra conteúdos por domínio ou ID do tenant. Se omitido, busca em **todos os tenants**. | `renovando.nepe.org.br`, `3` |
+
+---
+
+#### Exemplos de Uso da API
+
+##### Exemplo 1: Buscar todos os Materiais/Estudos de um Capítulo Inteiro
+> **Objetivo**: Recuperar todos os materiais e estudos cadastrados no capítulo **3 de João**:
+
+```bash
+# cURL
+curl -X GET "https://seudominio.com.br/api/biblia/contents?book=jo&chapter=3&type=study"
+```
+
+**Resposta JSON:**
+```json
+{
+  "status": "success",
+  "query": {
+    "book_id": 43,
+    "book_name": "João",
+    "book_abbreviation": "jo",
+    "chapter": 3,
+    "verse_start": null,
+    "verse_end": null,
+    "reference_formatted": "João 3 (Capítulo inteiro)",
+    "type_filter": "study",
+    "tenant_filter": null
+  },
+  "total": 1,
+  "results": [
+    {
+      "id": 12,
+      "type": "study",
+      "type_label": "Material / Estudo",
+      "title": "Estudo Detalhado sobre o Novo Nascimento",
+      "slug": "estudo-novo-nascimento",
+      "description": "Análise teológica e histórica do diálogo com Nicodemos.",
+      "url": "https://tenant-a.nepe.org.br/estudo/estudo-novo-nascimento",
+      "image_url": "https://tenant-a.nepe.org.br/uploads/study/capa-nicodemos.jpg",
+      "tenant": {
+        "id": 2,
+        "name": "NEPE São Paulo",
+        "domain": "tenant-a.nepe.org.br",
+        "logo_url": "https://tenant-a.nepe.org.br/uploads/tenant/logo.png",
+        "primary_color": "#1a56db"
+      },
+      "biblical_reference": {
+        "book_id": 43,
+        "book_name": "João",
+        "book_abbreviation": "jo",
+        "chapter": 3,
+        "verse_start": 1,
+        "verse_end": 21,
+        "formatted": "João 3:1-21"
+      },
+      "published_at": "2026-05-10T14:00:00+00:00",
+      "created_at": "2026-05-10T12:30:00+00:00"
+    }
+  ]
+}
+```
+
+##### Exemplo 2: Buscar Todos os Conteúdos de um Capítulo Inteiro
+```bash
+curl -X GET "https://seudominio.com.br/api/biblia/contents?book=jo&chapter=3"
+```
+
+##### Exemplo 3: Buscar Conteúdos por Perícope Específica (ex: João 3:16-17)
+```bash
+curl -X GET "https://seudominio.com.br/api/biblia/contents?book=jo&chapter=3&verse_start=16&verse_end=17"
+```
+
+##### Exemplo 4: Filtrar por Tenant Específico
+```bash
+curl -X GET "https://seudominio.com.br/api/biblia/contents?book=jo&chapter=3&tenant=renovando.nepe.org.br"
+```
+
+##### Exemplo 5: Consumindo via JavaScript / Fetch
+```javascript
+// Buscar todos os materiais do capítulo 3 de João
+const response = await fetch('https://seudominio.com.br/api/biblia/contents?book=jo&chapter=3&type=study');
+const data = await response.json();
+
+if (data.status === 'success') {
+  data.results.forEach(item => {
+    console.log(`[${item.tenant.name}] ${item.title}`);
+    console.log(`Acessar: ${item.url}`);
+    console.log(`Trecho: ${item.biblical_reference.formatted}`);
+  });
+}
+```
+
+##### Exemplo 6: Consumindo via PHP
+```php
+$url = 'https://seudominio.com.br/api/biblia/contents?' . http_build_query([
+    'book' => 'jo',
+    'chapter' => 3,
+    'type' => 'study'
+]);
+
+$response = file_get_contents($url);
+$data = json_decode($response, true);
+
+foreach ($data['results'] as $item) {
+    echo "Título: {$item['title']}\n";
+    echo "URL: {$item['url']}\n";
+    echo "Tenant: {$item['tenant']['name']}\n";
+}
+```
+
+---
+
 ## Author
 
 Simon Andre -- [smnandre.dev](https://smnandre.dev) -- [GitHub](https://github.com/smnandre) -- [Twitter](https://x.com/simonandre)
@@ -162,3 +324,4 @@ Simon Andre -- [smnandre.dev](https://smnandre.dev) -- [GitHub](https://github.c
 ## License
 
 MIT
+

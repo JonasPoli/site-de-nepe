@@ -25,9 +25,11 @@ class BibliaApiController extends AbstractController
     {
         $bookParam = $request->query->get('book');
         $chapter = $request->query->getInt('chapter');
-        $verseStart = $request->query->getInt('verse_start') ?: $request->query->getInt('verse');
-        $verseEnd = $request->query->getInt('verse_end') ?: $verseStart;
+        $hasVerseFilter = $request->query->has('verse') || $request->query->has('verse_start');
+        $verseStart = $hasVerseFilter ? ($request->query->getInt('verse_start') ?: $request->query->getInt('verse')) : null;
+        $verseEnd = $request->query->has('verse_end') ? $request->query->getInt('verse_end') : $verseStart;
         $tenantParam = $request->query->get('tenant');
+        $typeParam = $request->query->get('type');
 
         if (!$bookParam || $chapter <= 0) {
             return new JsonResponse([
@@ -55,19 +57,23 @@ class BibliaApiController extends AbstractController
                 : $this->tenantRepo->findOneBy(['domain' => $tenantParam]);
         }
 
-        $vStart = $verseStart > 0 ? $verseStart : 1;
-        $vEnd = $verseEnd > 0 ? $verseEnd : $vStart;
-        if ($vEnd < $vStart) {
+        $vStart = $verseStart !== null && $verseStart > 0 ? $verseStart : null;
+        $vEnd = $verseEnd !== null && $verseEnd > 0 ? $verseEnd : $vStart;
+        if ($vStart !== null && $vEnd !== null && $vEnd < $vStart) {
             $tmp = $vStart;
             $vStart = $vEnd;
             $vEnd = $tmp;
         }
 
-        $contents = $this->bibliaService->findContentsByPericope($book, $chapter, $vStart, $vEnd, $tenant);
+        $contents = $this->bibliaService->findContentsByPericope($book, $chapter, $vStart, $vEnd, $tenant, $typeParam);
 
-        $refFormatted = ($vStart === $vEnd)
-            ? sprintf('%s %d:%d', $book->getName(), $chapter, $vStart)
-            : sprintf('%s %d:%d-%d', $book->getName(), $chapter, $vStart, $vEnd);
+        if ($vStart === null) {
+            $refFormatted = sprintf('%s %d (Capítulo inteiro)', $book->getName(), $chapter);
+        } elseif ($vStart === $vEnd) {
+            $refFormatted = sprintf('%s %d:%d', $book->getName(), $chapter, $vStart);
+        } else {
+            $refFormatted = sprintf('%s %d:%d-%d', $book->getName(), $chapter, $vStart, $vEnd);
+        }
 
         return new JsonResponse([
             'status' => 'success',
@@ -79,6 +85,7 @@ class BibliaApiController extends AbstractController
                 'verse_start' => $vStart,
                 'verse_end' => $vEnd,
                 'reference_formatted' => $refFormatted,
+                'type_filter' => $typeParam ?: null,
                 'tenant_filter' => $tenant?->getDomain() ?? null,
             ],
             'total' => count($contents),
