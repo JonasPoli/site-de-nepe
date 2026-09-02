@@ -91,6 +91,9 @@
     </script>
 
 
+    {# ── Referência Bíblica / Perícope ── #}
+    {{ include('admin/biblia/_selector.html.twig', { entity: article }) }}
+
     <details>
         <summary style="cursor:pointer;font-weight:600;color:var(--muted);font-size:.85rem;margin-bottom:1rem">⚙ SEO avançado</summary>
         <div class="af" style="margin-top:1rem">

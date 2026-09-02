@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Contract\TenantAwareInterface;
+use App\Entity\Trait\HasBibliaReferenceTrait;
 use App\Repository\StudyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,9 +13,12 @@ use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: StudyRepository::class)]
+#[ORM\Table(name: 'study')]
+#[ORM\Index(name: 'study_biblia_idx', columns: ['biblia_book_id', 'biblia_chapter', 'biblia_verse_start', 'biblia_verse_end'])]
 #[Vich\Uploadable]
 class Study implements TenantAwareInterface
 {
+    use HasBibliaReferenceTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

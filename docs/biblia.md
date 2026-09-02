@@ -11,6 +11,11 @@ Neste computador temos um outro projeto especializado em biblia:
 Você só vai pegar os versículos em biblia_verse da versão ARC.
 
  2	(ARC) - 1969 - Almeida Revisada e Corrigida	/pt/bible/212/GEN.1.arc	ARC
+
+ Este sistema fica em várias máquinas, inclusive nesta e no servidor da produção.
+ Você vai precisar criar um command para popular com os dados bíblicos os sistema, na base do se não tem cria, se tem atualiza, para evitar estragar caso rodado duas vezes.
+ Acho que este arquivo de dados grande que será usado pelo command pode ficar zipado no sistema, dezipado quando for ser importado.
+ Veja se não vai ficar muito grande para o github
  
 ## Escolha do versículo
 No painel administrativo deste sistema aqui, quando estiver sendo editado ou inserido a artigo, vídeo, material ou página, deve ter um checkbox para escolher se deseja associar um versículo biblico ou a uma perícope. 
@@ -36,3 +41,4 @@ Futuramente, o serviço existente em  /Volumes/Dados/work/nepe-serach-github vai
 
 # Estudo
 Antes de desenvolver isso, faça um estudo da situação e pense na melhor forma possível de concretizar estes desejos depois implante
+

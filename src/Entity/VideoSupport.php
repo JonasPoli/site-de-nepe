@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Contract\TenantAwareInterface;
+use App\Entity\Trait\HasBibliaReferenceTrait;
 use App\Repository\VideoSupportRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,9 +13,12 @@ use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: VideoSupportRepository::class)]
+#[ORM\Table(name: 'video_support')]
+#[ORM\Index(name: 'video_biblia_idx', columns: ['biblia_book_id', 'biblia_chapter', 'biblia_verse_start', 'biblia_verse_end'])]
 #[Vich\Uploadable]
 class VideoSupport implements TenantAwareInterface
 {
+    use HasBibliaReferenceTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

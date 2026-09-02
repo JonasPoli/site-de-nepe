@@ -39,8 +39,8 @@ class TenantSubscriber implements EventSubscriberInterface
 
         $request = $event->getRequest();
 
-        // Skip Symfony profiler / debug routes
-        if (str_starts_with($request->getPathInfo(), '/_')) {
+        // Skip Symfony profiler / debug routes and API routes
+        if (str_starts_with($request->getPathInfo(), '/_') || str_starts_with($request->getPathInfo(), '/api')) {
             return;
         }
 

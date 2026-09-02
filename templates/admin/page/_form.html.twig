@@ -15,6 +15,9 @@
             <label style="color:var(--text)">Exibir no rodapé</label>
         </div>
     </div>
+    {# ── Referência Bíblica / Perícope ── #}
+    {{ include('admin/biblia/_selector.html.twig', { entity: page }) }}
+
     <details><summary style="cursor:pointer;font-weight:600;color:var(--muted);font-size:.85rem;margin-bottom:1rem">⚙ SEO</summary>
         <div class="af" style="margin-top:1rem">
             <div class="af-field"><label>SEO Title</label><input type="text" name="seoTitle" class="ai" value="{{ page.seoTitle }}"></div>

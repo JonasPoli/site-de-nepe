@@ -485,7 +485,7 @@ class AdminContentController extends AbstractController
         $page = new Page();
         if ($r->isMethod('POST')) {
             $page->setTenant($tc->requireTenant());
-            $this->populatePage($page, $r, $slugger);
+            $this->populatePage($page, $r, $slugger, $em);
             $em->persist($page);
             $em->flush();
             $this->addFlash('success', 'Página criada.');
@@ -498,7 +498,7 @@ class AdminContentController extends AbstractController
     public function pageEdit(Page $page, Request $r, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         if ($r->isMethod('POST')) {
-            $this->populatePage($page, $r, $slugger);
+            $this->populatePage($page, $r, $slugger, $em);
             $em->flush();
             $this->addFlash('success', 'Página atualizada.');
             return $this->redirectToRoute('admin_page_index');
@@ -970,7 +970,7 @@ class AdminContentController extends AbstractController
         $cat->setShowInFooter((bool) $r->request->get('showInFooter'));
     }
 
-    private function populatePage(Page $page, Request $r, SluggerInterface $slugger): void
+    private function populatePage(Page $page, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void
     {
         $page->setTitle((string) $r->request->get('title'));
         $page->setSlug($r->request->get('slug') ?: strtolower((string) $slugger->slug($page->getTitle())));
@@ -978,6 +978,7 @@ class AdminContentController extends AbstractController
         $page->setShowInFooter((bool) $r->request->get('showInFooter'));
         $page->setSeoTitle($r->request->get('seoTitle') ?: null);
         $page->setSeoDescription($r->request->get('seoDescription') ?: null);
+        $this->applyBibliaReference($page, $r, $em);
     }
 
     private function populateVideo(VideoSupport $video, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void
@@ -1001,6 +1002,9 @@ class AdminContentController extends AbstractController
         $catId = (int) $r->request->get('category');
         $category = $catId ? $em->getReference(\App\Entity\Category::class, $catId) : null;
         $video->setCategory($category);
+
+        // ── Referência Bíblica / Perícope ──────────────────────────────────
+        $this->applyBibliaReference($video, $r, $em);
 
         // ── Delete removed materials ──────────────────────────────────────────
         $deleteIds = array_filter(array_map('intval', (array) $r->request->all('delete_material')));
@@ -1045,6 +1049,9 @@ class AdminContentController extends AbstractController
         $category = $catId ? $em->getReference(\App\Entity\Category::class, $catId) : null;
         $study->setCategory($category);
 
+        // ── Referência Bíblica / Perícope ──────────────────────────────────
+        $this->applyBibliaReference($study, $r, $em);
+
         // ── Delete removed materials ──────────────────────────────────────────
         $deleteIds = array_filter(array_map('intval', (array) $r->request->all('delete_material')));
         foreach ($study->getMaterials() as $mat) {
@@ -1066,6 +1073,29 @@ class AdminContentController extends AbstractController
             $mat->setExtension(strtolower($uploadedFile->getClientOriginalExtension()));
             $mat->setFile($uploadedFile);
             $em->persist($mat);
+        }
+    }
+
+    /**
+     * Auxiliar para processar os dados do seletor bíblico nas entidades que usam HasBibliaReferenceTrait.
+     */
+    private function applyBibliaReference(object $entity, Request $r, EntityManagerInterface $em): void
+    {
+        if (!method_exists($entity, 'setBibliaBook')) {
+            return;
+        }
+
+        if ($r->request->get('has_biblia_ref') && $r->request->get('biblia_book_id')) {
+            $bookId = (int) $r->request->get('biblia_book_id');
+            $entity->setBibliaBook($bookId ? $em->getReference(\App\Entity\BibliaBook::class, $bookId) : null);
+            $entity->setBibliaChapter($r->request->getInt('biblia_chapter') ?: null);
+            $entity->setBibliaVerseStart($r->request->getInt('biblia_verse_start') ?: null);
+            $entity->setBibliaVerseEnd($r->request->getInt('biblia_verse_end') ?: null);
+        } else {
+            $entity->setBibliaBook(null);
+            $entity->setBibliaChapter(null);
+            $entity->setBibliaVerseStart(null);
+            $entity->setBibliaVerseEnd(null);
         }
     }
 }

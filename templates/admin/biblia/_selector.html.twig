@@ -1,0 +1,397 @@
+{#
+  Componente: Seletor de Texto Bíblico / Perícope
+  Parâmetros:
+    - entity: Entidade que utiliza HasBibliaReferenceTrait (Article, VideoSupport, Study, Page)
+#}
+{% set hasRef = entity and entity.hasBibliaReference() %}
+{% set currentBookId = entity ? (entity.bibliaBook ? entity.bibliaBook.id : null) : null %}
+{% set currentTestamentId = entity and entity.bibliaBook and entity.bibliaBook.testment ? entity.bibliaBook.testment.id : null %}
+{% set currentChapter = entity ? entity.bibliaChapter : null %}
+{% set currentVerseStart = entity ? entity.bibliaVerseStart : null %}
+{% set currentVerseEnd = entity ? entity.bibliaVerseEnd : null %}
+
+<div class="card biblia-selector-container" id="biblia-selector-box" style="margin-top:1.25rem;border-color:rgba(79,110,247,.25);background:linear-gradient(180deg, rgba(79,110,247,.03) 0%, var(--bg2) 100%)">
+    {# Header com toggle #}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer" onclick="toggleBibliaRef(event)">
+        <div style="display:flex;align-items:center;gap:.75rem">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(79,110,247,.15);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.1rem">
+                <sl-icon name="book"></sl-icon>
+            </div>
+            <div>
+                <strong style="font-size:.95rem;color:var(--text);display:block">Referência Bíblica / Perícope</strong>
+                <span style="font-size:.78rem;color:var(--muted)">Associe este conteúdo a um versículo ou trecho da Bíblia Sagrada (ARC)</span>
+            </div>
+        </div>
+        <label class="af-check" style="margin:0" onclick="event.stopPropagation()">
+            <input type="checkbox" name="has_biblia_ref" id="has_biblia_ref" value="1" {{ hasRef ? 'checked' : '' }} onchange="onBibliaToggleChange(this.checked)">
+            <span style="font-size:.85rem;font-weight:600">Associar Bíblia</span>
+        </label>
+    </div>
+
+    {# Corpo do Seletor (colapsável) #}
+    <div id="biblia-fields-wrapper" style="{{ hasRef ? '' : 'display:none;' }};margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:1rem;align-items:flex-end">
+            {# 1. Testamento #}
+            <div class="af-field">
+                <label style="font-size:.78rem">1. Testamento</label>
+                <select id="biblia-testament-select" class="as" onchange="onTestamentChange(this.value)">
+                    <option value="">Todos</option>
+                    <option value="1" {{ currentTestamentId == 1 ? 'selected' : '' }}>Antigo Testamento</option>
+                    <option value="2" {{ currentTestamentId == 2 ? 'selected' : '' }}>Novo Testamento</option>
+                </select>
+            </div>
+
+            {# 2. Livro #}
+            <div class="af-field" style="grid-column: span 2">
+                <label style="font-size:.78rem">2. Livro <span class="req">*</span></label>
+                <select name="biblia_book_id" id="biblia-book-select" class="as" onchange="onBookChange(this.value)">
+                    <option value="">— Selecione um livro —</option>
+                </select>
+            </div>
+
+            {# 3. Capítulo #}
+            <div class="af-field">
+                <label style="font-size:.78rem">3. Capítulo <span class="req">*</span></label>
+                <select name="biblia_chapter" id="biblia-chapter-select" class="as" onchange="onChapterChange(this.value)" disabled>
+                    <option value="">—</option>
+                </select>
+            </div>
+
+            {# 4. Versículo Inicial #}
+            <div class="af-field">
+                <label style="font-size:.78rem">4. Versículo Início <span class="req">*</span></label>
+                <select name="biblia_verse_start" id="biblia-verse-start-select" class="as" onchange="onVerseStartChange(this.value)" disabled>
+                    <option value="">—</option>
+                </select>
+            </div>
+
+            {# 5. Versículo Final (Perícope) #}
+            <div class="af-field">
+                <label style="font-size:.78rem">5. Versículo Fim <span style="font-size:.7rem;color:var(--muted)">(opcional)</span></label>
+                <select name="biblia_verse_end" id="biblia-verse-end-select" class="as" onchange="onVerseEndChange(this.value)" disabled>
+                    <option value="">Igual ao início</option>
+                </select>
+            </div>
+        </div>
+
+        {# ── Card Dinâmico de Pré-visualização da Passagem Bíblica ── #}
+        <div id="biblia-preview-card" style="margin-top:1.25rem;border-radius:10px;background:var(--bg3);border:1px solid rgba(79,110,247,.2);padding:1.25rem;display:none;position:relative">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:.6rem">
+                <div style="display:flex;align-items:center;gap:.5rem">
+                    <span class="badge bg-inf" id="biblia-preview-badge" style="font-size:.8rem;padding:.3rem .75rem;letter-spacing:.02em">
+                        📖 <span id="biblia-preview-ref-title">Passagem</span>
+                    </span>
+                    <span style="font-size:.75rem;color:var(--muted)">Almeida Revista e Corrigida (ARC)</span>
+                </div>
+                <button type="button" class="btn btn-g btn-sm" onclick="fetchBibliaPreview()" title="Recarregar texto">
+                    <sl-icon name="arrow-clockwise"></sl-icon>
+                </button>
+            </div>
+
+            {# Loading Spinner #}
+            <div id="biblia-preview-loading" style="display:none;text-align:center;padding:1.5rem 0;color:var(--muted)">
+                <sl-spinner style="font-size:1.6rem;--indicator-color:var(--primary)"></sl-spinner>
+                <p style="font-size:.82rem;margin-top:.5rem">Carregando texto bíblico...</p>
+            </div>
+
+            {# Conteúdo dos Versículos #}
+            <div id="biblia-preview-content" style="font-family:'Georgia', serif;line-height:1.8;font-size:.95rem;color:#f1f5f9">
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Script Modular do Seletor Bíblico ── #}
+<script>
+(function() {
+    const initialState = {
+        hasRef: {{ hasRef ? 'true' : 'false' }},
+        bookId: {{ currentBookId ? currentBookId : 'null' }},
+        testamentId: {{ currentTestamentId ? currentTestamentId : 'null' }},
+        chapter: {{ currentChapter ? currentChapter : 'null' }},
+        verseStart: {{ currentVerseStart ? currentVerseStart : 'null' }},
+        verseEnd: {{ currentVerseEnd ? currentVerseEnd : 'null' }}
+    };
+
+    let bibliaData = null; // { testaments: [...], books: [...] }
+
+    window.toggleBibliaRef = function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.closest('label')) return;
+        const chk = document.getElementById('has_biblia_ref');
+        chk.checked = !chk.checked;
+        window.onBibliaToggleChange(chk.checked);
+    };
+
+    window.onBibliaToggleChange = function(checked) {
+        const wrapper = document.getElementById('biblia-fields-wrapper');
+        if (checked) {
+            wrapper.style.display = 'block';
+            if (!bibliaData) {
+                loadBibliaStructure();
+            }
+        } else {
+            wrapper.style.display = 'none';
+        }
+    };
+
+    async function loadBibliaStructure() {
+        try {
+            const resp = await fetch('{{ path("admin_api_biblia_structure") }}');
+            bibliaData = await resp.json();
+            renderBooks(initialState.testamentId || '');
+            
+            if (initialState.bookId) {
+                const bookSelect = document.getElementById('biblia-book-select');
+                bookSelect.value = initialState.bookId;
+                populateChapters(initialState.bookId, initialState.chapter);
+                
+                if (initialState.chapter) {
+                    populateVerses(initialState.bookId, initialState.chapter, initialState.verseStart, initialState.verseEnd);
+                    window.fetchBibliaPreview();
+                }
+            }
+        } catch (err) {
+            console.error('Erro ao carregar estrutura da Bíblia:', err);
+        }
+    }
+
+    function renderBooks(testamentId) {
+        const select = document.getElementById('biblia-book-select');
+        const currentVal = select.value || initialState.bookId;
+        select.innerHTML = '<option value="">— Selecione um livro —</option>';
+
+        if (!bibliaData || !bibliaData.books) return;
+
+        const filtered = bibliaData.books.filter(b => !testamentId || b.testament_id == testamentId);
+
+        // Agrupar por testamento se não filtrado
+        if (!testamentId) {
+            const at = filtered.filter(b => b.testament_id === 1);
+            const nt = filtered.filter(b => b.testament_id === 2);
+
+            const optgroupAT = document.createElement('optgroup');
+            optgroupAT.label = 'Antigo Testamento';
+            at.forEach(b => {
+                const opt = new Option(`${b.name} (${b.abbrev})`, b.id);
+                optgroupAT.appendChild(opt);
+            });
+            select.appendChild(optgroupAT);
+
+            const optgroupNT = document.createElement('optgroup');
+            optgroupNT.label = 'Novo Testamento';
+            nt.forEach(b => {
+                const opt = new Option(`${b.name} (${b.abbrev})`, b.id);
+                optgroupNT.appendChild(opt);
+            });
+            select.appendChild(optgroupNT);
+        } else {
+            filtered.forEach(b => {
+                const opt = new Option(`${b.name} (${b.abbrev})`, b.id);
+                select.appendChild(opt);
+            });
+        }
+
+        if (currentVal) {
+            select.value = currentVal;
+        }
+    }
+
+    window.onTestamentChange = function(testamentId) {
+        renderBooks(testamentId);
+        // Limpar livro, capítulo, versículos e preview
+        resetBook();
+    };
+
+    window.onBookChange = function(bookId) {
+        resetChapter();
+        if (!bookId) return;
+        populateChapters(bookId);
+    };
+
+    function populateChapters(bookId, selectedChapter = null) {
+        const chSelect = document.getElementById('biblia-chapter-select');
+        chSelect.innerHTML = '<option value="">—</option>';
+        chSelect.disabled = true;
+
+        if (!bibliaData) return;
+        const book = bibliaData.books.find(b => b.id == bookId);
+        if (!book || !book.chapters) return;
+
+        const chapters = Object.keys(book.chapters).map(Number).sort((a, b) => a - b);
+        chapters.forEach(ch => {
+            const opt = new Option(`Capítulo ${ch}`, ch);
+            chSelect.appendChild(opt);
+        });
+
+        chSelect.disabled = false;
+        if (selectedChapter) {
+            chSelect.value = selectedChapter;
+        }
+    }
+
+    window.onChapterChange = function(chapter) {
+        resetVerses();
+        const bookId = document.getElementById('biblia-book-select').value;
+        if (!bookId || !chapter) return;
+        populateVerses(bookId, chapter);
+    };
+
+    function populateVerses(bookId, chapter, selectedStart = null, selectedEnd = null) {
+        const vStartSelect = document.getElementById('biblia-verse-start-select');
+        const vEndSelect = document.getElementById('biblia-verse-end-select');
+
+        vStartSelect.innerHTML = '<option value="">—</option>';
+        vEndSelect.innerHTML = '<option value="">Igual ao início</option>';
+        vStartSelect.disabled = true;
+        vEndSelect.disabled = true;
+
+        if (!bibliaData) return;
+        const book = bibliaData.books.find(b => b.id == bookId);
+        if (!book || !book.chapters || !book.chapters[chapter]) return;
+
+        const maxVerses = book.chapters[chapter];
+        for (let i = 1; i <= maxVerses; i++) {
+            vStartSelect.appendChild(new Option(`Versículo ${i}`, i));
+        }
+        vStartSelect.disabled = false;
+
+        if (selectedStart) {
+            vStartSelect.value = selectedStart;
+            populateVerseEndOptions(maxVerses, selectedStart, selectedEnd);
+        }
+    }
+
+    function populateVerseEndOptions(maxVerses, startVal, selectedEnd = null) {
+        const vEndSelect = document.getElementById('biblia-verse-end-select');
+        vEndSelect.innerHTML = '<option value="">Igual ao início (único)</option>';
+
+        const start = parseInt(startVal, 10);
+        if (isNaN(start)) {
+            vEndSelect.disabled = true;
+            return;
+        }
+
+        for (let i = start + 1; i <= maxVerses; i++) {
+            vEndSelect.appendChild(new Option(`Até o versículo ${i}`, i));
+        }
+
+        vEndSelect.disabled = false;
+        if (selectedEnd && selectedEnd > start) {
+            vEndSelect.value = selectedEnd;
+        }
+    }
+
+    window.onVerseStartChange = function(startVal) {
+        const bookId = document.getElementById('biblia-book-select').value;
+        const chapter = document.getElementById('biblia-chapter-select').value;
+        const vEndSelect = document.getElementById('biblia-verse-end-select');
+        
+        if (!startVal || !bookId || !chapter) {
+            vEndSelect.innerHTML = '<option value="">Igual ao início</option>';
+            vEndSelect.disabled = true;
+            hidePreview();
+            return;
+        }
+
+        const book = bibliaData.books.find(b => b.id == bookId);
+        const maxVerses = book ? book.chapters[chapter] : 0;
+        populateVerseEndOptions(maxVerses, startVal);
+
+        window.fetchBibliaPreview();
+    };
+
+    window.onVerseEndChange = function() {
+        window.fetchBibliaPreview();
+    };
+
+    function resetBook() {
+        document.getElementById('biblia-book-select').value = '';
+        resetChapter();
+    }
+
+    function resetChapter() {
+        const ch = document.getElementById('biblia-chapter-select');
+        ch.innerHTML = '<option value="">—</option>';
+        ch.disabled = true;
+        resetVerses();
+    }
+
+    function resetVerses() {
+        const vs = document.getElementById('biblia-verse-start-select');
+        const ve = document.getElementById('biblia-verse-end-select');
+        vs.innerHTML = '<option value="">—</option>';
+        vs.disabled = true;
+        ve.innerHTML = '<option value="">Igual ao início</option>';
+        ve.disabled = true;
+        hidePreview();
+    }
+
+    function hidePreview() {
+        document.getElementById('biblia-preview-card').style.display = 'none';
+        document.getElementById('biblia-preview-content').innerHTML = '';
+    }
+
+    window.fetchBibliaPreview = async function() {
+        const bookId = document.getElementById('biblia-book-select').value;
+        const chapter = document.getElementById('biblia-chapter-select').value;
+        const start = document.getElementById('biblia-verse-start-select').value;
+        const end = document.getElementById('biblia-verse-end-select').value;
+
+        if (!bookId || !chapter || !start) {
+            hidePreview();
+            return;
+        }
+
+        const card = document.getElementById('biblia-preview-card');
+        const loading = document.getElementById('biblia-preview-loading');
+        const content = document.getElementById('biblia-preview-content');
+        const titleBadge = document.getElementById('biblia-preview-ref-title');
+
+        card.style.display = 'block';
+        loading.style.display = 'block';
+        content.style.display = 'none';
+
+        try {
+            let url = `{{ path('admin_api_biblia_passage') }}?book=${encodeURIComponent(bookId)}&chapter=${encodeURIComponent(chapter)}&start=${encodeURIComponent(start)}`;
+            if (end && parseInt(end, 10) > parseInt(start, 10)) {
+                url += `&end=${encodeURIComponent(end)}`;
+            }
+
+            const resp = await fetch(url);
+            if (!resp.ok) {
+                throw new Error('Passagem não encontrada');
+            }
+
+            const data = await resp.json();
+            titleBadge.textContent = data.reference_formatted || 'Passagem Bíblica';
+
+            let html = '';
+            if (data.verses && data.verses.length > 0) {
+                data.verses.forEach(v => {
+                    if (v.subject) {
+                        html += `<div style="font-weight:700;font-size:.88rem;color:var(--secondary);margin:.6rem 0 .2rem;font-family:'Inter',sans-serif">${v.subject}</div>`;
+                    }
+                    html += `<p style="margin-bottom:.5rem"><sup style="font-size:.72rem;font-weight:700;color:var(--primary);margin-right:4px;user-select:none;font-family:'Inter',sans-serif">${v.verse}</sup> ${v.text}</p>`;
+                });
+            } else {
+                html = '<p style="color:var(--muted);font-style:italic">Nenhum texto retornado para este trecho.</p>';
+            }
+
+            content.innerHTML = html;
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        } catch (err) {
+            loading.style.display = 'none';
+            content.innerHTML = `<p style="color:var(--danger);font-size:.85rem">Não foi possível carregar o texto da passagem selecionada.</p>`;
+            content.style.display = 'block';
+        }
+    };
+
+    // Inicialização ao carregar o DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        if (initialState.hasRef || document.getElementById('has_biblia_ref').checked) {
+            loadBibliaStructure();
+        }
+    });
+})();
+</script>

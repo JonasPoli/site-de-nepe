@@ -220,6 +220,20 @@ class ArticleController extends AbstractController
         $slug = $r->request->get('slug');
         $article->setSlug($slug ?: strtolower((string) $slugger->slug($article->getTitle())));
 
+        // ── Referência Bíblica / Perícope ──────────────────────────────────
+        if ($r->request->get('has_biblia_ref') && $r->request->get('biblia_book_id')) {
+            $bookId = (int) $r->request->get('biblia_book_id');
+            $article->setBibliaBook($bookId ? $em->getReference(\App\Entity\BibliaBook::class, $bookId) : null);
+            $article->setBibliaChapter($r->request->getInt('biblia_chapter') ?: null);
+            $article->setBibliaVerseStart($r->request->getInt('biblia_verse_start') ?: null);
+            $article->setBibliaVerseEnd($r->request->getInt('biblia_verse_end') ?: null);
+        } else {
+            $article->setBibliaBook(null);
+            $article->setBibliaChapter(null);
+            $article->setBibliaVerseStart(null);
+            $article->setBibliaVerseEnd(null);
+        }
+
         // ── Main Image ────────────────────────────────────────────────────────
         $imageFile = $r->files->get('imageFile');
         if ($imageFile) {

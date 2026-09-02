@@ -104,6 +104,9 @@
         </div>
     </div>
 
+    {# ── Referência Bíblica / Perícope ── #}
+    {{ include('admin/biblia/_selector.html.twig', { entity: study }) }}
+
     <div class="af-actions">
         <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button>
         <a href="{{ path('admin_study_index') }}" class="btn btn-g">Cancelar</a>

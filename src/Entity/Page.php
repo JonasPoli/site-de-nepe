@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Contract\TenantAwareInterface;
+use App\Entity\Trait\HasBibliaReferenceTrait;
 use App\Repository\PageRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -10,8 +11,11 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PageRepository::class)]
+#[ORM\Table(name: 'page')]
+#[ORM\Index(name: 'page_biblia_idx', columns: ['biblia_book_id', 'biblia_chapter', 'biblia_verse_start', 'biblia_verse_end'])]
 class Page implements TenantAwareInterface
 {
+    use HasBibliaReferenceTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
