@@ -4,11 +4,13 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\BibliaBook;
-use App\Entity\BibliaVerse;
+use App\Entity\BibliaVerseExt;
+use App\Entity\Category;
 use App\Entity\Enum\ArticleStatus;
 use App\Entity\Page;
 use App\Entity\Study;
 use App\Entity\Tenant;
+use App\Entity\User;
 use App\Entity\VideoSupport;
 use App\Repository\ArticleRepository;
 use App\Repository\BibliaBookRepository;
@@ -24,6 +26,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class BibliaService
 {
     private ?array $cachedStructure = null;
+
+    /** @var array<string, array<string, mixed>|null> passages already loaded in this request */
+    private array $passageCache = [];
 
     public function __construct(
         private readonly Connection $connection,
@@ -89,9 +94,9 @@ class BibliaService
     }
 
     /**
-     * Recupera o trecho bíblico formatado (versículos ARC).
+     * Recupera o trecho bíblico formatado (versículos ARC), com os dados "ext" de cada versículo.
      *
-     * @return array{book: array{id: int, name: string, abbrev: string}, chapter: int, verse_start: int, verse_end: int, reference_formatted: string, verses: array<int, array{id: int, verse: int, text: string, subject: ?string}>}|null
+     * @return array{book: array{id: int, name: string, abbrev: string}, chapter: int, verse_start: int, verse_end: int, reference_formatted: string, version: array{id: int, name: string, abbrev: string}, verses: array<int, array{id: int, verse: int, text: string, subject: ?string, ext: ?array<string, mixed>}>}|null
      */
     public function getPassage(int|string|BibliaBook $bookIdentifier, int $chapter, ?int $verseStart = null, ?int $verseEnd = null, int $versionId = 2): ?array
     {
@@ -108,9 +113,15 @@ class BibliaService
             $vEnd = $tmp;
         }
 
+        // A API monta um trecho por resultado: conteúdos com a mesma referência reaproveitam a consulta
+        $cacheKey = sprintf('%d:%d:%d:%d:%d', $book->getId(), $chapter, $vStart, $vEnd, $versionId);
+        if (array_key_exists($cacheKey, $this->passageCache)) {
+            return $this->passageCache[$cacheKey];
+        }
+
         $verses = $this->verseRepo->findPassage($book, $chapter, $vStart, $vEnd, $versionId);
         if (empty($verses)) {
-            return null;
+            return $this->passageCache[$cacheKey] = null;
         }
 
         $versesArray = [];
@@ -120,6 +131,7 @@ class BibliaService
                 'verse' => $v->getVerse(),
                 'text' => $v->getText(),
                 'subject' => $v->getSubject(),
+                'ext' => $this->formatVerseExt($v->getExternalId()),
             ];
         }
 
@@ -127,7 +139,7 @@ class BibliaService
             ? sprintf('%s %d:%d', $book->getName(), $chapter, $vStart)
             : sprintf('%s %d:%d-%d', $book->getName(), $chapter, $vStart, $vEnd);
 
-        return [
+        return $this->passageCache[$cacheKey] = [
             'book' => [
                 'id' => $book->getId(),
                 'name' => $book->getName(),
@@ -147,10 +159,12 @@ class BibliaService
     }
 
     /**
-     * Busca todos os conteúdos associados ao trecho pesquisado.
+     * Busca todos os conteúdos publicados associados ao trecho pesquisado.
      * Se verseStart e verseEnd forem nulos, retorna todos os conteúdos do capítulo.
      * Se informados, utiliza regra de sobreposição de intervalos:
      * C_start <= Q_end AND C_end >= Q_start (onde se C_end for nulo, C_end = C_start).
+     *
+     * Artigos, vídeos e estudos só aparecem depois de aprovados (status publicado).
      *
      * @param ?string $type Filtro opcional de tipo ('article', 'video', 'study'/'material', 'page')
      * @return array<int, array<string, mixed>>
@@ -186,7 +200,9 @@ class BibliaService
             $artQb = $this->articleRepo->createQueryBuilder('a')
                 ->leftJoin('a.tenant', 't')
                 ->leftJoin('a.bibliaBook', 'b')
-                ->addSelect('t', 'b')
+                ->leftJoin('a.author', 'u')
+                ->leftJoin('a.category', 'c')
+                ->addSelect('t', 'b', 'u', 'c')
                 ->where('a.bibliaBook = :book')
                 ->andWhere('a.bibliaChapter = :chap')
                 ->andWhere('a.status = :published')
@@ -211,16 +227,20 @@ class BibliaService
             }
         }
 
-        // 2. Vídeos
+        // 2. Vídeos Publicados
         if ($typeNormalized === null || in_array($typeNormalized, ['video', 'videos', 'youtube'], true)) {
             $vidQb = $this->videoRepo->createQueryBuilder('v')
                 ->leftJoin('v.tenant', 't')
                 ->leftJoin('v.bibliaBook', 'b')
-                ->addSelect('t', 'b')
+                ->leftJoin('v.author', 'u')
+                ->leftJoin('v.category', 'c')
+                ->addSelect('t', 'b', 'u', 'c')
                 ->where('v.bibliaBook = :book')
                 ->andWhere('v.bibliaChapter = :chap')
+                ->andWhere('v.status = :published')
                 ->setParameter('book', $book)
-                ->setParameter('chap', $chapter);
+                ->setParameter('chap', $chapter)
+                ->setParameter('published', ArticleStatus::Published);
 
             if (!$searchAllVerses) {
                 $vidQb->andWhere('v.bibliaVerseStart <= :qEnd')
@@ -239,18 +259,20 @@ class BibliaService
             }
         }
 
-        // 3. Estudos / Materiais
+        // 3. Estudos / Materiais Publicados
         if ($typeNormalized === null || in_array($typeNormalized, ['study', 'material', 'estudo', 'studies', 'materials', 'estudos', 'materiais'], true)) {
             $studyQb = $this->studyRepo->createQueryBuilder('s')
                 ->leftJoin('s.tenant', 't')
                 ->leftJoin('s.bibliaBook', 'b')
-                ->addSelect('t', 'b')
+                ->leftJoin('s.author', 'u')
+                ->leftJoin('s.category', 'c')
+                ->addSelect('t', 'b', 'u', 'c')
                 ->where('s.bibliaBook = :book')
                 ->andWhere('s.bibliaChapter = :chap')
-                ->andWhere('s.active = :active')
+                ->andWhere('s.status = :published')
                 ->setParameter('book', $book)
                 ->setParameter('chap', $chapter)
-                ->setParameter('active', true);
+                ->setParameter('published', ArticleStatus::Published);
 
             if (!$searchAllVerses) {
                 $studyQb->andWhere('s.bibliaVerseStart <= :qEnd')
@@ -269,7 +291,7 @@ class BibliaService
             }
         }
 
-        // 4. Páginas
+        // 4. Páginas (institucionais, sem fluxo de aprovação)
         if ($typeNormalized === null || in_array($typeNormalized, ['page', 'pagina', 'pages', 'paginas'], true)) {
             $pageQb = $this->pageRepo->createQueryBuilder('p')
                 ->leftJoin('p.tenant', 't')
@@ -349,6 +371,72 @@ class BibliaService
         ];
     }
 
+    /** Texto bíblico (com os dados "ext") dos versículos que o conteúdo referencia */
+    private function passageFor(Article|VideoSupport|Study|Page $content): ?array
+    {
+        if (!$content->hasBibliaReference()) {
+            return null;
+        }
+
+        return $this->getPassage($content->getBibliaBook(), $content->getBibliaChapter(), $content->getBibliaVerseStart(), $content->getBibliaVerseEnd());
+    }
+
+    /** Metadados do versículo compartilhados com o nepe-search (mesmos ids), com ano e local quando conhecidos */
+    private function formatVerseExt(?BibliaVerseExt $ext): ?array
+    {
+        if ($ext === null) {
+            return null;
+        }
+
+        return [
+            'id' => $ext->getId(),
+            'book_id' => $ext->getBook()?->getId(),
+            'chapter' => $ext->getChapter(),
+            'verse' => $ext->getVerse(),
+            'year' => $ext->getYear(),
+            'year_description' => $this->unknownToNull($ext->getYearDescription()),
+            'place' => $this->unknownToNull($ext->getPlace()),
+            'translated' => $ext->getTranslated(),
+        ];
+    }
+
+    /** A base bíblica marca valores desconhecidos como "---" */
+    private function unknownToNull(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return trim($value, '-') === '' ? null : $value;
+    }
+
+    private function formatAuthor(?User $author): ?array
+    {
+        // Só o nome: o usuário pode ser o e-mail da pessoa
+        return $author && $author->getName() !== '' ? ['name' => $author->getName()] : null;
+    }
+
+    private function formatCategory(?Category $category): ?array
+    {
+        return $category ? ['id' => $category->getId(), 'name' => $category->getName(), 'slug' => $category->getSlug()] : null;
+    }
+
+    /**
+     * @param iterable<\App\Entity\StudyMaterial|\App\Entity\VideoMaterial> $materials
+     * @return array<int, array{label: string, extension: ?string, url: string}>
+     */
+    private function formatFiles(iterable $materials, string $baseUrl, string $uploadDir): array
+    {
+        $files = [];
+        foreach ($materials as $material) {
+            $files[] = [
+                'label' => $material->getLabel(),
+                'extension' => $material->getExtension(),
+                'url' => $baseUrl . '/uploads/' . $uploadDir . '/' . $material->getFilename(),
+            ];
+        }
+
+        return $files;
+    }
+
     private function formatArticleResult(Article $article): array
     {
         $tenant = $article->getTenant();
@@ -367,10 +455,16 @@ class BibliaService
             'title' => $article->getTitle(),
             'slug' => $article->getSlug(),
             'description' => $article->getShortDescription(),
+            'text' => $article->getContent(),
+            'materials_html' => null,
             'url' => $articleUrl,
             'image_url' => $imageUrl,
+            'files' => [],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
+            'author' => $this->formatAuthor($article->getAuthor()),
+            'category' => $this->formatCategory($article->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($article->getBibliaBook(), $article->getBibliaChapter(), $article->getBibliaVerseStart(), $article->getBibliaVerseEnd()),
+            'passage' => $this->passageFor($article),
             'published_at' => $article->getPublishedAt()?->format(\DateTimeInterface::ATOM),
             'created_at' => $article->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ];
@@ -394,8 +488,11 @@ class BibliaService
             'title' => $video->getTitle(),
             'slug' => $video->getSlug(),
             'description' => $video->getDescription(),
+            'text' => $video->getDescription(),
+            'materials_html' => $video->getMaterialsHtml(),
             'url' => $videoUrl,
             'image_url' => $thumbUrl,
+            'files' => $this->formatFiles($video->getMaterials(), $baseUrl, 'video_material'),
             'video' => [
                 'youtube_id' => $video->getYoutubeId(),
                 'embed_url' => $video->getEmbedUrl(),
@@ -403,8 +500,11 @@ class BibliaService
                 'has_custom_thumbnail' => $video->hasCustomThumbnail(),
             ],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
+            'author' => $this->formatAuthor($video->getAuthor()),
+            'category' => $this->formatCategory($video->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($video->getBibliaBook(), $video->getBibliaChapter(), $video->getBibliaVerseStart(), $video->getBibliaVerseEnd()),
-            'published_at' => null,
+            'passage' => $this->passageFor($video),
+            'published_at' => $video->getPublishedAt()?->format(\DateTimeInterface::ATOM),
             'created_at' => $video->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ];
     }
@@ -427,11 +527,17 @@ class BibliaService
             'title' => $study->getTitle(),
             'slug' => $study->getSlug(),
             'description' => $study->getDescription(),
+            'text' => $study->getDescription(),
+            'materials_html' => $study->getMaterialsHtml(),
             'url' => $studyUrl,
             'image_url' => $imageUrl,
+            'files' => $this->formatFiles($study->getMaterials(), $baseUrl, 'study_material'),
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
+            'author' => $this->formatAuthor($study->getAuthor()),
+            'category' => $this->formatCategory($study->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($study->getBibliaBook(), $study->getBibliaChapter(), $study->getBibliaVerseStart(), $study->getBibliaVerseEnd()),
-            'published_at' => null,
+            'passage' => $this->passageFor($study),
+            'published_at' => $study->getPublishedAt()?->format(\DateTimeInterface::ATOM),
             'created_at' => $study->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ];
     }
@@ -449,10 +555,16 @@ class BibliaService
             'title' => $page->getTitle(),
             'slug' => $page->getSlug(),
             'description' => $page->getSeoDescription(),
+            'text' => null,
+            'materials_html' => null,
             'url' => $pageUrl,
             'image_url' => null,
+            'files' => [],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
+            'author' => null,
+            'category' => null,
             'biblical_reference' => $this->formatBibliaRef($page->getBibliaBook(), $page->getBibliaChapter(), $page->getBibliaVerseStart(), $page->getBibliaVerseEnd()),
+            'passage' => $this->passageFor($page),
             'published_at' => null,
             'created_at' => null,
         ];

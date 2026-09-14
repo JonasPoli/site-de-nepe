@@ -109,10 +109,26 @@ class NepePublicController extends AbstractController
     public function videoShow(string $slug, VideoSupportRepository $repo, PageRepository $pages): Response
     {
         $video = $repo->findOneBy(['slug' => $slug]) ?? throw $this->createNotFoundException();
+        if (!$video->isPublished() && !$this->canPreviewUnpublished()) {
+            throw $this->createNotFoundException();
+        }
+
         return $this->render($this->theme('video.html.twig'), [
             'video'       => $video,
+            'preview'     => !$video->isPublished(),
             'headerPages' => $pages->findForHeader(),
         ]);
+    }
+
+    /** Unpublished content is visible only to this site's admin panel members, so they can review it */
+    private function canPreviewUnpublished(): bool
+    {
+        $user = $this->getUser();
+        if (!$user instanceof \App\Entity\User || !$this->isGranted('ROLE_ADMIN')) {
+            return false;
+        }
+
+        return $user->isSuperAdmin() || $user->getTenant()?->getId() === $this->tenantContext->getTenant()?->getId();
     }
 
     #[Route('/estudos', name: 'pub_studies')]
@@ -132,11 +148,22 @@ class NepePublicController extends AbstractController
     }
 
     #[Route('/estudo/{slug}', name: 'pub_study_show')]
-    public function studyShow(string $slug, StudyRepository $repo, PageRepository $pages): Response
+    public function studyShow(string $slug, StudyRepository $repo, PageRepository $pages, \App\Service\BibliaService $biblia): Response
     {
         $study = $repo->findOneBy(['slug' => $slug]) ?? throw $this->createNotFoundException();
+        if (!$study->isPublished() && !$this->canPreviewUnpublished()) {
+            throw $this->createNotFoundException();
+        }
+
+        // Texto dos versículos referenciados, exibido em destaque na página
+        $passage = $study->hasBibliaReference()
+            ? $biblia->getPassage($study->getBibliaBook(), $study->getBibliaChapter(), $study->getBibliaVerseStart(), $study->getBibliaVerseEnd())
+            : null;
+
         return $this->render($this->theme('study.html.twig'), [
             'study'       => $study,
+            'passage'     => $passage,
+            'preview'     => !$study->isPublished(),
             'headerPages' => $pages->findForHeader(),
         ]);
     }

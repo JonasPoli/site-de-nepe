@@ -34,9 +34,9 @@ class TenantExtension extends AbstractExtension implements GlobalsInterface
             'headerCategories'  => $this->categoryRepository->findForHeader(),
             'footerPages'       => $this->pageRepository->findForFooter(),
             'footerCategories'  => $this->categoryRepository->findForFooter(),
-            'footerVideos'      => $this->videoRepository->findBy([], ['createdAt' => 'DESC'], 5),
-            'footerStudies'     => $this->studyRepository->findBy(['active' => true], ['createdAt' => 'DESC'], 5),
-            'hasStudies'        => $this->studyRepository->count(['active' => true]) > 0,
+            'footerVideos'      => $this->videoRepository->findBy(['status' => \App\Entity\Enum\ArticleStatus::Published], ['createdAt' => 'DESC'], 5),
+            'footerStudies'     => $this->studyRepository->findBy(['status' => \App\Entity\Enum\ArticleStatus::Published], ['createdAt' => 'DESC'], 5),
+            'hasStudies'        => $this->studyRepository->count(['status' => \App\Entity\Enum\ArticleStatus::Published]) > 0,
         ];
     }
 

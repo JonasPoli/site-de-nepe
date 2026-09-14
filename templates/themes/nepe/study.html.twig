@@ -19,6 +19,12 @@
 {% block body %}
 <div class="container study-page">
 
+    {% if preview|default(false) %}
+    <div role="status" style="margin-bottom:1.5rem;padding:.85rem 1.1rem;border-radius:10px;background:#fef3c7;border:1px solid #f59e0b;color:#92400e;font-size:.9rem;font-weight:600">
+        👁️ Pré-visualização: este material ainda não foi publicado ({{ study.status.label()|lower }}). Só membros do painel veem esta página.
+    </div>
+    {% endif %}
+
     {# ── Cover Image ── #}
     {% if study.coverImage %}
     <div class="study-cover">
@@ -38,6 +44,10 @@
             {{ study.createdAt|date('d/m/Y') }}
         </time>
     </div>
+
+    {% if passage|default(null) %}
+        {{ include('themes/nepe/_biblia_passage.html.twig', {passage: passage}) }}
+    {% endif %}
 
     {# ── Bloco de Autoria ── #}
     {% if study.author %}

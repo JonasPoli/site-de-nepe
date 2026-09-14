@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\Contract\PublishableInterface;
 use App\Contract\TenantAwareInterface;
 use App\Entity\Trait\HasBibliaReferenceTrait;
+use App\Entity\Trait\HasPublicationWorkflowTrait;
 use App\Repository\VideoSupportRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,9 +18,11 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ORM\Table(name: 'video_support')]
 #[ORM\Index(name: 'video_biblia_idx', columns: ['biblia_book_id', 'biblia_chapter', 'biblia_verse_start', 'biblia_verse_end'])]
 #[Vich\Uploadable]
-class VideoSupport implements TenantAwareInterface
+class VideoSupport implements TenantAwareInterface, PublishableInterface
 {
     use HasBibliaReferenceTrait;
+    use HasPublicationWorkflowTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -70,10 +74,15 @@ class VideoSupport implements TenantAwareInterface
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $materials;
 
+    /** @var Collection<int, VideoSupportApproval> */
+    #[ORM\OneToMany(targetEntity: VideoSupportApproval::class, mappedBy: 'video', cascade: ['persist', 'remove'])]
+    private Collection $approvals;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->materials = new ArrayCollection();
+        $this->approvals = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }

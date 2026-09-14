@@ -6,6 +6,12 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    # Atrás de proxy reverso, CDN ou load balancer que termina o HTTPS, informe o IP dele em
+    # SYMFONY_TRUSTED_PROXIES (ver .env): o Symfony passa a respeitar X-Forwarded-For/Proto/Port,
+    # e links e redirects saem em https. O host continua vindo do cabeçalho Host, validado pelo TenantSubscriber.
+    trusted_proxies: '%env(default::SYMFONY_TRUSTED_PROXIES)%'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
+
     #esi: true
     #fragments: true
 

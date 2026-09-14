@@ -36,9 +36,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * Null = SuperAdmin (global). Set = scoped to that tenant only.
+     * Deleting the tenant deletes its users: with SET NULL they would become SuperAdmins.
      */
     #[ORM\ManyToOne(targetEntity: Tenant::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Tenant $tenant = null;
 
     /** @var list<string> */

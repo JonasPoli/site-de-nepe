@@ -24,7 +24,8 @@ class BibliaVerseRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('v')
             ->join('v.book', 'b')
-            ->addSelect('b')
+            ->leftJoin('v.external_id', 'e')
+            ->addSelect('b', 'e')
             ->where('v.version = :version')
             ->andWhere('v.chapter = :chapter')
             ->setParameter('version', $versionId)

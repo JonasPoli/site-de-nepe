@@ -70,12 +70,18 @@ class SuperAdminController extends AbstractController
     }
 
     #[Route('/tenant/{id}/delete', name: 'tenant_delete', methods: ['POST'])]
-    public function tenantDelete(Tenant $tenant, Request $request, EntityManagerInterface $em): Response
+    public function tenantDelete(Tenant $tenant, Request $request, EntityManagerInterface $em, UserRepository $users): Response
     {
         if ($this->isCsrfTokenValid('del_tenant_' . $tenant->getId(), (string) $request->request->get('_token'))) {
+            // Os usuários saem junto: sem tenant, um admin viraria SuperAdmin (tenant null + workGroup 0)
+            $tenantUsers = $users->findBy(['tenant' => $tenant]);
+            foreach ($tenantUsers as $user) {
+                $em->remove($user);
+            }
+
             $em->remove($tenant);
             $em->flush();
-            $this->addFlash('success', 'Tenant removido.');
+            $this->addFlash('success', sprintf('Tenant removido, junto com %d usuário(s).', count($tenantUsers)));
         }
         return $this->redirectToRoute('superadmin_dash');
     }
@@ -168,13 +174,18 @@ class SuperAdminController extends AbstractController
         UserPasswordHasherInterface $hasher,
         TenantRepository $tenants,
     ): void {
+        $tenantId = $r->request->get('tenant');
+        $tenant = $tenantId ? $tenants->find((int) $tenantId) : null;
+        if ($tenantId && $tenant === null) {
+            // Tenant removido enquanto o formulário estava aberto: gravar null tornaria o usuário SuperAdmin
+            throw $this->createNotFoundException(sprintf('Tenant %s não encontrado.', $tenantId));
+        }
+
         $user->setUsername((string) $r->request->get('username'));
         $user->setName((string) $r->request->get('name'));
         $user->setEmail($r->request->get('email') ?: null);
         $user->setWorkGroup((int) $r->request->get('workGroup', 0));
-
-        $tenantId = $r->request->get('tenant');
-        $user->setTenant($tenantId ? $tenants->find((int) $tenantId) : null);
+        $user->setTenant($tenant);
 
         $plain = (string) $r->request->get('password');
         if ($plain !== '') {

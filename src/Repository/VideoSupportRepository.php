@@ -2,8 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\Enum\ArticleStatus;
 use App\Entity\VideoSupport;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<VideoSupport> */
@@ -13,8 +15,7 @@ class VideoSupportRepository extends ServiceEntityRepository
 
     public function findLatest(): ?VideoSupport
     {
-        return $this->createQueryBuilder('v')
-            ->orderBy('v.createdAt', 'DESC')
+        return $this->publishedQueryBuilder()
             ->setMaxResults(1)
             ->getQuery()->getOneOrNullResult();
     }
@@ -22,8 +23,7 @@ class VideoSupportRepository extends ServiceEntityRepository
     /** @return VideoSupport[] */
     public function findGallery(int $skip = 1, int $limit = 12): array
     {
-        return $this->createQueryBuilder('v')
-            ->orderBy('v.createdAt', 'DESC')
+        return $this->publishedQueryBuilder()
             ->setFirstResult($skip)
             ->setMaxResults($limit)
             ->getQuery()->getResult();
@@ -31,18 +31,24 @@ class VideoSupportRepository extends ServiceEntityRepository
 
     public function findAllQuery(): \Doctrine\ORM\Query
     {
-        return $this->createQueryBuilder('v')
-            ->orderBy('v.createdAt', 'DESC')
-            ->getQuery();
+        return $this->publishedQueryBuilder()->getQuery();
     }
 
     /** @return VideoSupport[] */
     public function findByCategory(\App\Entity\Category $category): array
     {
-        return $this->createQueryBuilder('v')
-            ->where('v.category = :category')
+        return $this->publishedQueryBuilder()
+            ->andWhere('v.category = :category')
             ->setParameter('category', $category)
-            ->orderBy('v.createdAt', 'DESC')
             ->getQuery()->getResult();
+    }
+
+    /** Only videos that went through the approval workflow are public */
+    private function publishedQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.status = :published')
+            ->setParameter('published', ArticleStatus::Published)
+            ->orderBy('v.createdAt', 'DESC');
     }
 }

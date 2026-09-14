@@ -184,14 +184,16 @@ Ao criar ou editar qualquer **Artigo**, **Vídeo**, **Material/Estudo** ou **Pá
 
 ### 3. API Pública Multi-Tenant (`/api/biblia`)
 
-A API permite que aplicações externas (como buscadores e aplicativos bíblicos) consultem os conteúdos produzidos pelos tenants da plataforma.
+A API permite que aplicações externas (como o **nepe-search**, buscadores e aplicativos bíblicos) consultem os conteúdos produzidos pelos tenants da plataforma.
+
+> **Só conteúdo publicado.** Artigos, vídeos e materiais/estudos passam pelo fluxo de aprovação do tenant (rascunho → aguardando aprovação → publicado) e só aparecem na API — e no site — depois de receberem o número de aprovações definido em *Aprovações necessárias* do tenant. As aprovações precisam vir de outros membros do mesmo tenant: o autor não aprova o próprio conteúdo, e alterar o texto, a mídia ou a referência bíblica de um conteúdo aprovado faz ele voltar para rascunho. Páginas institucionais não passam pelo fluxo.
 
 #### Endpoints
 
 | Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/api/biblia/contents` | Consulta conteúdos associados a um capítulo, versículo ou perícope com URLs multi-tenant |
-| `GET` | `/api/biblia/passage` | Retorna o texto bíblico ARC formatado de um trecho |
+| `GET` | `/api/biblia/contents` | Consulta conteúdos publicados associados a um capítulo, versículo ou grupo de versículos, com URLs multi-tenant, texto do conteúdo e texto bíblico referenciado |
+| `GET` | `/api/biblia/passage` | Retorna o texto bíblico ARC formatado de um trecho, com os dados `ext` de cada versículo |
 
 ---
 
@@ -199,37 +201,59 @@ A API permite que aplicações externas (como buscadores e aplicativos bíblicos
 
 | Parâmetro | Tipo | Obrigatório? | Descrição | Exemplos |
 |---|---|:---:|---|---|
-| `book` | string / int | **Sim** | ID, sigla (abbrev) ou nome do livro bíblico | `jo`, `joao`, `43`, `gn`, `genesis` |
+| `book` / `livro` | string / int | **Sim** | ID, sigla (abbrev) ou nome do livro bíblico. Os IDs são os mesmos do nepe-search. | `jo`, `joao`, `43`, `gn`, `genesis` |
 | `chapter` | int | **Sim** | Número do capítulo | `3`, `1`, `14` |
 | `verse_start` / `verse` | int | Não | Versículo inicial. Se omitido, retorna **todos os conteúdos do capítulo inteiro**. | `16`, `1` |
-| `verse_end` | int | Não | Versículo final da perícope. Se omitido, assume o valor de `verse_start`. | `17`, `21` |
+| `verse_end` / `verse2` | int | Não | Versículo final do grupo de versículos. Se omitido, busca só o versículo inicial. | `17`, `21` |
 | `type` | string | Não | Filtra pelo tipo de conteúdo: `study` (ou `material`), `article` (ou `noticia`), `video`, `page` | `study`, `material`, `video`, `article` |
 | `tenant` | string / int | Não | Filtra conteúdos por domínio ou ID do tenant. Se omitido, busca em **todos os tenants**. | `renovando.nepe.org.br`, `3` |
+
+**Como os trechos são comparados:** um conteúdo é devolvido quando o trecho associado a ele **se sobrepõe** ao trecho pesquisado. Buscar `Lucas 10:30` encontra um estudo associado a `Lucas 10:25-37`, e buscar `Lucas 10:25-37` encontra os conteúdos de qualquer versículo desse intervalo.
+
+#### Campos de cada resultado
+
+| Campo | Descrição |
+|---|---|
+| `id`, `type`, `type_label` | Identificação e tipo: `article`, `video`, `study` ou `page` |
+| `title`, `slug`, `url` | Título e URL completa do conteúdo no tenant que o publicou |
+| `description` | Resumo (artigos: resumo; estudos e vídeos: descrição; páginas: descrição SEO) |
+| `text` | Texto completo em HTML (artigos: conteúdo; estudos e vídeos: descrição; páginas: `null`) |
+| `materials_html` | Bloco "Materiais e Referências" em HTML (estudos e vídeos) |
+| `image_url` | URL completa da imagem: capa do estudo, imagem do artigo ou thumb do vídeo |
+| `files` | Arquivos para download (estudos e vídeos): `label`, `extension`, `url` |
+| `video` | Só vídeos: `youtube_id`, `embed_url`, `thumbnail_url`, `has_custom_thumbnail` |
+| `tenant` | `id`, `name`, `domain`, `logo_url`, `primary_color` |
+| `author` | `name` do autor, ou `null` |
+| `category` | `id`, `name`, `slug`, ou `null` |
+| `biblical_reference` | `book_id`, `book_name`, `book_abbreviation`, `chapter`, `verse_start`, `verse_end`, `formatted` |
+| `passage` | Texto ARC dos versículos referenciados: `book`, `chapter`, `verse_start`, `verse_end`, `reference_formatted`, `version` e `verses[]` (`id`, `verse`, `text`, `subject`, `ext`) |
+| `passage.verses[].ext` | Metadados do versículo (tabela `biblia_verse_ext`, mesmos IDs do nepe-search): `id`, `book_id`, `chapter`, `verse`, `year`, `year_description`, `place`, `translated` |
+| `published_at`, `created_at` | Datas em ISO 8601 |
 
 ---
 
 #### Exemplos de Uso da API
 
 ##### Exemplo 1: Buscar todos os Materiais/Estudos de um Capítulo Inteiro
-> **Objetivo**: Recuperar todos os materiais e estudos cadastrados no capítulo **3 de João**:
+> **Objetivo**: Recuperar todos os materiais e estudos publicados no capítulo **10 de Lucas**:
 
 ```bash
 # cURL
-curl -X GET "https://seudominio.com.br/api/biblia/contents?book=jo&chapter=3&type=study"
+curl -X GET "https://seudominio.com.br/api/biblia/contents?book=lc&chapter=10&type=study"
 ```
 
-**Resposta JSON:**
+**Resposta JSON** (versículos resumidos):
 ```json
 {
   "status": "success",
   "query": {
-    "book_id": 43,
-    "book_name": "João",
-    "book_abbreviation": "jo",
-    "chapter": 3,
+    "book_id": 42,
+    "book_name": "Lucas",
+    "book_abbreviation": "lc",
+    "chapter": 10,
     "verse_start": null,
     "verse_end": null,
-    "reference_formatted": "João 3 (Capítulo inteiro)",
+    "reference_formatted": "Lucas 10 (Capítulo inteiro)",
     "type_filter": "study",
     "tenant_filter": null
   },
@@ -239,26 +263,50 @@ curl -X GET "https://seudominio.com.br/api/biblia/contents?book=jo&chapter=3&typ
       "id": 12,
       "type": "study",
       "type_label": "Material / Estudo",
-      "title": "Estudo Detalhado sobre o Novo Nascimento",
-      "slug": "estudo-novo-nascimento",
-      "description": "Análise teológica e histórica do diálogo com Nicodemos.",
-      "url": "https://tenant-a.nepe.org.br/estudo/estudo-novo-nascimento",
-      "image_url": "https://tenant-a.nepe.org.br/uploads/study/capa-nicodemos.jpg",
+      "title": "O bom samaritano",
+      "slug": "o-bom-samaritano",
+      "description": "<p>Quem é o meu próximo?</p>",
+      "text": "<p>Quem é o meu próximo?</p>",
+      "materials_html": "<ul><li><a href=\"https://...\">Leitura complementar</a></li></ul>",
+      "url": "https://renovandoconsciencias.nepebrasil.org/estudo/o-bom-samaritano",
+      "image_url": "https://renovandoconsciencias.nepebrasil.org/uploads/study_cover/o-bom-samaritano.jpg",
+      "files": [
+        { "label": "Roteiro do estudo", "extension": "pdf", "url": "https://renovandoconsciencias.nepebrasil.org/uploads/study_material/roteiro.pdf" }
+      ],
       "tenant": {
-        "id": 2,
-        "name": "NEPE São Paulo",
-        "domain": "tenant-a.nepe.org.br",
-        "logo_url": "https://tenant-a.nepe.org.br/uploads/tenant/logo.png",
+        "id": 3,
+        "name": "NEPE Renovando Consciências",
+        "domain": "renovandoconsciencias.nepebrasil.org",
+        "logo_url": "https://renovandoconsciencias.nepebrasil.org/uploads/tenant/logo/logo.png",
         "primary_color": "#1a56db"
       },
+      "author": { "name": "Maria Souza" },
+      "category": { "id": 4, "name": "Parábolas", "slug": "parabolas" },
       "biblical_reference": {
-        "book_id": 43,
-        "book_name": "João",
-        "book_abbreviation": "jo",
-        "chapter": 3,
-        "verse_start": 1,
-        "verse_end": 21,
-        "formatted": "João 3:1-21"
+        "book_id": 42,
+        "book_name": "Lucas",
+        "book_abbreviation": "lc",
+        "chapter": 10,
+        "verse_start": 25,
+        "verse_end": 37,
+        "formatted": "Lucas 10:25-37"
+      },
+      "passage": {
+        "book": { "id": 42, "name": "Lucas", "abbrev": "lc" },
+        "chapter": 10,
+        "verse_start": 25,
+        "verse_end": 37,
+        "reference_formatted": "Lucas 10:25-37",
+        "version": { "id": 2, "name": "Almeida Revista e Corrigida", "abbrev": "ARC" },
+        "verses": [
+          {
+            "id": 25321,
+            "verse": 25,
+            "text": "E eis que se levantou um certo doutor da lei, tentando-o e dizendo: Mestre, que farei para herdar a vida eterna?",
+            "subject": "O bom samaritano",
+            "ext": { "id": 25321, "book_id": 42, "chapter": 10, "verse": 25, "year": 30, "year_description": "c. 30 d.C.", "place": "Judeia", "translated": 1 }
+          }
+        ]
       },
       "published_at": "2026-05-10T14:00:00+00:00",
       "created_at": "2026-05-10T12:30:00+00:00"

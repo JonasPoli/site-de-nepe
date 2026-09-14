@@ -22,7 +22,7 @@
             <td><span class="badge bg-neu">{{ t.theme ?? 'nepe' }}</span></td>
             <td><div class="ta">
                 <a href="{{ path('superadmin_tenant_edit', {id: t.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
-                <form action="{{ path('superadmin_tenant_delete', {id: t.id}) }}" method="post" onsubmit="return confirm('Remover tenant e TODOS os dados?')">
+                <form action="{{ path('superadmin_tenant_delete', {id: t.id}) }}" method="post" onsubmit="return confirm('Remover o tenant, os usuários dele e TODOS os dados?')">
                     <input type="hidden" name="_token" value="{{ csrf_token('del_tenant_' ~ t.id) }}">
                     <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
                 </form>

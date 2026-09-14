@@ -17,7 +17,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ORM\Table(name: 'article')]
 #[ORM\Index(name: 'article_biblia_idx', columns: ['biblia_book_id', 'biblia_chapter', 'biblia_verse_start', 'biblia_verse_end'])]
 #[Vich\Uploadable]
-class Article implements TenantAwareInterface
+class Article implements TenantAwareInterface, \App\Contract\PublishableInterface
 {
     use HasBibliaReferenceTrait;
     #[ORM\Id]

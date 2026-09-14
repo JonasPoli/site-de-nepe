@@ -23,11 +23,14 @@ class BibliaApiController extends AbstractController
     #[Route('/contents', name: 'contents', methods: ['GET'])]
     public function contents(Request $request): JsonResponse
     {
-        $bookParam = $request->query->get('book');
+        // "livro" and "verse2" are accepted too: they are the names nepe-search uses for the same filters
+        $bookParam = $request->query->get('book') ?? $request->query->get('livro');
         $chapter = $request->query->getInt('chapter');
         $hasVerseFilter = $request->query->has('verse') || $request->query->has('verse_start');
         $verseStart = $hasVerseFilter ? ($request->query->getInt('verse_start') ?: $request->query->getInt('verse')) : null;
-        $verseEnd = $request->query->has('verse_end') ? $request->query->getInt('verse_end') : $verseStart;
+        $verseEnd = ($request->query->has('verse_end') || $request->query->has('verse2'))
+            ? ($request->query->getInt('verse_end') ?: $request->query->getInt('verse2'))
+            : $verseStart;
         $tenantParam = $request->query->get('tenant');
         $typeParam = $request->query->get('type');
 

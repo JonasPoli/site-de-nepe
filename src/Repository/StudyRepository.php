@@ -2,8 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\Enum\ArticleStatus;
 use App\Entity\Study;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<Study> */
@@ -13,9 +15,7 @@ class StudyRepository extends ServiceEntityRepository
 
     public function findLatest(): ?Study
     {
-        return $this->createQueryBuilder('s')
-            ->where('s.active = true')
-            ->orderBy('s.createdAt', 'DESC')
+        return $this->publishedQueryBuilder()
             ->setMaxResults(1)
             ->getQuery()->getOneOrNullResult();
     }
@@ -23,9 +23,7 @@ class StudyRepository extends ServiceEntityRepository
     /** @return Study[] */
     public function findGallery(int $skip = 1, int $limit = 12): array
     {
-        return $this->createQueryBuilder('s')
-            ->where('s.active = true')
-            ->orderBy('s.createdAt', 'DESC')
+        return $this->publishedQueryBuilder()
             ->setFirstResult($skip)
             ->setMaxResults($limit)
             ->getQuery()->getResult();
@@ -33,20 +31,24 @@ class StudyRepository extends ServiceEntityRepository
 
     public function findAllQuery(): \Doctrine\ORM\Query
     {
-        return $this->createQueryBuilder('s')
-            ->where('s.active = true')
-            ->orderBy('s.createdAt', 'DESC')
-            ->getQuery();
+        return $this->publishedQueryBuilder()->getQuery();
     }
 
     /** @return Study[] */
     public function findByCategory(\App\Entity\Category $category): array
     {
-        return $this->createQueryBuilder('s')
-            ->where('s.category = :category')
-            ->andWhere('s.active = true')
+        return $this->publishedQueryBuilder()
+            ->andWhere('s.category = :category')
             ->setParameter('category', $category)
-            ->orderBy('s.createdAt', 'DESC')
             ->getQuery()->getResult();
+    }
+
+    /** Only studies that went through the approval workflow are public */
+    private function publishedQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.status = :published')
+            ->setParameter('published', ArticleStatus::Published)
+            ->orderBy('s.createdAt', 'DESC');
     }
 }

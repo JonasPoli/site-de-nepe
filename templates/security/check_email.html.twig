@@ -1,0 +1,17 @@
+{% extends 'security/base.html.twig' %}
+
+{% block title %}Verifique seu e-mail — NEPE Admin{% endblock %}
+
+{% block content %}
+    <h1 class="login-title">Verifique seu e-mail</h1>
+
+    <p class="auth-text">
+        Se existir uma conta com esse e-mail, você vai receber em alguns minutos um link para definir a nova senha.
+        O link vale por <strong>{{ lifetime_label }}</strong>.
+    </p>
+    <p class="auth-text">
+        Não chegou? Confira a caixa de spam ou <a href="{{ path('app_forgot_password_request') }}">peça um novo link</a>.
+    </p>
+
+    <p class="auth-links"><a href="{{ path('app_login') }}">Voltar para o login</a></p>
+{% endblock %}

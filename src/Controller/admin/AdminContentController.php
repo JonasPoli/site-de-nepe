@@ -342,22 +342,31 @@ class AdminContentController extends AbstractController
         $video = new VideoSupport();
         if ($r->isMethod('POST')) {
             $video->setTenant($tc->requireTenant());
+            // Registra o autor: ele não pode aprovar o próprio vídeo
+            $video->setAuthor($this->getUser() instanceof User ? $this->getUser() : null);
             $this->populateVideo($video, $r, $slugger, $em);
             $em->persist($video);
             $em->flush();
-            $this->addFlash('success', 'Vídeo criado.');
+            $this->addFlash('success', 'Vídeo criado como rascunho. Envie para aprovação para publicá-lo.');
             return $this->redirectToRoute('admin_video_index');
         }
         return $this->render('admin/video/new.html.twig', ['video' => $video, 'categories' => $cats->findAll()]);
     }
 
     #[Route('/video/{id}/edit', name: 'video_edit', methods: ['GET', 'POST'])]
-    public function videoEdit(VideoSupport $video, Request $r, EntityManagerInterface $em, CategoryRepository $cats, SluggerInterface $slugger): Response
+    public function videoEdit(VideoSupport $video, Request $r, EntityManagerInterface $em, CategoryRepository $cats, SluggerInterface $slugger, \App\Service\ContentApprovalService $approvals): Response
     {
         if ($r->isMethod('POST')) {
+            $fingerprint = $approvals->fingerprint($video);
             $this->populateVideo($video, $r, $slugger, $em);
+
+            if ($approvals->invalidateIfChanged($video, $fingerprint)) {
+                $this->addFlash('warning', 'O conteúdo foi alterado. As aprovações foram invalidadas e o vídeo voltou para rascunho — envie novamente para aprovação.');
+            } else {
+                $this->addFlash('success', 'Vídeo atualizado.');
+            }
+
             $em->flush();
-            $this->addFlash('success', 'Vídeo atualizado.');
             return $this->redirectToRoute('admin_video_index');
         }
         return $this->render('admin/video/edit.html.twig', [
@@ -394,19 +403,26 @@ class AdminContentController extends AbstractController
             $this->populateStudy($study, $r, $slugger, $em);
             $em->persist($study);
             $em->flush();
-            $this->addFlash('success', 'Material criado.');
+            $this->addFlash('success', 'Material criado como rascunho. Envie para aprovação para publicá-lo.');
             return $this->redirectToRoute('admin_study_index');
         }
         return $this->render('admin/study/new.html.twig', ['study' => $study, 'categories' => $cats->findAll()]);
     }
 
     #[Route('/study/{id}/edit', name: 'study_edit', methods: ['GET', 'POST'])]
-    public function studyEdit(Study $study, Request $r, EntityManagerInterface $em, CategoryRepository $cats, SluggerInterface $slugger): Response
+    public function studyEdit(Study $study, Request $r, EntityManagerInterface $em, CategoryRepository $cats, SluggerInterface $slugger, \App\Service\ContentApprovalService $approvals): Response
     {
         if ($r->isMethod('POST')) {
+            $fingerprint = $approvals->fingerprint($study);
             $this->populateStudy($study, $r, $slugger, $em);
+
+            if ($approvals->invalidateIfChanged($study, $fingerprint)) {
+                $this->addFlash('warning', 'O conteúdo foi alterado. As aprovações foram invalidadas e o material voltou para rascunho — envie novamente para aprovação.');
+            } else {
+                $this->addFlash('success', 'Material atualizado.');
+            }
+
             $em->flush();
-            $this->addFlash('success', 'Material atualizado.');
             return $this->redirectToRoute('admin_study_index');
         }
         return $this->render('admin/study/edit.html.twig', [
@@ -1036,7 +1052,6 @@ class AdminContentController extends AbstractController
         $study->setSlug($r->request->get('slug') ?: strtolower((string) $slugger->slug($study->getTitle())));
         $study->setDescription($r->request->get('description') ?: null);
         $study->setMaterialsHtml($r->request->get('materialsHtml') ?: null);
-        $study->setActive((bool) $r->request->get('active'));
 
         // ── Cover image ───────────────────────────────────────────────────────
         $coverFile = $r->files->get('coverImageFile');

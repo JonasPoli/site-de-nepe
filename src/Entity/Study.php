@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\Contract\PublishableInterface;
 use App\Contract\TenantAwareInterface;
 use App\Entity\Trait\HasBibliaReferenceTrait;
+use App\Entity\Trait\HasPublicationWorkflowTrait;
 use App\Repository\StudyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,9 +18,11 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ORM\Table(name: 'study')]
 #[ORM\Index(name: 'study_biblia_idx', columns: ['biblia_book_id', 'biblia_chapter', 'biblia_verse_start', 'biblia_verse_end'])]
 #[Vich\Uploadable]
-class Study implements TenantAwareInterface
+class Study implements TenantAwareInterface, PublishableInterface
 {
     use HasBibliaReferenceTrait;
+    use HasPublicationWorkflowTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -60,9 +64,6 @@ class Study implements TenantAwareInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $author = null;
 
-    #[ORM\Column(options: ['default' => true])]
-    private bool $active = true;
-
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -70,10 +71,15 @@ class Study implements TenantAwareInterface
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $materials;
 
+    /** @var Collection<int, StudyApproval> */
+    #[ORM\OneToMany(targetEntity: StudyApproval::class, mappedBy: 'study', cascade: ['persist', 'remove'])]
+    private Collection $approvals;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->materials = new ArrayCollection();
+        $this->approvals = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -114,9 +120,6 @@ class Study implements TenantAwareInterface
     public function setAuthor(?User $author): static { $this->author = $author; return $this; }
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-
-    public function isActive(): bool { return $this->active; }
-    public function setActive(bool $active): static { $this->active = $active; return $this; }
 
     /** @return Collection<int, StudyMaterial> */
     public function getMaterials(): Collection { return $this->materials; }

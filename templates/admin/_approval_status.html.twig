@@ -1,0 +1,8 @@
+{# Status de publicação no fluxo de aprovação. Variável: content (estudo ou vídeo) #}
+{% set s = content.status %}
+<span class="badge {{ s.value == 'published' ? 'bg-ok' : (s.value == 'pending' ? 'bg-warn' : 'bg-neu') }}">{{ s.label() }}</span>
+{% if s.value == 'pending' %}
+<div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">
+    {{ content.approvalCount }} de {{ content.tenant ? max(1, content.tenant.requiredApprovals) : 1 }} aprovação(ões)
+</div>
+{% endif %}

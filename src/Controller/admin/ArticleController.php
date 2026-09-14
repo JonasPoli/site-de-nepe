@@ -3,10 +3,10 @@
 namespace App\Controller\admin;
 
 use App\Entity\Article;
-use App\Entity\ArticleApproval;
 use App\Entity\Enum\ArticleStatus;
 use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
+use App\Service\ContentApprovalService;
 use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -123,11 +123,9 @@ class ArticleController extends AbstractController
     /** Submit for review — changes status from draft to pending */
     #[Route('/{id}/submit', name: 'submit', methods: ['POST'])]
     #[IsGranted('ARTICLE_EDIT')]
-    public function submit(Article $article, EntityManagerInterface $em): Response
+    public function submit(Article $article, ContentApprovalService $approvals): Response
     {
-        if ($article->getStatus() === ArticleStatus::Draft) {
-            $article->setStatus(ArticleStatus::Pending);
-            $em->flush();
+        if ($approvals->submit($article)) {
             $this->addFlash('success', 'Artigo enviado para aprovação.');
         }
         return $this->redirectToRoute('admin_article_index');
@@ -136,36 +134,15 @@ class ArticleController extends AbstractController
     /** Reviewer approves the article — auto-publishes if threshold is reached */
     #[Route('/{id}/approve', name: 'approve', methods: ['POST'])]
     #[IsGranted('ARTICLE_REVIEW')]
-    public function approve(Article $article, Request $request, EntityManagerInterface $em): Response
+    public function approve(Article $article, Request $request, ContentApprovalService $approvals): Response
     {
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
 
-        if ($article->getAuthor() === $user) {
-            $this->addFlash('error', 'Você não pode aprovar o próprio artigo.');
-            return $this->redirectToRoute('admin_article_index');
-        }
+        // Autor, outro tenant, não enviado ou já aprovado: o serviço recusa e explica no aviso
+        [$flashType, $message] = $approvals->approve($article, $user, $request->request->get('comment') ?: null)->flash();
+        $this->addFlash($flashType, $message);
 
-        if ($article->isApprovedBy($user)) {
-            $this->addFlash('warning', 'Você já aprovou este artigo.');
-            return $this->redirectToRoute('admin_article_index');
-        }
-
-        $approval = new ArticleApproval();
-        $approval->setArticle($article);
-        $approval->setReviewer($user);
-        $approval->setComment($request->request->get('comment') ?: null);
-        $em->persist($approval);
-
-        // Auto-publish when approvals >= tenant.requiredApprovals
-        $required = $article->getTenant()?->getRequiredApprovals() ?? 1;
-        if ($article->getApprovalCount() + 1 >= $required) {
-            $article->setStatus(ArticleStatus::Published);
-            $article->setPublishedAt(new \DateTimeImmutable());
-        }
-
-        $em->flush();
-        $this->addFlash('success', 'Aprovação registrada.');
         return $this->redirectToRoute('admin_article_index');
     }
 
