@@ -45,10 +45,7 @@
                     </span>
                 </td>
                 <td>{{ article.publishedAt ? article.publishedAt|date('d/m/Y') : '—' }}</td>
-                <td>
-                    <span class="badge bg-inf">{{ article.approvalCount }}</span>
-                    / {{ article.tenant ? article.tenant.requiredApprovals : 1 }}
-                </td>
+                <td>{{ include('admin/_approval_count.html.twig', {content: article}) }}</td>
                 <td>
                     <div class="ta">
                         {% set is_author = article.author and article.author.id == app.user.id %}

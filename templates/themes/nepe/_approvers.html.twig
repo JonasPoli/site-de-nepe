@@ -1,0 +1,15 @@
+{#
+  Quem aprovou a publicação — versão compacta, para as listagens.
+  Variáveis: content (estudo ou vídeo), limit (opcional, padrão 2: nomes antes de resumir em "+N")
+#}
+{% set shown = limit|default(2) %}
+{% set rest = content.approvals|length - shown %}
+{% if content.approvals|length > 0 %}
+<span class="sl-approved" title="Publicado após a aprovação de {{ content.approvals|length }} membro(s) da equipe">
+    ✓ Aprovado por
+    {%- for approval in content.approvals|slice(0, shown) %}
+        {{ ' ' }}{{ approval.reviewer.name ?: 'Membro da equipe' }}{{ not loop.last ? ',' }}
+    {%- endfor %}
+    {%- if rest > 0 %} +{{ rest }}{% endif %}
+</span>
+{% endif %}

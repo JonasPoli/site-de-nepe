@@ -3,7 +3,7 @@
 {% block body %}
 <div class="ph"><h1>Vídeos de Apoio</h1><a href="{{ path('admin_video_new') }}" class="btn btn-p"><sl-icon name="plus-lg"></sl-icon> Novo Vídeo</a></div>
 <div class="card"><div class="tw"><table class="at">
-    <thead><tr><th>Thumb</th><th>Título</th><th>Categoria</th><th>YouTube ID</th><th>Data</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Thumb</th><th>Título</th><th>Categoria</th><th>YouTube ID</th><th>Data</th><th>Status</th><th>Aprovações</th><th></th></tr></thead>
     <tbody>
     {% for v in videos %}
     <tr>
@@ -19,7 +19,8 @@
         <td>{{ v.category ? v.category.name : '—' }}</td>
         <td><code style="background:var(--bg3);padding:.2rem .5rem;border-radius:4px;font-size:.8rem">{{ v.youtubeId }}</code></td>
         <td>{{ v.createdAt|date('d/m/Y') }}</td>
-        <td>{{ include('admin/_approval_status.html.twig', {content: v}) }}</td>
+        <td>{{ include('admin/_approval_status.html.twig', {content: v, count: false}) }}</td>
+        <td>{{ include('admin/_approval_count.html.twig', {content: v}) }}</td>
         <td><div class="ta">
             {{ include('admin/_approval_actions.html.twig', {content: v, type: 'video'}) }}
             <a href="{{ path('admin_video_edit', {id: v.id}) }}" class="btn btn-g btn-sm"><sl-icon name="pencil-fill"></sl-icon></a>
@@ -29,7 +30,7 @@
             </form>
         </div></td>
     </tr>
-    {% else %}<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Nenhum vídeo.</td></tr>{% endfor %}
+    {% else %}<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">Nenhum vídeo.</td></tr>{% endfor %}
     </tbody>
 </table></div></div>
 {% endblock %}

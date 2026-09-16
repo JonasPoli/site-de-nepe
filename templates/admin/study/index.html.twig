@@ -26,6 +26,7 @@
                     <th>Materiais</th>
                     <th>Data</th>
                     <th>Status</th>
+                    <th>Aprovações</th>
                     <th style="width:120px">Ações</th>
                 </tr>
             </thead>
@@ -69,7 +70,8 @@
                         {% endif %}
                     </td>
                     <td style="color:var(--muted);font-size:.82rem">{{ study.createdAt|date('d/m/Y') }}</td>
-                    <td>{{ include('admin/_approval_status.html.twig', {content: study}) }}</td>
+                    <td>{{ include('admin/_approval_status.html.twig', {content: study, count: false}) }}</td>
+                    <td>{{ include('admin/_approval_count.html.twig', {content: study}) }}</td>
                     <td>
                         <div class="ta">
                             {{ include('admin/_approval_actions.html.twig', {content: study, type: 'study'}) }}

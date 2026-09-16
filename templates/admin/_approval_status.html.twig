@@ -1,11 +1,13 @@
 {#
   Status de publicação no fluxo de aprovação.
-  Variáveis: content (estudo ou vídeo), detailed (opcional: também lista quem já aprovou)
+  Variáveis: content (estudo ou vídeo), detailed (opcional: também lista quem já aprovou),
+             count (opcional, padrão true: mostra "X de Y aprovação(ões)" — desligue onde
+             a tela já tem a coluna Aprovações)
 #}
 {% set s = content.status %}
 {% set required = content.tenant ? max(1, content.tenant.requiredApprovals) : 1 %}
 <span class="badge {{ s.value == 'published' ? 'bg-ok' : (s.value == 'pending' ? 'bg-warn' : 'bg-neu') }}">{{ s.label() }}</span>
-{% if s.value == 'pending' %}
+{% if s.value == 'pending' and count|default(true) %}
 <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">
     {{ content.approvalCount }} de {{ required }} aprovação(ões)
 </div>

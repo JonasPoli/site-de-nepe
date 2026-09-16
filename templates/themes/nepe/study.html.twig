@@ -49,10 +49,11 @@
         {{ include('themes/nepe/_biblia_passage.html.twig', {passage: passage}) }}
     {% endif %}
 
-    {# ── Bloco de Autoria ── #}
-    {% if study.author %}
+    {# ── Bloco de Autoria e revisão por pares ── #}
+    {% if study.author or study.approvals|length > 0 %}
     <div class="authorship-block">
         <div class="authorship-inner">
+            {% if study.author %}
             <div class="author-card author-card--primary">
                 <div class="author-avatar">{{ study.author.name|first|upper }}</div>
                 <div class="author-info">
@@ -60,6 +61,29 @@
                     <span class="author-name">{{ study.author.name }}</span>
                 </div>
             </div>
+            {% endif %}
+
+            {% if study.approvals|length > 0 %}
+            <div class="reviewers">
+                <span class="author-role author-role--reviewers">
+                    Aprovado por {{ study.approvals|length }} membro{{ study.approvals|length > 1 ? 's' : '' }} da equipe
+                </span>
+                <div class="reviewers-list">
+                    {% for approval in study.approvals %}
+                    {% set reviewerName = approval.reviewer.name ?: 'Membro da equipe' %}
+                    <div class="author-card author-card--reviewer">
+                        <div class="author-avatar author-avatar--sm">{{ reviewerName|first|upper }}</div>
+                        <div class="author-info">
+                            <span class="author-name">{{ reviewerName }}</span>
+                            <span class="approval-date">
+                                aprovou em <time datetime="{{ approval.approvedAt|date('Y-m-d') }}">{{ approval.approvedAt|date('d/m/Y') }}</time>
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -152,6 +176,20 @@
     letter-spacing: .09em; color: var(--color-primary); opacity: .8;
 }
 .author-name { font-size: .95rem; font-weight: 700; color: #1a1c2e; }
+
+/* Revisores que aprovaram a publicação */
+.authorship-inner { align-items: flex-start; }
+.author-card--primary { padding-right: 1rem; border-right: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent); }
+.reviewers { display: flex; flex-direction: column; gap: .6rem; }
+.author-role--reviewers { color: #16a34a; opacity: 1; }
+.reviewers-list { display: flex; flex-wrap: wrap; gap: .85rem 1.5rem; }
+.author-avatar--sm { width: 32px; height: 32px; font-size: .8rem; background: linear-gradient(135deg, #16a34a, #4ade80); box-shadow: 0 4px 12px rgba(22,163,74,.25); }
+.author-card--reviewer .author-name { font-size: .85rem; font-weight: 600; }
+.approval-date { font-size: .7rem; color: #6b7280; }
+
+@media (max-width: 640px) {
+    .author-card--primary { padding-right: 0; border-right: 0; padding-bottom: .85rem; border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent); width: 100%; }
+}
 
 /* Materials */
 .study-description { margin: 2rem 0; }

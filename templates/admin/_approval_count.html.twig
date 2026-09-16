@@ -1,0 +1,10 @@
+{#
+  Coluna "Aprovações": quantas o conteúdo já tem e quantas o tenant exige para publicar.
+  Variável: content (artigo, estudo ou vídeo)
+#}
+{% set required = content.tenant ? max(1, content.tenant.requiredApprovals) : 1 %}
+<span class="badge {{ content.approvalCount >= required ? 'bg-ok' : 'bg-inf' }}"
+      title="{{ content.approvalCount }} de {{ required }} aprovação(ões) necessária(s) para publicar">
+    {{ content.approvalCount }}
+</span>
+<span style="color:var(--muted)">/ {{ required }}</span>
