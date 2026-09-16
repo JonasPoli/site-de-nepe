@@ -74,7 +74,7 @@
                     <td>{{ include('admin/_approval_count.html.twig', {content: study}) }}</td>
                     <td>
                         <div class="ta">
-                            {{ include('admin/_approval_actions.html.twig', {content: study, type: 'study'}) }}
+                            {{ include('admin/_approval_actions.html.twig', {content: study, type: 'study', review_route: 'admin_study_review'}) }}
                             <a href="{{ path('admin_study_edit', {id: study.id}) }}" class="btn btn-g btn-sm">
                                 <sl-icon name="pencil-fill"></sl-icon>
                             </a>

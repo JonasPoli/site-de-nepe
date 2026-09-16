@@ -28,6 +28,20 @@ class ContentApprovalController extends AbstractController
         return $this->submit($study, $request, 'study', 'admin_study_index');
     }
 
+    /** Tela de revisão: o colega lê o material inteiro antes de aprovar (equivalente ao show do artigo) */
+    #[Route('/study/{id}/review', name: 'study_review', methods: ['GET'])]
+    public function reviewStudy(Study $study, \App\Service\BibliaService $biblia): Response
+    {
+        $this->denyUnlessSameTenant($study);
+
+        return $this->render('admin/study/show.html.twig', [
+            'study'   => $study,
+            'passage' => $study->hasBibliaReference()
+                ? $biblia->getPassage($study->getBibliaBook(), $study->getBibliaChapter(), $study->getBibliaVerseStart(), $study->getBibliaVerseEnd())
+                : null,
+        ]);
+    }
+
     #[Route('/study/{id}/approve', name: 'study_approve', methods: ['POST'])]
     #[IsGranted('CONTENT_REVIEW')]
     public function approveStudy(Study $study, Request $request): Response
@@ -50,13 +64,7 @@ class ContentApprovalController extends AbstractController
 
     private function submit(PublishableInterface $content, Request $request, string $type, string $redirectRoute): Response
     {
-        /** @var User $user */
-        $user = $this->getUser();
-
-        // As rotas /admin não passam pelo filtro de tenant: confere que o conteúdo é deste site
-        if (!$user->isSuperAdmin() && $user->getTenant()?->getId() !== $content->getTenant()?->getId()) {
-            throw $this->createAccessDeniedException();
-        }
+        $this->denyUnlessSameTenant($content);
 
         if ($this->isCsrfTokenValid(sprintf('submit_%s_%d', $type, $content->getId()), (string) $request->request->get('_token'))) {
             $this->approvals->submit($content)
@@ -65,6 +73,17 @@ class ContentApprovalController extends AbstractController
         }
 
         return $this->redirectToRoute($redirectRoute);
+    }
+
+    /** As rotas /admin não passam pelo filtro de tenant: confere que o conteúdo é deste site */
+    private function denyUnlessSameTenant(PublishableInterface $content): void
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user->isSuperAdmin() && $user->getTenant()?->getId() !== $content->getTenant()?->getId()) {
+            throw $this->createAccessDeniedException();
+        }
     }
 
     private function approve(PublishableInterface $content, Request $request, string $type, string $redirectRoute): Response

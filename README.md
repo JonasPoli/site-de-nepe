@@ -224,6 +224,7 @@ A API permite que aplicações externas (como o **nepe-search**, buscadores e ap
 | `video` | Só vídeos: `youtube_id`, `embed_url`, `thumbnail_url`, `has_custom_thumbnail` |
 | `tenant` | `id`, `name`, `domain`, `logo_url`, `primary_color` |
 | `author` | `name` do autor, ou `null` |
+| `approved_by` | Membros que aprovaram a publicação: `name` e `approved_at` (ISO 8601). Vazio em páginas institucionais |
 | `category` | `id`, `name`, `slug`, ou `null` |
 | `biblical_reference` | `book_id`, `book_name`, `book_abbreviation`, `chapter`, `verse_start`, `verse_end`, `formatted` |
 | `passage` | Texto ARC dos versículos referenciados: `book`, `chapter`, `verse_start`, `verse_end`, `reference_formatted`, `version` e `verses[]` (`id`, `verse`, `text`, `subject`, `ext`) |
@@ -281,6 +282,10 @@ curl -X GET "https://seudominio.com.br/api/biblia/contents?book=lc&chapter=10&ty
         "primary_color": "#1a56db"
       },
       "author": { "name": "Maria Souza" },
+      "approved_by": [
+        { "name": "João Lima", "approved_at": "2026-09-10T14:32:00-03:00" },
+        { "name": "Ana Prado", "approved_at": "2026-09-11T09:05:00-03:00" }
+      ],
       "category": { "id": 4, "name": "Parábolas", "slug": "parabolas" },
       "biblical_reference": {
         "book_id": 42,

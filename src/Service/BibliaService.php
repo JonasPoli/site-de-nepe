@@ -202,7 +202,9 @@ class BibliaService
                 ->leftJoin('a.bibliaBook', 'b')
                 ->leftJoin('a.author', 'u')
                 ->leftJoin('a.category', 'c')
-                ->addSelect('t', 'b', 'u', 'c')
+                ->leftJoin('a.approvals', 'ap')
+                ->leftJoin('ap.reviewer', 'rv')
+                ->addSelect('t', 'b', 'u', 'c', 'ap', 'rv')
                 ->where('a.bibliaBook = :book')
                 ->andWhere('a.bibliaChapter = :chap')
                 ->andWhere('a.status = :published')
@@ -234,7 +236,9 @@ class BibliaService
                 ->leftJoin('v.bibliaBook', 'b')
                 ->leftJoin('v.author', 'u')
                 ->leftJoin('v.category', 'c')
-                ->addSelect('t', 'b', 'u', 'c')
+                ->leftJoin('v.approvals', 'ap')
+                ->leftJoin('ap.reviewer', 'rv')
+                ->addSelect('t', 'b', 'u', 'c', 'ap', 'rv')
                 ->where('v.bibliaBook = :book')
                 ->andWhere('v.bibliaChapter = :chap')
                 ->andWhere('v.status = :published')
@@ -266,7 +270,9 @@ class BibliaService
                 ->leftJoin('s.bibliaBook', 'b')
                 ->leftJoin('s.author', 'u')
                 ->leftJoin('s.category', 'c')
-                ->addSelect('t', 'b', 'u', 'c')
+                ->leftJoin('s.approvals', 'ap')
+                ->leftJoin('ap.reviewer', 'rv')
+                ->addSelect('t', 'b', 'u', 'c', 'ap', 'rv')
                 ->where('s.bibliaBook = :book')
                 ->andWhere('s.bibliaChapter = :chap')
                 ->andWhere('s.status = :published')
@@ -414,6 +420,25 @@ class BibliaService
         return $author && $author->getName() !== '' ? ['name' => $author->getName()] : null;
     }
 
+    /**
+     * Quem aprovou a publicação. Como o autor, só o nome: o usuário pode ser o e-mail da pessoa.
+     *
+     * @param iterable<\App\Entity\ArticleApproval|\App\Entity\StudyApproval|\App\Entity\VideoSupportApproval> $approvals
+     * @return array<int, array{name: string, approved_at: string}>
+     */
+    private function formatApprovals(iterable $approvals): array
+    {
+        $reviewers = [];
+        foreach ($approvals as $approval) {
+            $reviewers[] = [
+                'name' => $approval->getReviewer()?->getName() ?: 'Membro da equipe',
+                'approved_at' => $approval->getApprovedAt()->format(\DateTimeInterface::ATOM),
+            ];
+        }
+
+        return $reviewers;
+    }
+
     private function formatCategory(?Category $category): ?array
     {
         return $category ? ['id' => $category->getId(), 'name' => $category->getName(), 'slug' => $category->getSlug()] : null;
@@ -462,6 +487,7 @@ class BibliaService
             'files' => [],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
             'author' => $this->formatAuthor($article->getAuthor()),
+            'approved_by' => $this->formatApprovals($article->getApprovals()),
             'category' => $this->formatCategory($article->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($article->getBibliaBook(), $article->getBibliaChapter(), $article->getBibliaVerseStart(), $article->getBibliaVerseEnd()),
             'passage' => $this->passageFor($article),
@@ -501,6 +527,7 @@ class BibliaService
             ],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
             'author' => $this->formatAuthor($video->getAuthor()),
+            'approved_by' => $this->formatApprovals($video->getApprovals()),
             'category' => $this->formatCategory($video->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($video->getBibliaBook(), $video->getBibliaChapter(), $video->getBibliaVerseStart(), $video->getBibliaVerseEnd()),
             'passage' => $this->passageFor($video),
@@ -534,6 +561,7 @@ class BibliaService
             'files' => $this->formatFiles($study->getMaterials(), $baseUrl, 'study_material'),
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
             'author' => $this->formatAuthor($study->getAuthor()),
+            'approved_by' => $this->formatApprovals($study->getApprovals()),
             'category' => $this->formatCategory($study->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($study->getBibliaBook(), $study->getBibliaChapter(), $study->getBibliaVerseStart(), $study->getBibliaVerseEnd()),
             'passage' => $this->passageFor($study),
@@ -562,6 +590,7 @@ class BibliaService
             'files' => [],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
             'author' => null,
+            'approved_by' => [],
             'category' => null,
             'biblical_reference' => $this->formatBibliaRef($page->getBibliaBook(), $page->getBibliaChapter(), $page->getBibliaVerseStart(), $page->getBibliaVerseEnd()),
             'passage' => $this->passageFor($page),

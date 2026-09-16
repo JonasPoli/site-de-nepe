@@ -1,0 +1,131 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Revisar Material{% endblock %}
+{% block page_title %}Revisar Material{% endblock %}
+
+{% block body %}
+{% set is_author = study.author and study.author.id == app.user.id %}
+{% set required = study.tenant ? max(1, study.tenant.requiredApprovals) : 1 %}
+
+<div class="ph">
+    <div>
+        <a href="{{ path('admin_study_index') }}" class="btn btn-g btn-sm" style="margin-bottom:1rem">← Voltar</a>
+        <h1>{{ study.title }}</h1>
+        <div style="color:var(--muted);font-size:.9rem;margin-top:.5rem">
+            Autor: <strong>{{ study.author ? study.author.name : 'Desconhecido' }}</strong> |
+            Categoria: <strong>{{ study.category ? study.category.name : '—' }}</strong> |
+            Status: {{ include('admin/_approval_status.html.twig', {content: study, count: false}) }}
+            <span style="margin-left:.35rem">{{ include('admin/_approval_count.html.twig', {content: study}) }}</span>
+        </div>
+    </div>
+
+    <div class="ta">
+        <a href="{{ path('pub_study_show', {slug: study.slug}) }}" target="_blank" rel="noopener" class="btn btn-g btn-sm"
+           title="{{ study.status.value == 'published' ? 'Ver no site' : 'Pré-visualizar no site' }}">
+            <sl-icon name="eye-fill"></sl-icon>
+        </a>
+    </div>
+</div>
+
+{# ── Painel de aprovação ── #}
+{% if study.status.value == 'pending' and not is_author and is_granted('CONTENT_REVIEW') and not study.isApprovedBy(app.user) %}
+<div class="card" style="margin-bottom:1.5rem">
+    <div style="font-weight:600;margin-bottom:.35rem">Aprovar publicação</div>
+    <p style="font-size:.82rem;color:var(--muted);margin:0 0 1rem">
+        Faltam {{ max(0, required - study.approvalCount) }} aprovação(ões) para este material ser publicado no site e na API.
+        Confira o conteúdo e os arquivos abaixo antes de aprovar.
+    </p>
+    <form action="{{ path('admin_study_approve', {id: study.id}) }}" method="post" class="af">
+        <input type="hidden" name="_token" value="{{ csrf_token('approve_study_' ~ study.id) }}">
+        <div class="af-field">
+            <label>Comentário da aprovação (opcional)</label>
+            <textarea name="comment" rows="2" class="ate" placeholder="Observações da revisão..."></textarea>
+        </div>
+        <div class="af-actions">
+            <button type="submit" class="btn btn-s"><sl-icon name="check-lg"></sl-icon> Aprovar publicação</button>
+        </div>
+    </form>
+</div>
+{% elseif study.status.value == 'draft' and (is_author or not study.author) %}
+<div class="card" style="margin-bottom:1.5rem">
+    <div style="font-weight:600;margin-bottom:.35rem">Rascunho</div>
+    <p style="font-size:.82rem;color:var(--muted);margin:0 0 1rem">
+        Este material ainda não foi enviado para aprovação. São necessárias {{ required }} aprovação(ões) de outros membros
+        para ele aparecer no site e na API.
+    </p>
+    <form action="{{ path('admin_study_submit', {id: study.id}) }}" method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token('submit_study_' ~ study.id) }}">
+        <button type="submit" class="btn btn-p"><sl-icon name="send-fill"></sl-icon> Enviar para aprovação</button>
+    </form>
+</div>
+{% endif %}
+
+{# ── Aprovações já registradas ── #}
+{% if study.approvalCount > 0 %}
+<div class="card" style="margin-bottom:1.5rem">
+    <h3 style="font-size:1rem;font-weight:700;margin:0 0 1rem">Aprovações ({{ study.approvalCount }} de {{ required }})</h3>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+        {% for approval in study.approvals %}
+        <div style="display:flex;gap:.85rem;align-items:flex-start;padding:.75rem .9rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px">
+            <sl-icon name="check-circle-fill" style="color:#22c55e;font-size:1.1rem;margin-top:.15rem"></sl-icon>
+            <div>
+                <div style="font-weight:600;font-size:.9rem">{{ approval.reviewer.name|default(approval.reviewer.email) }}</div>
+                <div style="font-size:.75rem;color:var(--muted)">{{ approval.approvedAt|date('d/m/Y H:i') }}</div>
+                {% if approval.comment %}
+                <div style="font-size:.85rem;margin-top:.35rem">{{ approval.comment }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ── Conteúdo do material ── #}
+<div class="card">
+    {% if study.coverImage %}
+    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}"
+         style="width:100%;max-height:320px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:1.5rem">
+    {% endif %}
+
+    {% if study.hasBibliaReference %}
+    <div style="margin-bottom:1.5rem;padding:1rem 1.25rem;background:var(--bg3);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.5rem">Referência bíblica</div>
+        <div style="font-weight:700;margin-bottom:.5rem">{{ study.bibliaReferenceFormatted }}</div>
+        {% if passage %}
+        <div style="font-size:.88rem;line-height:1.7;color:var(--muted)">
+            {% for verse in passage.verses %}
+            <p style="margin:0 0 .35rem"><strong>{{ verse.verse }}</strong> {{ verse.text }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if study.description %}
+    <div style="line-height:1.8">{{ study.description|raw }}</div>
+    {% endif %}
+
+    {% if study.materialsHtml %}
+    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+        <h3 style="font-size:1rem;font-weight:700;margin:0 0 1rem">Materiais e Referências</h3>
+        <div style="line-height:1.8">{{ study.materialsHtml|raw }}</div>
+    </div>
+    {% endif %}
+
+    {% if study.materials|length > 0 %}
+    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+        <h3 style="font-size:1rem;font-weight:700;margin:0 0 1rem">Arquivos para download ({{ study.materials|length }})</h3>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+            {% for mat in study.materials %}
+            <a href="{{ asset('uploads/study_material/' ~ mat.filename) }}" target="_blank" rel="noopener"
+               style="display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:inherit">
+                <span style="font-size:1.3rem">{{ mat.extension in ['pdf'] ? '📄' : (mat.extension in ['xls','xlsx'] ? '📊' : (mat.extension in ['doc','docx'] ? '📝' : (mat.extension in ['png','jpg','jpeg'] ? '🖼️' : '📎'))) }}</span>
+                <span style="flex:1;font-size:.9rem;font-weight:500">{{ mat.label }}</span>
+                <span style="font-size:.75rem;color:var(--muted)">{{ mat.extension|upper }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

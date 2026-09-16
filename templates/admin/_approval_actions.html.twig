@@ -1,10 +1,12 @@
 {#
-  Botões do fluxo de aprovação (enviar, aprovar, pré-visualizar).
-  Variáveis: content (estudo ou vídeo), type ('study' | 'video')
+  Botões do fluxo de aprovação (enviar, revisar/aprovar, pré-visualizar).
+  Variáveis: content (estudo ou vídeo), type ('study' | 'video'),
+             review_route (opcional: rota da tela de revisão — quando existe, aprovar passa por ela)
 #}
 {% set is_author = content.author and content.author.id == app.user.id %}
+{% set can_submit = is_author or not content.author or is_granted('ROLE_SUPER_ADMIN') %}
 
-{% if content.status.value == 'draft' %}
+{% if content.status.value == 'draft' and can_submit %}
     <form action="{{ path('admin_' ~ type ~ '_submit', {id: content.id}) }}" method="post" style="display:inline">
         <input type="hidden" name="_token" value="{{ csrf_token('submit_' ~ type ~ '_' ~ content.id) }}">
         <button type="submit" class="btn btn-sm" style="background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)" title="Enviar para aprovação">
@@ -12,11 +14,17 @@
         </button>
     </form>
 {% elseif content.status.value == 'pending' and not is_author and is_granted('CONTENT_REVIEW') and not content.isApprovedBy(app.user) %}
-    <form action="{{ path('admin_' ~ type ~ '_approve', {id: content.id}) }}" method="post" style="display:inline"
-          onsubmit="return confirm('Aprovar a publicação deste conteúdo? Veja antes pela pré-visualização.')">
-        <input type="hidden" name="_token" value="{{ csrf_token('approve_' ~ type ~ '_' ~ content.id) }}">
-        <button type="submit" class="btn btn-s btn-sm" title="Aprovar publicação"><sl-icon name="check-lg"></sl-icon></button>
-    </form>
+    {% if review_route|default(null) %}
+        <a href="{{ path(review_route, {id: content.id}) }}" class="btn btn-s btn-sm" title="Revisar e aprovar">
+            <sl-icon name="check-lg"></sl-icon>
+        </a>
+    {% else %}
+        <form action="{{ path('admin_' ~ type ~ '_approve', {id: content.id}) }}" method="post" style="display:inline"
+              onsubmit="return confirm('Aprovar a publicação deste conteúdo? Veja antes pela pré-visualização.')">
+            <input type="hidden" name="_token" value="{{ csrf_token('approve_' ~ type ~ '_' ~ content.id) }}">
+            <button type="submit" class="btn btn-s btn-sm" title="Aprovar publicação"><sl-icon name="check-lg"></sl-icon></button>
+        </form>
+    {% endif %}
 {% endif %}
 
 <a href="{{ path(type == 'study' ? 'pub_study_show' : 'pub_video_show', {slug: content.slug}) }}" target="_blank" rel="noopener"
