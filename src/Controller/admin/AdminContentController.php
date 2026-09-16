@@ -394,6 +394,7 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/study/new', name: 'study_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ARTICLE_EDIT')]
     public function studyNew(Request $r, EntityManagerInterface $em, TenantContext $tc, CategoryRepository $cats, SluggerInterface $slugger): Response
     {
         $study = new Study();
@@ -410,8 +411,11 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/study/{id}/edit', name: 'study_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ARTICLE_EDIT')]
     public function studyEdit(Study $study, Request $r, EntityManagerInterface $em, CategoryRepository $cats, SluggerInterface $slugger, \App\Service\ContentApprovalService $approvals): Response
     {
+        $this->denyUnlessCanManageStudy($study);
+
         if ($r->isMethod('POST')) {
             $fingerprint = $approvals->fingerprint($study);
             $this->populateStudy($study, $r, $slugger, $em);
@@ -432,8 +436,11 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/study/{id}/delete', name: 'study_delete', methods: ['POST'])]
+    #[IsGranted('ARTICLE_EDIT')]
     public function studyDelete(Study $study, Request $r, EntityManagerInterface $em): Response
     {
+        $this->denyUnlessCanManageStudy($study);
+
         if ($this->isCsrfTokenValid('del_study_' . $study->getId(), (string) $r->request->get('_token'))) {
             $em->remove($study);
             $em->flush();
@@ -1047,6 +1054,25 @@ class AdminContentController extends AbstractController
             $video->getMaterials()->add($mat);
             $em->persist($mat);
         }
+    }
+
+    /**
+     * Editar e excluir material seguem a regra do artigo: só o autor e o SuperAdmin.
+     * Material sem autor (cadastrado antes do fluxo de aprovação) segue editável por quem pode criar.
+     */
+    private function denyUnlessCanManageStudy(Study $study): void
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $author = $study->getAuthor();
+        if ($author === null || $user->isSuperAdmin() || $author->getId() === $user->getId()) {
+            return;
+        }
+
+        throw $this->createAccessDeniedException('Só o autor pode editar ou excluir este material. Use a tela de revisão para aprová-lo.');
     }
 
     private function populateStudy(Study $study, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void

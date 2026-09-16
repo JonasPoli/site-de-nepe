@@ -6,9 +6,11 @@
 {% block body %}
 <div class="ph">
     <h1>Materiais</h1>
+    {% if is_granted('ARTICLE_EDIT') %}
     <a href="{{ path('admin_study_new') }}" class="btn btn-p">
         <sl-icon name="plus-lg"></sl-icon> Novo Material
     </a>
+    {% endif %}
 </div>
 
 <div class="card">
@@ -73,16 +75,24 @@
                     <td>{{ include('admin/_approval_status.html.twig', {content: study, count: false}) }}</td>
                     <td>{{ include('admin/_approval_count.html.twig', {content: study}) }}</td>
                     <td>
+                        {# Editar e excluir só para o autor e o SuperAdmin, como nos artigos: os colegas revisam #}
+                        {% set can_manage = not study.author or study.author.id == app.user.id or is_granted('ROLE_SUPER_ADMIN') %}
                         <div class="ta">
                             {{ include('admin/_approval_actions.html.twig', {content: study, type: 'study', review_route: 'admin_study_review'}) }}
-                            <a href="{{ path('admin_study_edit', {id: study.id}) }}" class="btn btn-g btn-sm">
+                            {% if can_manage and is_granted('ARTICLE_EDIT') %}
+                            <a href="{{ path('admin_study_edit', {id: study.id}) }}" class="btn btn-g btn-sm" title="Editar">
                                 <sl-icon name="pencil-fill"></sl-icon>
                             </a>
                             <form method="post" action="{{ path('admin_study_delete', {id: study.id}) }}"
                                   onsubmit="return confirm('Excluir este material?')">
                                 <input type="hidden" name="_token" value="{{ csrf_token('del_study_' ~ study.id) }}">
-                                <button class="btn btn-d btn-sm"><sl-icon name="trash-fill"></sl-icon></button>
+                                <button class="btn btn-d btn-sm" title="Excluir"><sl-icon name="trash-fill"></sl-icon></button>
                             </form>
+                            {% else %}
+                            <a href="{{ path('admin_study_review', {id: study.id}) }}" class="btn btn-g btn-sm" title="Visualizar para revisar">
+                                <sl-icon name="file-earmark-text"></sl-icon>
+                            </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
