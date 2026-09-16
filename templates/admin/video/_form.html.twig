@@ -86,6 +86,19 @@
         <textarea name="description" class="ate" rows="4">{{ video.description }}</textarea>
     </div>
 
+    <div class="af-group af-group--inline">
+        {% if video.id %}
+            {{ include('admin/_approval_status.html.twig', {content: video, detailed: true}) }}
+        {% endif %}
+        <p class="af-hint" style="margin:0">
+            O vídeo só aparece no site e na API depois de publicado: salve, envie para aprovação (botão no topo desta
+            página ou na lista de vídeos) e aguarde as aprovações de outros membros —
+            {% set approvalTenant = video.tenant ?? tenant() %}{{ approvalTenant ? max(1, approvalTenant.requiredApprovals) : 1 }} neste site.
+            Alterar o conteúdo, a miniatura ou os arquivos de um vídeo aprovado faz ele voltar para rascunho.
+        </p>
+    </div>
+
+
     {# ── Materiais e Referências ── #}
     <div class="af-field">
         <label>Materiais e Referências</label>

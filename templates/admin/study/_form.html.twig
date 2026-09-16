@@ -23,11 +23,13 @@
 
     <div class="af-group af-group--inline">
         {% if study.id %}
-            {{ include('admin/_approval_status.html.twig', {content: study}) }}
+            {{ include('admin/_approval_status.html.twig', {content: study, detailed: true}) }}
         {% endif %}
         <p class="af-hint" style="margin:0">
-            O material só aparece no site e na API depois de publicado: salve, envie para aprovação na lista de materiais
-            e aguarde as aprovações de outros membros. Alterar o conteúdo de um material aprovado faz ele voltar para rascunho.
+            O material só aparece no site e na API depois de publicado: salve, envie para aprovação (botão no topo desta
+            página ou na lista de materiais) e aguarde as aprovações de outros membros —
+            {% set approvalTenant = study.tenant ?? tenant() %}{{ approvalTenant ? max(1, approvalTenant.requiredApprovals) : 1 }} neste site.
+            Alterar o conteúdo, a capa ou os arquivos de um material aprovado faz ele voltar para rascunho.
         </p>
     </div>
 

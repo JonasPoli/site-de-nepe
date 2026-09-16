@@ -1023,9 +1023,11 @@ class AdminContentController extends AbstractController
         $this->applyBibliaReference($video, $r, $em);
 
         // ── Delete removed materials ──────────────────────────────────────────
+        // Sai da coleção também: é dela que o fingerprint de aprovação lê os arquivos
         $deleteIds = array_filter(array_map('intval', (array) $r->request->all('delete_material')));
-        foreach ($video->getMaterials() as $mat) {
+        foreach ($video->getMaterials()->toArray() as $mat) {
             if (in_array($mat->getId(), $deleteIds, true)) {
+                $video->getMaterials()->removeElement($mat);
                 $em->remove($mat);
             }
         }
@@ -1042,6 +1044,7 @@ class AdminContentController extends AbstractController
             $mat->setLabel($label);
             $mat->setExtension(strtolower($uploadedFile->getClientOriginalExtension()));
             $mat->setFile($uploadedFile);
+            $video->getMaterials()->add($mat);
             $em->persist($mat);
         }
     }
@@ -1068,9 +1071,11 @@ class AdminContentController extends AbstractController
         $this->applyBibliaReference($study, $r, $em);
 
         // ── Delete removed materials ──────────────────────────────────────────
+        // Sai da coleção também: é dela que o fingerprint de aprovação lê os arquivos
         $deleteIds = array_filter(array_map('intval', (array) $r->request->all('delete_material')));
-        foreach ($study->getMaterials() as $mat) {
+        foreach ($study->getMaterials()->toArray() as $mat) {
             if (in_array($mat->getId(), $deleteIds, true)) {
+                $study->getMaterials()->removeElement($mat);
                 $em->remove($mat);
             }
         }
@@ -1087,6 +1092,7 @@ class AdminContentController extends AbstractController
             $mat->setLabel($label);
             $mat->setExtension(strtolower($uploadedFile->getClientOriginalExtension()));
             $mat->setFile($uploadedFile);
+            $study->getMaterials()->add($mat);
             $em->persist($mat);
         }
     }

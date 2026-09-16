@@ -5,6 +5,7 @@ namespace App\Tests\Service;
 use App\Entity\Enum\ArticleStatus;
 use App\Entity\Study;
 use App\Entity\StudyApproval;
+use App\Entity\StudyMaterial;
 use App\Entity\Tenant;
 use App\Entity\User;
 use App\Entity\VideoSupport;
@@ -87,6 +88,42 @@ class ContentApprovalServiceTest extends TestCase
         $this->assertSame(ArticleStatus::Draft, $video->getStatus());
         $this->assertNull($video->getPublishedAt());
         $this->assertSame(0, $video->getApprovalCount());
+    }
+
+    public function testChangingTheAttachedFilesSendsPublishedContentBackToDraft(): void
+    {
+        $study = $this->pendingStudy();
+        $study->getMaterials()->add($this->material($study, 'Apostila'));
+        $this->service->approve($study, $this->member($this->tenant));
+        $this->service->approve($study, $this->member($this->tenant));
+        $this->assertTrue($study->isPublished());
+
+        $fingerprint = $this->service->fingerprint($study);
+        $study->getMaterials()->add($this->material($study, 'Slides'));
+
+        $this->assertTrue($this->service->invalidateIfChanged($study, $fingerprint));
+        $this->assertSame(ArticleStatus::Draft, $study->getStatus());
+        $this->assertSame(0, $study->getApprovalCount());
+    }
+
+    public function testRemovingAnAttachedFileAlsoInvalidatesTheApprovals(): void
+    {
+        $study = $this->pendingStudy();
+        $material = $this->material($study, 'Apostila');
+        $study->getMaterials()->add($material);
+        $this->service->approve($study, $this->member($this->tenant));
+        $this->service->approve($study, $this->member($this->tenant));
+
+        $fingerprint = $this->service->fingerprint($study);
+        $study->getMaterials()->removeElement($material);
+
+        $this->assertTrue($this->service->invalidateIfChanged($study, $fingerprint));
+        $this->assertSame(ArticleStatus::Draft, $study->getStatus());
+    }
+
+    private function material(Study $study, string $label): StudyMaterial
+    {
+        return (new StudyMaterial())->setStudy($study)->setLabel($label)->setExtension('pdf')->setFilename($label . '.pdf');
     }
 
     public function testChangingADraftWithoutApprovalsKeepsIt(): void

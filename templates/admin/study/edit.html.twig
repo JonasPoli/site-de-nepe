@@ -6,7 +6,10 @@
 {% block body %}
 <div class="ph">
     <h1>Editar: {{ study.title }}</h1>
-    <a href="{{ path('admin_study_index') }}" class="btn btn-g">← Voltar</a>
+    <div class="ta">
+        {{ include('admin/_approval_actions.html.twig', {content: study, type: 'study'}) }}
+        <a href="{{ path('admin_study_index') }}" class="btn btn-g">← Voltar</a>
+    </div>
 </div>
 <div class="card">
     {{ forms.study_form(study, categories, path('admin_study_edit', {id: study.id})) }}

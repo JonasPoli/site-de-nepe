@@ -94,9 +94,12 @@
         {# ── Publicação ── #}
         <div style="margin:1.5rem 0 .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Publicação</div>
         <div class="af-field">
-            <label>Mínimo de aprovações para publicar artigo</label>
+            <label>Mínimo de aprovações para publicar</label>
             <input type="number" name="requiredApprovals" class="ai" value="{{ tenant.requiredApprovals ?? 1 }}" min="1" max="10" style="max-width:120px">
-            <p class="af-hint">Número de revisores que precisam aprovar antes de publicar automaticamente.</p>
+            <p class="af-hint">
+                Vale para artigos, vídeos e materiais/estudos: número de outros membros que precisam aprovar antes de o
+                conteúdo ser publicado automaticamente no site e na API. O autor não conta como aprovador.
+            </p>
         </div>
 
         <div class="af-actions">

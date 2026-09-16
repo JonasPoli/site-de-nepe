@@ -1,8 +1,20 @@
-{# Status de publicação no fluxo de aprovação. Variável: content (estudo ou vídeo) #}
+{#
+  Status de publicação no fluxo de aprovação.
+  Variáveis: content (estudo ou vídeo), detailed (opcional: também lista quem já aprovou)
+#}
 {% set s = content.status %}
+{% set required = content.tenant ? max(1, content.tenant.requiredApprovals) : 1 %}
 <span class="badge {{ s.value == 'published' ? 'bg-ok' : (s.value == 'pending' ? 'bg-warn' : 'bg-neu') }}">{{ s.label() }}</span>
 {% if s.value == 'pending' %}
 <div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">
-    {{ content.approvalCount }} de {{ content.tenant ? max(1, content.tenant.requiredApprovals) : 1 }} aprovação(ões)
+    {{ content.approvalCount }} de {{ required }} aprovação(ões)
+</div>
+{% endif %}
+{% if detailed|default(false) and content.approvalCount > 0 %}
+<div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">
+    Aprovado por
+    {%- for approval in content.approvals %}
+        {{ ' ' }}{{ approval.reviewer.name|default(approval.reviewer.email) }} ({{ approval.approvedAt|date('d/m/Y') }}){{ not loop.last ? ',' }}
+    {%- endfor %}
 </div>
 {% endif %}

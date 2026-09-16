@@ -66,7 +66,7 @@ class ContentApprovalService
     }
 
     /**
-     * Fingerprint of what reviewers approve (text, media and Bible reference).
+     * Fingerprint of what reviewers approve (text, media, attached files and Bible reference).
      * Take it before applying the edit form and pass it to invalidateIfChanged() afterwards.
      */
     public function fingerprint(PublishableInterface $content): string
@@ -75,10 +75,12 @@ class ContentApprovalService
             $content instanceof Study => [
                 $content->getTitle(), $content->getDescription(), $content->getMaterialsHtml(),
                 $content->getCoverImageUpdatedAt()?->format('U.u'),
+                $this->filesFingerprint($content->getMaterials()),
             ],
             $content instanceof VideoSupport => [
                 $content->getTitle(), $content->getYoutubeId(), $content->getDescription(), $content->getMaterialsHtml(),
                 $content->getCustomThumbnail(), $content->getCustomThumbnailUpdatedAt()?->format('U.u'),
+                $this->filesFingerprint($content->getMaterials()),
             ],
             $content instanceof Article => [
                 $content->getTitle(), $content->getShortDescription(), $content->getContent(),
@@ -115,6 +117,23 @@ class ContentApprovalService
         $content->setPublishedAt(null);
 
         return true;
+    }
+
+    /**
+     * Attached files are part of what gets approved: the API publishes them under "files",
+     * so swapping a PDF after approval has to send the content back for review.
+     *
+     * @param iterable<\App\Entity\StudyMaterial|\App\Entity\VideoMaterial> $materials
+     */
+    private function filesFingerprint(iterable $materials): string
+    {
+        $files = [];
+        foreach ($materials as $material) {
+            $files[] = sprintf('%s|%s|%s', $material->getLabel(), $material->getExtension(), $material->getFilename());
+        }
+        sort($files);
+
+        return implode("\n", $files);
     }
 
     private function createApproval(PublishableInterface $content, User $reviewer, ?string $comment): ArticleApproval|StudyApproval|VideoSupportApproval

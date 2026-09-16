@@ -186,7 +186,7 @@ Ao criar ou editar qualquer **Artigo**, **Vídeo**, **Material/Estudo** ou **Pá
 
 A API permite que aplicações externas (como o **nepe-search**, buscadores e aplicativos bíblicos) consultem os conteúdos produzidos pelos tenants da plataforma.
 
-> **Só conteúdo publicado.** Artigos, vídeos e materiais/estudos passam pelo fluxo de aprovação do tenant (rascunho → aguardando aprovação → publicado) e só aparecem na API — e no site — depois de receberem o número de aprovações definido em *Aprovações necessárias* do tenant. As aprovações precisam vir de outros membros do mesmo tenant: o autor não aprova o próprio conteúdo, e alterar o texto, a mídia ou a referência bíblica de um conteúdo aprovado faz ele voltar para rascunho. Páginas institucionais não passam pelo fluxo.
+> **Só conteúdo publicado.** Artigos, vídeos e materiais/estudos passam pelo fluxo de aprovação do tenant (rascunho → aguardando aprovação → publicado) e só aparecem na API — e no site — depois de receberem o número de aprovações definido em *Aprovações necessárias* do tenant. As aprovações precisam vir de outros membros do mesmo tenant: o autor não aprova o próprio conteúdo, e alterar o texto, a mídia, os arquivos anexados ou a referência bíblica de um conteúdo aprovado faz ele voltar para rascunho. Páginas institucionais não passam pelo fluxo.
 
 #### Endpoints
 
