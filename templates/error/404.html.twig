@@ -185,7 +185,7 @@
     <div class="err-header-inner">
         <a href="{{ path('pub_home') }}" class="err-logo" aria-label="Início">
             {% if currentTenant is defined and currentTenant and currentTenant.logo %}
-                <img src="{{ vich_uploader_asset(currentTenant, 'logoFile') }}" alt="{{ currentTenant.name }}" height="38">
+                <img src="{{ vich_uploader_asset(currentTenant, 'logoFile')|imagine_filter('logo_header') }}" alt="{{ currentTenant.name }}" height="38">
             {% else %}
                 <span class="err-logo-text">
                     {% if currentTenant is defined and currentTenant %}{{ currentTenant.name }}{% else %}NEPE Brasil{% endif %}

@@ -6,6 +6,8 @@ liip_imagine:
         mode: lazy
     webp:
         generate: true
+        # Sem isto o .webp sai em qualidade 100 — maior que o JPEG que ele deveria substituir
+        quality: 80
     filter_sets:
         cache: ~
         news_thumb:
@@ -22,3 +24,34 @@ liip_imagine:
                 thumbnail:
                     size: [200, 200]
                     mode: inset
+        # Capas de materiais/estudos: os originais são fotos em tamanho cheio (chegam a 8 MB).
+        # format jpeg porque PNG de foto pesa dezenas de vezes mais; o fundo branco cobre
+        # os PNGs com transparência, que ficariam pretos na conversão. O .webp sai junto.
+        study_thumb:
+            quality: 78
+            format: jpeg
+            filters:
+                thumbnail: { size: [480, 270], mode: outbound }
+                background: { size: [480, 270], color: '#ffffff' }
+        study_featured:
+            quality: 82
+            format: jpeg
+            filters:
+                thumbnail: { size: [960, 540], mode: outbound }
+                background: { size: [960, 540], color: '#ffffff' }
+        # Logos do tenant: sem format jpeg — são PNGs com transparência, que ficariam
+        # com caixa branca sobre o header escuro e no footer invertido
+        logo_header:
+            quality: 90
+            filters:
+                thumbnail: { size: [240, 120], mode: inset }   # header 52px / footer 48px de altura, com folga para telas retina
+        logo_favicon:
+            quality: 90
+            filters:
+                thumbnail: { size: [64, 64], mode: inset }
+        study_cover:
+            quality: 82
+            format: jpeg
+            filters:
+                thumbnail: { size: [1280, 720], mode: outbound }
+                background: { size: [1280, 720], color: '#ffffff' }

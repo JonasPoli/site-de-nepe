@@ -38,7 +38,7 @@
         <label>Imagem principal (capa)</label>
         {% if study.coverImage %}
         <div style="margin-bottom:.75rem">
-            <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}"
+            <img src="{{ asset('uploads/study_cover/' ~ study.coverImage)|imagine_filter('study_thumb') }}"
                  id="cover-preview"
                  alt="Capa atual"
                  style="max-width:360px;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;border:1px solid var(--border)">

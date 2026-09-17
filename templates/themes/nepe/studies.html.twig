@@ -74,7 +74,8 @@
         <div class="sl-featured reveal-up" data-cat="{{ featured.category ? featured.category.id : 'none' }}">
             <a href="{{ path('pub_study_show', {slug: featured.slug}) }}" class="sl-feat-cover">
                 {% if featured.coverImage %}
-                <img src="{{ asset('uploads/study_cover/' ~ featured.coverImage) }}" alt="{{ featured.title }}" loading="lazy">
+                <img src="{{ ('uploads/study_cover/' ~ featured.coverImage)|imagine_filter('study_featured') }}"
+                     alt="{{ featured.title }}" width="960" height="540" loading="lazy" decoding="async">
                 {% else %}
                 <div class="sl-feat-cover-placeholder">📚</div>
                 {% endif %}
@@ -115,7 +116,8 @@
             <article class="sl-card reveal-up delay-{{ (loop.index0 % 3) * 100 }}" data-cat="{{ study.category ? study.category.id : 'none' }}">
                 <a href="{{ path('pub_study_show', {slug: study.slug}) }}" class="sl-card-cover">
                     {% if study.coverImage %}
-                    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}" loading="lazy">
+                    <img src="{{ ('uploads/study_cover/' ~ study.coverImage)|imagine_filter('study_thumb') }}"
+                         alt="{{ study.title }}" width="480" height="270" loading="lazy" decoding="async">
                     {% else %}
                     <div class="sl-card-cover-placeholder">📚</div>
                     {% endif %}

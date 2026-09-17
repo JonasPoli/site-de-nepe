@@ -4,11 +4,11 @@
     {# Col 1 — Logo + Quem Somos + Redes Sociais #}
     <div class="footer-col footer-brand">
         {% if currentTenant and currentTenant.darkLogo %}
-            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.darkLogo) }}"
+            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.darkLogo)|imagine_filter('logo_header') }}"
                  alt="{{ currentTenant.name }}"
                  style="height:48px;width:auto;object-fit:contain;margin-bottom:1rem">
         {% elseif currentTenant and currentTenant.logo %}
-            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo) }}"
+            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo)|imagine_filter('logo_header') }}"
                  alt="{{ currentTenant.name }}"
                  style="height:48px;width:auto;object-fit:contain;margin-bottom:1rem;filter:brightness(0) invert(1)">
         {% else %}

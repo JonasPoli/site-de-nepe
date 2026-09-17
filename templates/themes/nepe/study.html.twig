@@ -28,9 +28,9 @@
     {# ── Cover Image ── #}
     {% if study.coverImage %}
     <div class="study-cover">
-        <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}"
+        <img src="{{ ('uploads/study_cover/' ~ study.coverImage)|imagine_filter('study_cover') }}"
              alt="{{ study.title }}"
-             loading="lazy">
+             width="1280" height="720" loading="lazy" decoding="async">
     </div>
     {% endif %}
 

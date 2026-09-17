@@ -83,7 +83,7 @@
 {# ── Conteúdo do material ── #}
 <div class="card">
     {% if study.coverImage %}
-    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}"
+    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage)|imagine_filter('study_featured') }}" alt="{{ study.title }}" loading="lazy"
          style="width:100%;max-height:320px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-bottom:1.5rem">
     {% endif %}
 

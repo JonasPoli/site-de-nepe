@@ -27,7 +27,7 @@
 
     {# ── Favicon ── #}
     {% if currentTenant and currentTenant.logo %}
-        <link rel="icon" href="{{ vich_uploader_asset(currentTenant, 'logoFile') }}">
+        <link rel="icon" href="{{ vich_uploader_asset(currentTenant, 'logoFile')|imagine_filter('logo_favicon') }}">
     {% endif %}
 
     {# ── Google Fonts ── #}

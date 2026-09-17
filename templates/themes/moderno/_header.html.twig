@@ -2,7 +2,7 @@
     <div class="container mh-inner">
         <a href="{{ path('pub_home') }}" class="mh-logo" aria-label="Início">
             {% if currentTenant and currentTenant.logo %}
-                <img src="{{ vich_uploader_asset(currentTenant, 'logoFile') }}" alt="{{ currentTenant.name }}" height="40">
+                <img src="{{ vich_uploader_asset(currentTenant, 'logoFile')|imagine_filter('logo_header') }}" alt="{{ currentTenant.name }}" height="40">
             {% else %}
                 <span class="mh-logo-text">{{ currentTenant ? currentTenant.name : 'NEPE' }}</span>
             {% endif %}

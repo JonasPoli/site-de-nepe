@@ -17,7 +17,7 @@
                 {% if tenant.logo %}
                     <div style="position:relative">
                         <img id="logo-preview"
-                             src="{{ asset('uploads/tenant/logo/' ~ tenant.logo) }}"
+                             src="{{ asset('uploads/tenant/logo/' ~ tenant.logo)|imagine_filter('admin_thumb') }}"
                              alt="Logo atual" style="height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);padding:6px;background:rgba(255,255,255,.05)">
                         <div style="font-size:.7rem;color:var(--muted);margin-top:.35rem;text-align:center">Atual</div>
                     </div>
@@ -45,7 +45,7 @@
                 {% if tenant.darkLogo %}
                     <div style="position:relative">
                         <img id="dark-logo-preview"
-                             src="{{ asset('uploads/tenant/logo/' ~ tenant.darkLogo) }}"
+                             src="{{ asset('uploads/tenant/logo/' ~ tenant.darkLogo)|imagine_filter('admin_thumb') }}"
                              alt="Logo escuro atual" style="height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);padding:6px;background:#0d0f1a">
                         <div style="font-size:.7rem;color:var(--muted);margin-top:.35rem;text-align:center">Atual</div>
                     </div>

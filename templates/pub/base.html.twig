@@ -21,7 +21,7 @@
                     <a href="{{ path('pub_home') }}"
                        style="display:flex;align-items:center;gap:.75rem;text-decoration:none;flex-shrink:0;height:44px;max-width:220px;overflow:hidden">
                         {% if currentTenant and currentTenant.logo %}
-                            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo) }}"
+                            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo)|imagine_filter('logo_header') }}"
                                  alt="{{ currentTenant.name }}"
                                  style="max-height:36px;width:auto;max-width:180px;object-fit:contain;display:block;flex-shrink:0">
                         {% else %}
