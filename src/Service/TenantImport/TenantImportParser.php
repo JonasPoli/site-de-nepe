@@ -23,8 +23,8 @@ class TenantImportParser
      * When a field lists alternatives, the first one present in the file wins.
      */
     public const COLUMNS = [
-        'tenantName'     => ['nome da instituicao'],
-        'domain'         => ['dominio'],
+        'tenantName'     => ['nome da instituicao', 'nome do nepe'],
+        'domain'         => ['dominio', 'subdominio'],
         'theme'          => ['tema'],
         'primaryColor'   => ['cor principal'],
         'secondaryColor' => ['cor secundaria'],
@@ -32,6 +32,7 @@ class TenantImportParser
         'darkLogo'       => ['logo (fundo escuro)'],
         'adminName'      => ['nome completo'],
         'adminEmail'     => ['e-mail', 'email', 'endereco de e-mail'],
+        'whatsapp'       => ['whatsapp'],
         'consent'        => ['autorizo'],
     ];
 
@@ -212,6 +213,8 @@ class TenantImportParser
             $row->errors[] = sprintf('E-mail do administrador inválido: "%s".', $row->adminEmail);
         }
 
+        $this->parseWhatsapp($row, $value('whatsapp'));
+
         if (isset($map['consent']) && $value('consent') === '') {
             $row->errors[] = 'Sem autorização para uso dos dados (LGPD).';
         }
@@ -238,9 +241,24 @@ class TenantImportParser
             return;
         }
 
+        // "nepealcíone" is a typo for "nepealcione": accented domains (IDN) aren't used here
+        $ascii = (new UnicodeString($raw))->ascii()->toString();
+        if ($ascii !== $raw) {
+            $row->warnings[] = sprintf('Acentos removidos do domínio: "%s".', $raw);
+            $raw = $ascii;
+        }
+
+        // Only the subdomain was answered ("renovandoconsciencias" for renovandoconsciencias.nepebrasil.org)
+        $isSubdomain = preg_match('~^[a-z0-9-]+$~i', $raw) === 1;
+        if ($isSubdomain && $baseDomain !== null) {
+            $raw .= '.' . $baseDomain;
+        }
+
         $domain = self::normalizeDomain($raw);
         if ($domain === null) {
-            $row->errors[] = sprintf('Domínio inválido: "%s".', $raw);
+            $row->errors[] = $isSubdomain
+                ? sprintf('Domínio inválido: "%s" (para subdomínio, use --base-domain).', $raw)
+                : sprintf('Domínio inválido: "%s".', $raw);
             return;
         }
 
@@ -249,6 +267,35 @@ class TenantImportParser
         }
 
         $row->domain = $domain;
+    }
+
+    /** Brazilian numbers may come without the country code; other countries need "+" */
+    private function parseWhatsapp(TenantImportRow $row, string $raw): void
+    {
+        if ($raw === '') {
+            return;
+        }
+
+        $digits = preg_replace('~\D~', '', $raw);
+        $international = str_starts_with($raw, '+') || str_starts_with($raw, '00');
+        if (str_starts_with($raw, '00')) {
+            $digits = substr($digits, 2);
+        }
+
+        if (!$international && (strlen($digits) === 10 || strlen($digits) === 11)) {
+            $digits = '55' . $digits;
+        }
+
+        if (preg_match('~^55(\d{2})(\d{4,5})(\d{4})$~', $digits, $matches)) {
+            $row->phone = sprintf('(%s) %s-%s', $matches[1], $matches[2], $matches[3]);
+        } elseif ($international && strlen($digits) >= 8 && strlen($digits) <= 15) {
+            $row->phone = '+' . $digits;
+        } else {
+            $row->warnings[] = sprintf('WhatsApp "%s" não reconhecido: não importado.', $raw);
+            return;
+        }
+
+        $row->whatsappLink = 'https://wa.me/' . $digits;
     }
 
     private function parseTheme(TenantImportRow $row, string $raw): void

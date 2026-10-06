@@ -57,7 +57,7 @@ class ImportTenantsCommand extends Command
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Só valida e mostra o que seria feito, sem gravar nem enviar e-mails')
             ->addOption('no-email', null, InputOption::VALUE_NONE, 'Cadastra sem enviar o e-mail para definir a senha')
             ->addOption('resend', null, InputOption::VALUE_NONE, 'Reenvia o e-mail aos administradores de tenants já importados')
-            ->addOption('base-domain', null, InputOption::VALUE_REQUIRED, 'Usa <nome-da-instituicao>.<base-domain> para quem respondeu sem domínio')
+            ->addOption('base-domain', null, InputOption::VALUE_REQUIRED, 'Completa quem respondeu só o subdomínio e usa <nome-da-instituicao>.<base-domain> para quem respondeu sem domínio')
             ->addOption('scheme', null, InputOption::VALUE_REQUIRED, 'Protocolo dos links enviados por e-mail (http ou https)', 'https')
             ->addOption('port', null, InputOption::VALUE_REQUIRED, 'Porta dos links enviados por e-mail (ex.: 8000 em desenvolvimento)')
             ->setHelp(<<<'HELP'
@@ -68,7 +68,9 @@ class ImportTenantsCommand extends Command
                 Colunas lidas (o título da pergunta precisa começar com este texto; acentos e
                 maiúsculas são ignorados; as outras colunas são ignoradas):
                   Nome da instituição*  Domínio*  Tema  Cor principal  Cor secundária
-                  Logo (fundo claro)  Logo (fundo escuro)  Nome completo*  E-mail*  Autorizo…
+                  Logo (fundo claro)  Logo (fundo escuro)  Nome completo*  E-mail*  WhatsApp  Autorizo…
+                "Nome do NEPE" vale como nome da instituição e "SubDomínio" como domínio. Quem
+                respondeu só o subdomínio (ex.: renovandoconsciencias) precisa de --base-domain.
 
                 Uso sugerido:
                   <info>php bin/console %command.name% respostas.csv --dry-run</info>
@@ -272,7 +274,9 @@ class ImportTenantsCommand extends Command
         $tenant = (new Tenant())
             ->setName($row->tenantName)
             ->setDomain($row->domain)
-            ->setTheme($row->theme);
+            ->setTheme($row->theme)
+            ->setPhone($row->phone)
+            ->setWhatsappLink($row->whatsappLink);
 
         if ($row->primaryColor !== null) {
             $tenant->setPrimaryColor($row->primaryColor);

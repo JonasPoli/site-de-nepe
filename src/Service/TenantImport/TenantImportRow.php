@@ -16,6 +16,9 @@ final class TenantImportRow
     public ?string $darkLogoUrl = null;
     public string $adminName = '';
     public string $adminEmail = '';
+    /** WhatsApp number shown on the site, e.g. "(19) 99999-0000" */
+    public ?string $phone = null;
+    public ?string $whatsappLink = null;
 
     /** @var list<string> Problems that prevent this row from being imported */
     public array $errors = [];

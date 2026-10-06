@@ -46,6 +46,46 @@ class TenantImportParserTest extends TestCase
         $this->assertSame(['O "www." foi removido do domínio.'], $row->warnings);
     }
 
+    public function testParsesNepeBrasilFormWithSubdomainAndWhatsapp(): void
+    {
+        $header = 'Carimbo de data/hora,Nome do NEPE,"SubDomínio do site .nepebrasil.org' . "\n"
+            . 'Por exemplo, para o renovandoconsciencias.nepebrasil.org' . "\n"
+            . 'informe renovandoconsciencias",Nome completo do administrador,"E-mail do administrador' . "\n"
+            . '(Será usado para fazer login e receber link para criar a senha)","WhatsApp de contato do NEPE' . "\n"
+            . '(Ficará visível no site)",Autorizo o uso destes dados para criar o site e receber e-mails de acesso.';
+        $file = $this->csv(
+            $header,
+            '06/10/2026 10:00:00,NEPE Cisco de Deus, CiscoDeDeus ,Ana Lima,ana@x.org,(31) 98888-7777,Autorizo',
+            '06/10/2026 11:00:00,UEEBP,ueebp.nepebrasil.org,Bia,bia@x.org,+351 912 345 678,Autorizo',
+            '06/10/2026 12:00:00,Alcione,nepealcíone,Caio,caio@x.org,1234,Autorizo',
+        );
+
+        $rows = (new TenantImportParser())->parseFile($file, 'nepebrasil.org');
+        $this->assertSame([], $rows[0]->errors);
+        $this->assertSame([], $rows[0]->warnings);
+        $this->assertSame('NEPE Cisco de Deus', $rows[0]->tenantName);
+        $this->assertSame('ciscodedeus.nepebrasil.org', $rows[0]->domain);
+        $this->assertSame('Ana Lima', $rows[0]->adminName);
+        $this->assertSame('ana@x.org', $rows[0]->adminEmail);
+        $this->assertSame('(31) 98888-7777', $rows[0]->phone);
+        $this->assertSame('https://wa.me/5531988887777', $rows[0]->whatsappLink);
+
+        $this->assertSame('ueebp.nepebrasil.org', $rows[1]->domain);
+        $this->assertSame('+351912345678', $rows[1]->phone);
+        $this->assertSame('https://wa.me/351912345678', $rows[1]->whatsappLink);
+
+        $this->assertSame('nepealcione.nepebrasil.org', $rows[2]->domain);
+        $this->assertNull($rows[2]->phone);
+        $this->assertNull($rows[2]->whatsappLink);
+        $this->assertSame([
+            'Acentos removidos do domínio: "nepealcíone".',
+            'WhatsApp "1234" não reconhecido: não importado.',
+        ], $rows[2]->warnings);
+
+        $rows = (new TenantImportParser())->parseFile($file);
+        $this->assertSame(['Domínio inválido: "CiscoDeDeus" (para subdomínio, use --base-domain).'], $rows[0]->errors);
+    }
+
     public function testReadsSemicolonSeparatedFileWithOnlyRequiredColumns(): void
     {
         $rows = (new TenantImportParser())->parseFile($this->csv(
