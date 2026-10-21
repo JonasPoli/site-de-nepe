@@ -19,9 +19,17 @@
 {# ── TENANTS ── #}
 <div id="tenants" class="ph" style="margin-top:1.5rem">
     <h2 style="font-size:1.1rem;font-weight:700">Tenants</h2>
-    <a href="{{ path('superadmin_tenant_new') }}" class="btn btn-p btn-sm">
-        <sl-icon name="plus-lg"></sl-icon> Novo Tenant
-    </a>
+    <div class="ta">
+        <a href="{{ path('superadmin_tenant_import') }}" class="btn btn-g btn-sm">
+            <sl-icon name="file-earmark-spreadsheet"></sl-icon> Importar CSV
+        </a>
+        <a href="{{ path('superadmin_tenant_onboard') }}" class="btn btn-g btn-sm">
+            <sl-icon name="person-badge"></sl-icon> Cadastrar NEPE + Admin
+        </a>
+        <a href="{{ path('superadmin_tenant_new') }}" class="btn btn-p btn-sm">
+            <sl-icon name="plus-lg"></sl-icon> Novo Tenant
+        </a>
+    </div>
 </div>
 <div class="card">
     <div class="tw"><table class="at">

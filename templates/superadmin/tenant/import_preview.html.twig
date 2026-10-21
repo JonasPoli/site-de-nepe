@@ -1,0 +1,73 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Prévia da importação{% endblock %}
+{% block page_title %}Importar NEPEs (CSV){% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>Prévia da importação</h1>
+    <a href="{{ path('superadmin_tenant_import') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Enviar outro arquivo</a>
+</div>
+
+<div class="stats">
+    <div class="stat"><div class="stat-val" style="color:var(--success)">{{ createCount }}</div><div class="stat-lbl">Para criar</div></div>
+    <div class="stat"><div class="stat-val">{{ doneCount }}</div><div class="stat-lbl">Já importadas</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--warning)">{{ resendCount }}</div><div class="stat-lbl">Reenviar e-mail</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--danger)">{{ skippedCount }}</div><div class="stat-lbl">Ignoradas por erro</div></div>
+</div>
+
+<div class="card">
+    <div class="tw"><table class="at">
+        <thead><tr><th>Linha</th><th>Instituição</th><th>Domínio</th><th>Administrador</th><th>WhatsApp</th><th>Situação</th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.line }}</td>
+            <td style="font-weight:600">{{ row.tenantName ?: '—' }}</td>
+            <td>{{ row.domain ?: '—' }}</td>
+            <td>{{ row.adminName ?: '—' }}<div class="af-hint">{{ row.adminEmail }}</div></td>
+            <td>{{ row.phone ?? '—' }}</td>
+            <td>
+                {% if row.line in resendLines %}
+                    <span class="badge bg-warn">Reenviar e-mail</span>
+                {% elseif row.alreadyImported %}
+                    <span class="badge bg-neu">Já importado</span>
+                {% elseif not row.valid %}
+                    <span class="badge bg-err">Ignorar</span>
+                    {% for message in row.errors %}<div class="af-hint" style="color:#f87171">{{ message }}</div>{% endfor %}
+                {% else %}
+                    <span class="badge bg-ok">Criar</span>
+                {% endif %}
+                {% for message in row.warnings %}<div class="af-hint" style="color:#fbbf24">{{ message }}</div>{% endfor %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">Nenhuma resposta no arquivo.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</div>
+
+<div class="card">
+    {% if createCount == 0 and resendCount == 0 %}
+        <div class="al al-warn" style="margin-bottom:0"><sl-icon name="info-circle-fill"></sl-icon> Nada para importar.</div>
+    {% else %}
+        <form action="{{ path('superadmin_tenant_import_run', {token: token}) }}" method="post" class="af"
+              onsubmit="this.querySelector('button').disabled = true; this.querySelector('button').textContent = 'Importando…'">
+            <input type="hidden" name="_token" value="{{ csrf_token('tenant_import_' ~ token) }}">
+            <input type="hidden" name="baseDomain" value="{{ options.baseDomain }}">
+            <input type="hidden" name="email" value="{{ options.email ? 1 : 0 }}">
+            <input type="hidden" name="resend" value="{{ options.resend ? 1 : 0 }}">
+            <p>
+                {% if options.email %}
+                    Criar <strong>{{ createCount }}</strong> NEPE(s) e enviar <strong>{{ createCount + resendCount }}</strong> e-mail(s) para definir a senha.
+                {% else %}
+                    Criar <strong>{{ createCount }}</strong> NEPE(s) <strong>sem enviar e-mails</strong>.
+                {% endif %}
+            </p>
+            <div class="af-actions">
+                <button type="submit" class="btn btn-s"><sl-icon name="check-lg"></sl-icon> Confirmar importação</button>
+                <a href="{{ path('superadmin_tenant_import') }}" class="btn btn-g">Cancelar</a>
+            </div>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

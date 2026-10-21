@@ -1,0 +1,23 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Importação concluída{% endblock %}
+{% block page_title %}Importar NEPEs (CSV){% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>{{ result.aborted ? 'Importação interrompida' : 'Importação concluída' }}</h1>
+    <a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Ir para o painel</a>
+</div>
+
+<div class="al {{ result.aborted ? 'al-err' : (result.successful ? 'al-ok' : 'al-warn') }}">
+    <sl-icon name="{{ result.aborted ? 'x-circle-fill' : 'check-circle-fill' }}"></sl-icon>
+    {{ result.created }} NEPE(s) criado(s), {{ result.emailed }} e-mail(s) enviado(s).
+</div>
+
+{% if result.problems is not empty %}
+<div class="card">
+    <h2 style="font-size:1rem;font-weight:700;margin-bottom:.75rem">Pontos de atenção</h2>
+    <ul style="padding-left:1.25rem;display:flex;flex-direction:column;gap:.4rem">
+        {% for message in result.problemMessages %}<li>{{ message }}</li>{% endfor %}
+    </ul>
+</div>
+{% endif %}
+{% endblock %}

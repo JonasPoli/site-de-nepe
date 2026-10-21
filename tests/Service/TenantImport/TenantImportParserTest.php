@@ -83,7 +83,7 @@ class TenantImportParserTest extends TestCase
         ], $rows[2]->warnings);
 
         $rows = (new TenantImportParser())->parseFile($file);
-        $this->assertSame(['Domínio inválido: "CiscoDeDeus" (para subdomínio, use --base-domain).'], $rows[0]->errors);
+        $this->assertSame(['Domínio inválido: "CiscoDeDeus" (para subdomínio, informe o domínio base).'], $rows[0]->errors);
     }
 
     public function testReadsSemicolonSeparatedFileWithOnlyRequiredColumns(): void
@@ -129,7 +129,7 @@ class TenantImportParserTest extends TestCase
         $this->assertSame(['Sem domínio: usando nucleo-sao-jose.nepe.org.br.'], $rows[0]->warnings);
 
         $rows = (new TenantImportParser())->parseFile($file);
-        $this->assertSame(['Domínio não informado (use --base-domain para gerar um subdomínio).'], $rows[0]->errors);
+        $this->assertSame(['Domínio não informado (informe o domínio base para gerar um subdomínio).'], $rows[0]->errors);
     }
 
     public function testReportsInvalidValues(): void

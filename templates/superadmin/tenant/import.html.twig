@@ -1,0 +1,59 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Importar NEPEs{% endblock %}
+{% block page_title %}Importar NEPEs (CSV){% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>Importar NEPEs da planilha</h1>
+    <a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+</div>
+
+{% if error %}
+    <div class="al al-err" style="white-space:pre-line"><sl-icon name="x-circle-fill"></sl-icon> {{ error }}</div>
+{% endif %}
+
+<div class="card">
+    <form action="{{ path('superadmin_tenant_import') }}" method="post" enctype="multipart/form-data" class="af">
+        <input type="hidden" name="_token" value="{{ csrf_token('tenant_import_upload') }}">
+
+        <div class="af-field">
+            <label for="csv">Arquivo CSV das respostas <span class="req">*</span></label>
+            <input type="file" id="csv" name="csv" class="ai" accept=".csv,text/csv" required>
+            <p class="af-hint">Na planilha de respostas do Google Forms: Arquivo › Fazer download › Valores separados por vírgula (.csv).</p>
+        </div>
+
+        <div class="af-field">
+            <label for="baseDomain">Domínio base</label>
+            <input type="text" id="baseDomain" name="baseDomain" class="ai" value="{{ options.baseDomain }}" placeholder="nepebrasil.org" style="max-width:360px">
+            <p class="af-hint">Completa quem respondeu só o subdomínio (ex.: <code>renovandoconsciencias</code> → renovandoconsciencias.{{ options.baseDomain ?: 'nepebrasil.org' }}) e gera um subdomínio para quem não respondeu.</p>
+        </div>
+
+        <div class="af-field">
+            <label style="display:flex;align-items:center;gap:.5rem;color:var(--text)">
+                <input type="hidden" name="email" value="0">
+                <input type="checkbox" name="email" value="1" {{ options.email ? 'checked' }}>
+                Enviar aos administradores o e-mail para definir a senha
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;color:var(--text)">
+                <input type="checkbox" name="resend" value="1" {{ options.resend ? 'checked' }}>
+                Reenviar o e-mail para quem já foi importado
+            </label>
+            <p class="af-hint">Pode enviar a mesma planilha de novo: as respostas já importadas são ignoradas.</p>
+        </div>
+
+        <div class="af-actions">
+            <button type="submit" class="btn btn-p"><sl-icon name="eye"></sl-icon> Ver prévia</button>
+            <span class="af-hint">Nada é gravado antes da confirmação na próxima tela.</span>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2 style="font-size:1rem;font-weight:700;margin-bottom:.75rem">Colunas lidas</h2>
+    <p class="af-hint" style="margin-bottom:.5rem">O título da pergunta precisa começar com este texto (acentos e maiúsculas são ignorados; as outras colunas são ignoradas):</p>
+    <p style="font-size:.85rem">
+        <strong>Nome da instituição</strong> (ou Nome do NEPE)*, <strong>Domínio</strong> (ou SubDomínio), Tema, Cor principal, Cor secundária,
+        Logo (fundo claro), Logo (fundo escuro), <strong>Nome completo</strong>*, <strong>E-mail</strong>*, WhatsApp, Autorizo…
+    </p>
+    <p class="af-hint" style="margin-top:.5rem">As logos enviadas pelo Forms ficam no Google Drive: compartilhe a pasta de uploads como “Qualquer pessoa com o link” antes de importar.</p>
+</div>
+{% endblock %}

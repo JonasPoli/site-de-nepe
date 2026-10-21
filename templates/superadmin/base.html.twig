@@ -153,6 +153,12 @@
         <a href="{{ path('superadmin_tenant_new') }}" class="nl {% if '/superadmin/tenant/new' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="plus-circle-fill"></sl-icon> Novo Tenant
         </a>
+        <a href="{{ path('superadmin_tenant_onboard') }}" class="nl {% if '/superadmin/tenant/onboard' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="person-badge-fill"></sl-icon> Cadastrar NEPE + Admin
+        </a>
+        <a href="{{ path('superadmin_tenant_import') }}" class="nl {% if '/superadmin/tenant/import' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="file-earmark-spreadsheet-fill"></sl-icon> Importar CSV
+        </a>
 
         <div class="nav-sec">Usuários</div>
         <a href="{{ path('superadmin_dash') }}#users" class="nl">

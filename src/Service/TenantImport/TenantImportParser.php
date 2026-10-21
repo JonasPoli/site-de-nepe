@@ -13,7 +13,7 @@ use Symfony\Component\String\UnicodeString;
  * each answer into a normalized TenantImportRow.
  *
  * It never touches the database: conflicts with tenants and users that already
- * exist are checked by app:tenant:import.
+ * exist are checked by TenantImporter.
  */
 class TenantImportParser
 {
@@ -84,6 +84,18 @@ class TenantImportParser
         $this->markDuplicates($rows);
 
         return $rows;
+    }
+
+    /**
+     * Validates a single answer typed in the super admin panel, with the same rules as the CSV.
+     *
+     * @param array<string, string|null> $values field of self::COLUMNS => answer
+     */
+    public function parseValues(array $values, ?string $baseDomain = null): TenantImportRow
+    {
+        $values = array_map(static fn (?string $value): string => (string) $value, $values);
+
+        return $this->parseRecord(1, array_values($values), array_flip(array_keys($values)), $baseDomain);
     }
 
     public static function normalizeDomain(string $value): ?string
@@ -226,7 +238,7 @@ class TenantImportParser
     {
         if ($raw === '') {
             if ($baseDomain === null) {
-                $row->errors[] = 'Domínio não informado (use --base-domain para gerar um subdomínio).';
+                $row->errors[] = 'Domínio não informado (informe o domínio base para gerar um subdomínio).';
                 return;
             }
 
@@ -257,7 +269,7 @@ class TenantImportParser
         $domain = self::normalizeDomain($raw);
         if ($domain === null) {
             $row->errors[] = $isSubdomain
-                ? sprintf('Domínio inválido: "%s" (para subdomínio, use --base-domain).', $raw)
+                ? sprintf('Domínio inválido: "%s" (para subdomínio, informe o domínio base).', $raw)
                 : sprintf('Domínio inválido: "%s".', $raw);
             return;
         }

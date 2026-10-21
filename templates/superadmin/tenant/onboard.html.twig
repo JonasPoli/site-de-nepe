@@ -1,0 +1,98 @@
+{% extends 'superadmin/base.html.twig' %}
+{% block title %}Cadastrar NEPE{% endblock %}
+{% block page_title %}Cadastrar NEPE e administrador{% endblock %}
+{% block body %}
+<div class="ph">
+    <h1>Cadastrar NEPE e administrador</h1>
+    <a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a>
+</div>
+
+{% if errors is not empty %}
+    <div class="al al-err" style="align-items:flex-start">
+        <sl-icon name="x-circle-fill" style="margin-top:.2rem"></sl-icon>
+        <ul style="padding-left:1rem">{% for message in errors %}<li>{{ message }}</li>{% endfor %}</ul>
+    </div>
+{% endif %}
+
+<div class="card">
+    <form action="{{ path('superadmin_tenant_onboard') }}" method="post" enctype="multipart/form-data" class="af">
+        <input type="hidden" name="_token" value="{{ csrf_token('tenant_onboard') }}">
+
+        <h2 style="font-size:1rem;font-weight:700">NEPE</h2>
+        <div class="af-field">
+            <label for="tenantName">Nome do NEPE <span class="req">*</span></label>
+            <input type="text" id="tenantName" name="tenantName" class="ai" value="{{ values.tenantName }}" maxlength="255" required>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label for="domain">Domínio ou subdomínio</label>
+                <input type="text" id="domain" name="domain" class="ai" value="{{ values.domain }}" placeholder="renovandoconsciencias">
+                <p class="af-hint">Só o subdomínio é completado com o domínio base. Em branco, é gerado a partir do nome.</p>
+            </div>
+            <div class="af-field">
+                <label for="baseDomain">Domínio base</label>
+                <input type="text" id="baseDomain" name="baseDomain" class="ai" value="{{ values.baseDomain }}" placeholder="nepebrasil.org">
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label for="whatsapp">WhatsApp de contato</label>
+                <input type="tel" id="whatsapp" name="whatsapp" class="ai" value="{{ values.whatsapp }}" placeholder="(19) 99999-0000">
+                <p class="af-hint">Fica visível no site. Número de outro país: comece com +.</p>
+            </div>
+            <div class="af-field">
+                <label for="theme">Tema</label>
+                <select id="theme" name="theme" class="as">
+                    <option value="nepe" {{ values.theme == 'nepe' ? 'selected' }}>Nepe (claro, acadêmico)</option>
+                    <option value="moderno" {{ values.theme == 'moderno' ? 'selected' }}>Moderno (dark, vibrante)</option>
+                </select>
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label for="primaryColor">Cor principal</label>
+                <input type="color" id="primaryColor" name="primaryColor" value="{{ values.primaryColor }}" style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:none">
+            </div>
+            <div class="af-field">
+                <label for="secondaryColor">Cor secundária</label>
+                <input type="color" id="secondaryColor" name="secondaryColor" value="{{ values.secondaryColor }}" style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);cursor:pointer;padding:2px;background:none">
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label for="logoFile">Logo (fundo claro)</label>
+                <input type="file" id="logoFile" name="logoFile" class="ai" accept="image/png,image/jpeg,image/webp,image/gif">
+            </div>
+            <div class="af-field">
+                <label for="darkLogoFile">Logo (fundo escuro)</label>
+                <input type="file" id="darkLogoFile" name="darkLogoFile" class="ai" accept="image/png,image/jpeg,image/webp,image/gif">
+            </div>
+        </div>
+        <p class="af-hint" style="margin-top:-.75rem">PNG, JPG, WebP ou GIF · máx. 5 MB. Se o formulário voltar com erro, selecione as logos de novo.</p>
+
+        <hr style="border:none;border-top:1px solid var(--border)">
+
+        <h2 style="font-size:1rem;font-weight:700">Administrador</h2>
+        <div class="af-row">
+            <div class="af-field">
+                <label for="adminName">Nome completo <span class="req">*</span></label>
+                <input type="text" id="adminName" name="adminName" class="ai" value="{{ values.adminName }}" maxlength="255" required>
+            </div>
+            <div class="af-field">
+                <label for="adminEmail">E-mail <span class="req">*</span></label>
+                <input type="email" id="adminEmail" name="adminEmail" class="ai" value="{{ values.adminEmail }}" maxlength="180" required>
+                <p class="af-hint">É o usuário de login. A senha é definida pelo próprio administrador, pelo link do e-mail.</p>
+            </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:.5rem">
+            <input type="checkbox" name="sendEmail" value="1" {{ values.sendEmail ? 'checked' }}>
+            Enviar o e-mail para definir a senha (link válido por 7 dias)
+        </label>
+
+        <div class="af-actions">
+            <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Cadastrar</button>
+            <a href="{{ path('superadmin_dash') }}" class="btn btn-g">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
