@@ -132,6 +132,32 @@ class TenantImportParserTest extends TestCase
         $this->assertSame(['Domínio não informado (informe o domínio base para gerar um subdomínio).'], $rows[0]->errors);
     }
 
+    /** @dataProvider subdomainProvider */
+    public function testBaseDomainExtractsSubdomainFromFullAnswer(string $answer, string $expected, bool $warns): void
+    {
+        $row = (new TenantImportParser())->parseValues(
+            ['tenantName' => 'NEPE', 'domain' => $answer, 'adminName' => 'Ana', 'adminEmail' => 'ana@x.org'],
+            'nepebrasil.org',
+        );
+
+        $this->assertSame([], $row->errors);
+        $this->assertSame($expected, $row->domain);
+        $this->assertSame($warns ? [sprintf('Domínio "%s" entendido como %s.', $answer, $expected)] : [], $row->warnings);
+    }
+
+    public static function subdomainProvider(): iterable
+    {
+        yield 'only the subdomain' => ['ciscodedeus', 'ciscodedeus.nepebrasil.org', false];
+        yield 'full domain' => ['ciscodedeus.nepebrasil.org', 'ciscodedeus.nepebrasil.org', false];
+        yield 'full URL' => ['https://CiscoDeDeus.nepebrasil.org/', 'ciscodedeus.nepebrasil.org', false];
+        yield 'spaces around the dot' => ['ciscodedeus . nepebrasil.org', 'ciscodedeus.nepebrasil.org', false];
+        yield 'www' => ['www.ciscodedeus.nepebrasil.org', 'ciscodedeus.nepebrasil.org', true];
+        yield 'wrong suffix' => ['ciscodedeus.nepebrasil.org.br', 'ciscodedeus.nepebrasil.org', true];
+        yield 'missing suffix' => ['ciscodedeus.nepebrasil', 'ciscodedeus.nepebrasil.org', true];
+        yield 'base domain twice' => ['ciscodedeus.nepebrasil.org.nepebrasil.org', 'ciscodedeus.nepebrasil.org', true];
+        yield 'other domain is kept' => ['nepe-campinas.org.br', 'nepe-campinas.org.br', false];
+    }
+
     public function testReportsInvalidValues(): void
     {
         $rows = (new TenantImportParser())->parseFile($this->csv(

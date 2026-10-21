@@ -260,6 +260,10 @@ class TenantImportParser
             $raw = $ascii;
         }
 
+        if ($baseDomain !== null) {
+            $raw = $this->extractSubdomain($row, $raw, $baseDomain);
+        }
+
         // Only the subdomain was answered ("renovandoconsciencias" for renovandoconsciencias.nepebrasil.org)
         $isSubdomain = preg_match('~^[a-z0-9-]+$~i', $raw) === 1;
         if ($isSubdomain && $baseDomain !== null) {
@@ -279,6 +283,33 @@ class TenantImportParser
         }
 
         $row->domain = $domain;
+    }
+
+    /**
+     * "ciscodedeus.nepebrasil.org" means the subdomain "ciscodedeus", as do typos of the base domain
+     * ("ciscodedeus.nepebrasil.org.br", "ciscodedeus . nepebrasil"). Other domains are returned unchanged.
+     */
+    private function extractSubdomain(TenantImportRow $row, string $raw, string $baseDomain): string
+    {
+        $host = preg_replace('~\s*\.\s*~', '.', mb_strtolower(trim($raw)));
+        $host = preg_replace('~^[a-z][a-z0-9+.-]*://~', '', $host); // scheme
+        $host = trim(preg_replace('~[/?#:].*$~', '', $host), '.');  // path, query, fragment, port
+
+        $labels = explode('.', $host);
+        if ($labels[0] === 'www') {
+            array_shift($labels);
+        }
+
+        if (count($labels) < 2 || $labels[1] !== explode('.', $baseDomain)[0] || !preg_match('~^[a-z0-9-]+$~', $labels[0])) {
+            return $raw;
+        }
+
+        $domain = $labels[0] . '.' . $baseDomain;
+        if ($host !== $domain) {
+            $row->warnings[] = sprintf('Domínio "%s" entendido como %s.', $raw, $domain);
+        }
+
+        return $labels[0];
     }
 
     /** Brazilian numbers may come without the country code; other countries need "+" */
