@@ -33,8 +33,8 @@ context: |
   - O handler ea-php83 e as diretivas de PHP estão numa alteração NÃO commitada do public/.htaccess no servidor
     (gerada pelo cPanel). Sem ela, o nepebrasilia (vhost sem versão própria) cai no PHP 8.1 e para. Nunca rodar
     git checkout/stash/reset nesse arquivo; também ficam fora do git public/.user.ini e public/php.ini.
-  - Symfony 7.2, Doctrine ORM 3 / DBAL 3. O .env.local usa serverVersion=8.0 com o banco MySQL 5.7.41; as migrations
-    estão em dia (Version20260914021959). SQL de migration gerado no Mac precisa rodar no MySQL 5.7.
+  - Symfony 7.2, Doctrine ORM 3 / DBAL 3. O .env.local usa serverVersion=5.7.41 (corrigido em 09/11/2026), com o banco
+    MySQL 5.7.41; as migrations estão em dia (Version20260914021959). SQL de migration gerado no Mac precisa rodar no MySQL 5.7.
   - E-mail síncrono pelo WMailer (sem worker do Messenger), remetente no-reply@wab.com.br.
   - Sem cron para esta conta. O Monolog de produção grava em php://stderr (log do Apache, ilegível para o dono);
     var/log fica vazio. O error_log da raiz do projeto guarda só erros do PHP de linha de comando.
