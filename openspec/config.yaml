@@ -1,0 +1,75 @@
+schema: spec-driven
+
+# Contexto do projeto: só restrições que um agente não descobre lendo o código.
+# O CLAUDE.md, o AGENTS.md e o README.md da raiz vieram do pacote Symfony UX Agent Skills e falam só do front-end;
+# a parte do sistema no README é a seção "Sistema de Indexação Bíblica & API Multi-Tenant". Os docs/prompt-*.md
+# são os pedidos originais de cada funcionalidade, não a documentação do que está no ar.
+# Ficha do servidor: /Volumes/Dados/work/runcloud/docs/outros/nepebrasil-cpanel.md (e o runbook de disco cheio ao lado).
+context: |
+  Language: pt-BR
+  All artifacts must be written in pt-BR.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Projeto: plataforma multi-tenant com os sites dos NEPEs da rede NEPE Brasil. Uma instalação e um banco servem
+  todos os sites; cada NEPE é um Tenant identificado pelo domínio (subdomínio de nepebrasil.org). O super admin
+  (/superadmin) cadastra e importa os NEPEs; cada NEPE tem administradores, editores e revisores (/admin).
+  A API pública /api/biblia é consumida pelo nepe-search (search.nepebrasil.org, mesmo servidor, conta
+  searchnepebrasil): mudança de rota, parâmetro ou campo do JSON precisa conferir o nepe-search antes.
+  Sem cliente, contrato ou ticket no sistema WAB (busca em 09/11/2026 por NEPE, nepebrasil, projetomaster e
+  renovando). Os avisos de contato do NEPE Renovando Consciências e do Search Console chegam em jonaspoli@gmail.com.
+
+  Produção (conferida em 09/11/2026)
+  - Servidor cPanel do NEPE (vps-10314155.nepebrasil.org, 162.240.232.248, CentOS 7 + TuxCare, MySQL 5.7.41).
+    Acesso: ssh -p 22022 root@162.240.232.248 e, dentro do site, sempre sudo -u projetomaster (nunca git como root).
+  - Conta cPanel projetomaster, código em /home/projetomaster/repositories/site-de-nepe (branch main, remoto
+    git@github.com:JonasPoli/site-de-nepe.git). public_html é um link para .../site-de-nepe/public.
+  - Domínios no ar (tenants): renovandoconsciencias, nepebrasilia, ciscodedeus, rodrigolobato, nepealcione e ueebp
+    .nepebrasil.org. franciscodeassis e projetomaster são alias do cPanel sem tenant e respondem 404
+    "Domínio não configurado". Os tenants 127.0.0.1 e localhost também existem no banco de produção.
+  - DNS no Cloudflare, sem curinga. Um NEPE cadastrado pelo painel só abre depois de criar o registro no Cloudflare
+    e o alias (ou domínio adicional) na conta projetomaster do cPanel: o código não faz essa parte.
+  - PHP: o site roda em ea-php83 (CGI). O php da linha de comando é o 8.1, que quebra no platform_check do Composer:
+    todo comando usa /opt/cpanel/ea-php83/root/usr/bin/php bin/console ... --env=prod.
+  - O handler ea-php83 e as diretivas de PHP estão numa alteração NÃO commitada do public/.htaccess no servidor
+    (gerada pelo cPanel). Sem ela, o nepebrasilia (vhost sem versão própria) cai no PHP 8.1 e para. Nunca rodar
+    git checkout/stash/reset nesse arquivo; também ficam fora do git public/.user.ini e public/php.ini.
+  - Symfony 7.2, Doctrine ORM 3 / DBAL 3. O .env.local usa serverVersion=8.0 com o banco MySQL 5.7.41; as migrations
+    estão em dia (Version20260914021959). SQL de migration gerado no Mac precisa rodar no MySQL 5.7.
+  - E-mail síncrono pelo WMailer (sem worker do Messenger), remetente no-reply@wab.com.br.
+  - Sem cron para esta conta. O Monolog de produção grava em php://stderr (log do Apache, ilegível para o dono);
+    var/log fica vazio. O error_log da raiz do projeto guarda só erros do PHP de linha de comando.
+  - public/uploads (57 MB) e public/media ficam fora do git. var/tenant-import guarda o CSV da importação por até 1 dia.
+  - Servidor compartilhado com o nepe-search, o speaker, o sombraluz, o venda-ticket-pix e três WordPress. O disco
+    encheu em 25/10 e 02/11 e estava em 100% em 09/11/2026 (cache do nepe-search): nada pesado e nada que grave
+    arquivo grande sem conferir o df antes.
+  - Leitura em produção é livre; qualquer escrita (deploy, banco, arquivos, cPanel, Cloudflare) exige aprovação
+    explícita do Jonas. O .env.local nunca tem os valores exibidos.
+
+  Deploy
+  - Local: git push origin main. No servidor, como projetomaster: git pull; composer.phar install só se o
+    composer.lock mudou; php83 bin/console doctrine:migrations:migrate --env=prod se há migration; sh build.sh.
+  - O build.sh apaga var/cache, public/media/cache (miniaturas do Liip) e var/log/*, e as primeiras chamadas dele
+    usam o php 8.1 e falham no platform_check (é o que enche o error_log da raiz). Só as três últimas linhas,
+    com o ea-php83 (tailwind:build, asset-map:compile, liip:imagine:cache:remove), têm efeito.
+  - Dados bíblicos: php83 bin/console app:biblia:import (idempotente). NEPEs em lote: app:tenant:import CSV
+    --base-domain=nepebrasil.org --dry-run antes.
+
+  Decisões que não se revertem
+  - Artigos, vídeos e materiais/estudos só aparecem no site e na API depois do número de aprovações definido no
+    tenant (requiredApprovals), dadas por outros membros do mesmo NEPE; o autor não aprova o próprio conteúdo.
+    Páginas institucionais não passam pelo fluxo.
+  - O texto bíblico é a ARC (versão 2), com os mesmos IDs de livros e versículos do nepe-search.
+  - Um e-mail pertence a um único usuário no sistema todo.
+  - Os testes nunca enviam e-mail real (MAILER_DSN=null://null); não há .env.test e o ambiente de teste não tem banco.
+
+rules:
+  design:
+    - Quando tocar em produção, dizer se a ação é leitura ou escrita.
+    - Mudança em /api/biblia lista o efeito no nepe-search.
+    - Mudança em rota /admin diz como o conteúdo fica restrito ao tenant do usuário, porque o filtro de tenant do Doctrine não vale em /admin.
+  tasks:
+    - Toda tarefa que muda servidor ou banco de produção tem uma tarefa de backup antes e uma de conferência depois.
+    - Regra de negócio nova ou alterada tem teste PHPUnit unitário (vendor/bin/phpunit, sem banco).
+    - A tarefa de deploy diz quais passos se aplicam (composer, migrations, build.sh), usa o ea-php83 e termina com a conferência de cada domínio.
+    - Cadastro de NEPE novo tem as tarefas manuais de DNS no Cloudflare e de alias no cPanel, com aprovação do Jonas.
+    - Migration nova é conferida contra MySQL 5.7 antes do deploy.
