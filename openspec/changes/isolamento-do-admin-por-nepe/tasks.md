@@ -36,7 +36,7 @@
 
 ## 7. Correção dos dados cruzados em produção (escrita, com aprovação)
 
-- [ ] 7.1 Levar ao Jonas a correção proposta no design (decisão 7) e as duas perguntas em aberto (excluir ou não as categorias 19, 20 e 21; categoria do vídeo 15). Conferido com a aprovação explícita dele e as respostas anotadas aqui.
+- [x] 7.1 Aprovado pelo Jonas em 09/11/2026: criar a "Shorts" do nepealcione, mover para ela as subcategorias 23 e 24, excluir as categorias vazias 19, 20 e 21 e deixar o vídeo 15 sem categoria.
 - [ ] 7.2 Leitura: `df -h /home` com folga para o dump e a consulta de dados cruzados igual à da tarefa 1.1. Conferido com espaço livre maior que o tamanho do banco e nenhum dado cruzado novo.
 - [ ] 7.3 Backup: `mysqldump --single-transaction projetomaster_db > /root/backup-nepe-isolamento-<AAAAMMDD>.sql` e cópia só das tabelas `category` e `video_support` em outro arquivo. Conferido com os arquivos com tamanho maior que zero e `grep -c 'INSERT INTO .category.'` maior que zero.
 - [ ] 7.4 Escrita: numa transação, criar a "Shorts" raiz do tenant 6, mover as categorias 19, 20, 21, 23 e 24 para ela e aplicar a decisão do Jonas sobre o vídeo 15 e as categorias sem nome. Conferido com o `COMMIT` sem erro.
