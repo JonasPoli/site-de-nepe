@@ -1,0 +1,21 @@
+{% extends 'security/base.html.twig' %}
+
+{% block title %}Acesso de outro NEPE — NEPE Admin{% endblock %}
+
+{% block content %}
+    <h1 class="login-title">Este painel é de outro NEPE</h1>
+
+    {% if user_tenant %}
+        <p class="auth-text">
+            Este endereço é o painel do <strong>{{ domain_tenant.name }}</strong>, e o seu acesso é do
+            <strong>{{ user_tenant.name }}</strong>. Por isso, a sessão neste endereço foi encerrada.
+        </p>
+        <p class="auth-text">Entre pelo painel do seu NEPE:</p>
+        <p class="auth-links"><a href="{{ panel_url }}">{{ panel_url }}</a></p>
+    {% else %}
+        <p class="auth-text">
+            Seu usuário não está ligado a nenhum NEPE, por isso a sessão neste endereço foi encerrada.
+            Fale com o administrador do site.
+        </p>
+    {% endif %}
+{% endblock %}

@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 /**
  * Runs on every request (priority 100 — before controllers).
  * Resolves the Tenant from the HTTP host, injects it into TenantContext
- * and enables the Doctrine TenantFilter.
+ * and enables the Doctrine TenantFilter (site público e /admin; /api e /_ ficam de fora).
  */
 class TenantSubscriber implements EventSubscriberInterface
 {
@@ -74,12 +74,9 @@ class TenantSubscriber implements EventSubscriberInterface
         // Store tenant for use in controllers/templates
         $this->tenantContext->setTenant($tenant);
 
-        // Admin routes bypass tenant isolation — admins manage entities across tenants
-        if (str_starts_with($request->getPathInfo(), '/admin')) {
-            return;
-        }
-
-        // Enable the Doctrine filter and parameterize it
+        // Enable the Doctrine filter and parameterize it.
+        // Vale também em /admin: o painel de um domínio só enxerga o NEPE desse domínio
+        // (o PanelTenantSubscriber garante que o usuário logado é desse NEPE ou super admin).
         $filter = $this->em->getFilters()->enable('tenant_filter');
         $filter->setParameter('tenant_id', $tenant->getId(), 'integer');
     }

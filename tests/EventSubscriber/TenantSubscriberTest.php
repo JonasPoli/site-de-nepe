@@ -7,6 +7,7 @@ use App\Entity\Tenant;
 use App\EventSubscriber\TenantSubscriber;
 use App\Repository\TenantRepository;
 use App\Service\TenantContext;
+use App\Tests\Support\EntityIds;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\FilterCollection;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +18,12 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class TenantSubscriberTest extends TestCase
 {
+    use EntityIds;
+
     private TenantContext $context;
+    private ?TenantFilter $filter = null;
+    /** @var list<string> */
+    private array $enabledFilters = [];
 
     public function testRegisteredDomainLoadsTenant(): void
     {
@@ -55,6 +61,33 @@ class TenantSubscriberTest extends TestCase
         $this->assertSame($tenant, $this->context->getTenant());
     }
 
+    public function testAdminPathEnablesTheFilterWithTheDomainTenant(): void
+    {
+        $tenant = self::tenantWithId(6, 'nepealcione.nepebrasil.org');
+        $event = $this->handle(Request::create('https://nepealcione.nepebrasil.org/admin/video'), [$tenant]);
+
+        $this->assertNull($event->getResponse());
+        $this->assertSame($tenant, $this->context->getTenant());
+        $this->assertSame(['tenant_filter'], $this->enabledFilters);
+        $this->assertSame(6, $this->filterParameter('tenant_id'));
+    }
+
+    public function testPublicPathEnablesTheFilterWithTheDomainTenant(): void
+    {
+        $this->handle(Request::create('https://nepealcione.nepebrasil.org/videos'), [self::tenantWithId(6, 'nepealcione.nepebrasil.org')]);
+
+        $this->assertSame(['tenant_filter'], $this->enabledFilters);
+        $this->assertSame(6, $this->filterParameter('tenant_id'));
+    }
+
+    public function testApiPathKeepsTheFilterOff(): void
+    {
+        $this->handle(Request::create('https://nepealcione.nepebrasil.org/api/biblia/contents'), [self::tenantWithId(6, 'nepealcione.nepebrasil.org')]);
+
+        $this->assertSame([], $this->enabledFilters);
+        $this->assertNull($this->context->getTenant());
+    }
+
     public function testUnknownDomainReturns404(): void
     {
         $event = $this->handle(Request::create('https://outro.org.br/'), [$this->tenant('nepe.org.br')]);
@@ -76,7 +109,13 @@ class TenantSubscriberTest extends TestCase
 
         $em = $this->createMock(EntityManagerInterface::class);
         $filters = $this->createMock(FilterCollection::class);
-        $filters->method('enable')->willReturn(new TenantFilter($em));
+        $this->filter = new TenantFilter($em);
+        $this->enabledFilters = [];
+        $filters->method('enable')->willReturnCallback(function (string $name): TenantFilter {
+            $this->enabledFilters[] = $name;
+
+            return $this->filter;
+        });
         $em->method('getFilters')->willReturn($filters);
 
         $this->context = new TenantContext();
@@ -84,6 +123,12 @@ class TenantSubscriberTest extends TestCase
         (new TenantSubscriber($repository, $this->context, $em))->onKernelRequest($event);
 
         return $event;
+    }
+
+    /** Valor gravado no filtro (o SQLFilter só expõe os parâmetros já escapados ou serializados) */
+    private function filterParameter(string $name): mixed
+    {
+        return unserialize((string) $this->filter)[$name]['value'] ?? null;
     }
 
     private function tenant(string $domain): Tenant
