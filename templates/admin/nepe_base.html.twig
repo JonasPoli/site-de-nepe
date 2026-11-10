@@ -198,7 +198,7 @@
         <a href="{{ path('admin_newsletter_index') }}" class="nl {% if '/admin/newsletter' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="send-fill"></sl-icon> Newsletter
         </a>
-        {% if app.user and app.user.workGroup == 0 %}
+        {% if is_granted('ROLE_NEPE_ADMIN') %}
         <div class="nav-sec">Gestão</div>
         <a href="{{ path('admin_editor_index') }}" class="nl {% if '/admin/editors' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="people-fill"></sl-icon> Editores

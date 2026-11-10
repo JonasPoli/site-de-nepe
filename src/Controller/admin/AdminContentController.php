@@ -26,6 +26,8 @@ use App\Repository\ResearchLineRepository;
 use App\Repository\StudyRepository;
 use App\Repository\UserRepository;
 use App\Repository\VideoSupportRepository;
+use App\Security\PanelUserPolicy;
+use App\Security\TenantOwnership;
 use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -344,7 +346,7 @@ class AdminContentController extends AbstractController
             $video->setTenant($tc->requireTenant());
             // Registra o autor: ele não pode aprovar o próprio vídeo
             $video->setAuthor($this->getUser() instanceof User ? $this->getUser() : null);
-            $this->populateVideo($video, $r, $slugger, $em);
+            $this->populateVideo($video, $r, $slugger, $em, $cats);
             $em->persist($video);
             $em->flush();
             $this->addFlash('success', 'Vídeo criado como rascunho. Envie para aprovação para publicá-lo.');
@@ -358,7 +360,7 @@ class AdminContentController extends AbstractController
     {
         if ($r->isMethod('POST')) {
             $fingerprint = $approvals->fingerprint($video);
-            $this->populateVideo($video, $r, $slugger, $em);
+            $this->populateVideo($video, $r, $slugger, $em, $cats);
 
             if ($approvals->invalidateIfChanged($video, $fingerprint)) {
                 $this->addFlash('warning', 'O conteúdo foi alterado. As aprovações foram invalidadas e o vídeo voltou para rascunho — envie novamente para aprovação.');
@@ -401,7 +403,7 @@ class AdminContentController extends AbstractController
         if ($r->isMethod('POST')) {
             $study->setTenant($tc->requireTenant());
             $study->setAuthor($this->getUser() instanceof User ? $this->getUser() : null);
-            $this->populateStudy($study, $r, $slugger, $em);
+            $this->populateStudy($study, $r, $slugger, $em, $cats);
             $em->persist($study);
             $em->flush();
             $this->addFlash('success', 'Material criado como rascunho. Envie para aprovação para publicá-lo.');
@@ -418,7 +420,7 @@ class AdminContentController extends AbstractController
 
         if ($r->isMethod('POST')) {
             $fingerprint = $approvals->fingerprint($study);
-            $this->populateStudy($study, $r, $slugger, $em);
+            $this->populateStudy($study, $r, $slugger, $em, $cats);
 
             if ($approvals->invalidateIfChanged($study, $fingerprint)) {
                 $this->addFlash('warning', 'O conteúdo foi alterado. As aprovações foram invalidadas e o material voltou para rascunho — envie novamente para aprovação.');
@@ -567,8 +569,9 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/section/{id}/edit', name: 'section_edit', methods: ['GET', 'POST'])]
-    public function sectionEdit(PageSection $section, Request $r, EntityManagerInterface $em): Response
+    public function sectionEdit(int $id, Request $r, EntityManagerInterface $em, PageSectionRepository $sections, TenantContext $tc): Response
     {
+        $section = $this->sectionOr404($id, $sections, $tc);
         if ($r->isMethod('POST')) {
             $section->setTitlePart1($r->request->get('titlePart1') ?: null);
             $section->setTitlePart2($r->request->get('titlePart2') ?: null);
@@ -584,8 +587,9 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/section/{id}/delete', name: 'section_delete', methods: ['POST'])]
-    public function sectionDelete(PageSection $section, Request $r, EntityManagerInterface $em): Response
+    public function sectionDelete(int $id, Request $r, EntityManagerInterface $em, PageSectionRepository $sections, TenantContext $tc): Response
     {
+        $section = $this->sectionOr404($id, $sections, $tc);
         $catId  = $section->getCategory()?->getId();
         $pageId = $section->getPage()?->getId();
         if ($this->isCsrfTokenValid('del_sec_' . $section->getId(), (string) $r->request->get('_token'))) {
@@ -599,17 +603,17 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/section/reorder', name: 'section_reorder', methods: ['POST'])]
-    public function sectionReorder(Request $r, PageSectionRepository $repo, EntityManagerInterface $em): JsonResponse
+    public function sectionReorder(Request $r, PageSectionRepository $repo, EntityManagerInterface $em, TenantContext $tc): JsonResponse
     {
-        return $this->reorderEntities($r, $repo, $em);
+        return $this->reorderOwnedItems($r, $repo->findOneWithOwner(...), $em, $tc);
     }
 
     // ── PageBlock ─────────────────────────────────────────────────────────────
 
     #[Route('/section/{sectionId}/block', name: 'block_index')]
-    public function blockIndex(int $sectionId, PageSectionRepository $sections): Response
+    public function blockIndex(int $sectionId, PageSectionRepository $sections, TenantContext $tc): Response
     {
-        $section = $sections->find($sectionId) ?? throw $this->createNotFoundException();
+        $section = $this->sectionOr404($sectionId, $sections, $tc);
         return $this->render('admin/block/index.html.twig', ['section' => $section, 'blocks' => $section->getBlocks()]);
     }
 
@@ -617,9 +621,9 @@ class AdminContentController extends AbstractController
     public function blockNew(
         int $sectionId, Request $r, EntityManagerInterface $em,
         PageSectionRepository $sections, CategoryRepository $cats,
-        PageRepository $pages
+        PageRepository $pages, TenantContext $tc
     ): Response {
-        $section = $sections->find($sectionId) ?? throw $this->createNotFoundException();
+        $section = $this->sectionOr404($sectionId, $sections, $tc);
         $block = new PageBlock();
         $type  = $r->query->get('type', $r->request->get('type', ''));
 
@@ -642,9 +646,11 @@ class AdminContentController extends AbstractController
 
     #[Route('/block/{id}/edit', name: 'block_edit', methods: ['GET', 'POST'])]
     public function blockEdit(
-        PageBlock $block, Request $r, EntityManagerInterface $em,
-        CategoryRepository $cats, PageRepository $pages
+        int $id, Request $r, EntityManagerInterface $em,
+        CategoryRepository $cats, PageRepository $pages,
+        PageBlockRepository $blocks, TenantContext $tc
     ): Response {
+        $block = $this->blockOr404($id, $blocks, $tc);
         if ($r->isMethod('POST')) {
             $this->populateBlock($block, $r, $em, $cats);
             $em->flush();
@@ -669,9 +675,8 @@ class AdminContentController extends AbstractController
         $block->setEmbedUrl($r->request->get('embedUrl') ?: null);
         $block->setItemCount($r->request->get('itemCount') !== null ? (int)$r->request->get('itemCount') ?: null : null);
 
-        // Related category
-        $catId = (int) $r->request->get('relatedCategoryId');
-        $block->setRelatedCategory($catId ? $cats->find($catId) : null);
+        // Related category (só do NEPE do painel: outro tenant ou inexistente dá 404)
+        $block->setRelatedCategory($this->submittedCategory($r, $cats, 'relatedCategoryId'));
 
         // Config JSON (blurbs4, stats, newsletter, map, contact, etc.)
         $cfg = $r->request->all('config');
@@ -876,8 +881,9 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/block/{id}/delete', name: 'block_delete', methods: ['POST'])]
-    public function blockDelete(PageBlock $block, Request $r, EntityManagerInterface $em): Response
+    public function blockDelete(int $id, Request $r, EntityManagerInterface $em, PageBlockRepository $blocks, TenantContext $tc): Response
     {
+        $block = $this->blockOr404($id, $blocks, $tc);
         $sectionId = $block->getSection()?->getId();
         if ($this->isCsrfTokenValid('del_block_' . $block->getId(), (string) $r->request->get('_token'))) {
             $em->remove($block);
@@ -887,35 +893,42 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/block/reorder', name: 'block_reorder', methods: ['POST'])]
-    public function blockReorder(Request $r, PageBlockRepository $repo, EntityManagerInterface $em): JsonResponse
+    public function blockReorder(Request $r, PageBlockRepository $repo, EntityManagerInterface $em, TenantContext $tc): JsonResponse
     {
-        return $this->reorderEntities($r, $repo, $em);
+        return $this->reorderOwnedItems($r, $repo->findOneWithOwner(...), $em, $tc);
     }
 
     // ── Editor Users (managed by Tenant Admin) ────────────────────────────────
+    // Gestão de usuários e configurações: só o administrador do NEPE (grupo 0, incluindo o super admin).
+    // Editores e revisores também têm ROLE_ADMIN e recebem 403 aqui.
 
     #[Route('/editors', name: 'editor_index')]
-    public function editorIndex(UserRepository $users): Response
+    #[IsGranted('ROLE_NEPE_ADMIN')]
+    public function editorIndex(UserRepository $users, TenantContext $tc): Response
     {
-        /** @var User $me */
-        $me = $this->getUser();
         return $this->render('admin/editor/index.html.twig', [
-            'editors' => $users->findBy(['tenant' => $me->getTenant(), 'workGroup' => [1, 2]]),
+            'editors' => $users->findBy(['tenant' => $tc->requireTenant(), 'workGroup' => PanelUserPolicy::WORK_GROUPS]),
         ]);
     }
 
     #[Route('/editors/new', name: 'editor_new', methods: ['GET', 'POST'])]
-    public function editorNew(Request $r, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): Response
+    #[IsGranted('ROLE_NEPE_ADMIN')]
+    public function editorNew(Request $r, EntityManagerInterface $em, UserPasswordHasherInterface $hasher, TenantContext $tc): Response
     {
-        /** @var User $me */
-        $me = $this->getUser();
         $editor = new User();
         if ($r->isMethod('POST')) {
+            $workGroup = (int) $r->request->get('workGroup', 1);
+            if (!PanelUserPolicy::acceptsWorkGroup($workGroup)) {
+                $this->addFlash('error', 'Grupo inválido: escolha Editor ou Revisor.');
+                return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
+            }
+
             $editor->setUsername((string) $r->request->get('username'));
             $editor->setName((string) $r->request->get('name'));
             $editor->setEmail($r->request->get('email') ?: null);
-            $editor->setWorkGroup((int) $r->request->get('workGroup', 1));
-            $editor->setTenant($me->getTenant());
+            $editor->setWorkGroup($workGroup);
+            // Tenant do domínio, não o de quem cria: o super admin não cria mais usuários sem tenant
+            $editor->setTenant($tc->requireTenant());
             $editor->setPassword($hasher->hashPassword($editor, (string) $r->request->get('password')));
             $em->persist($editor);
             $em->flush();
@@ -926,15 +939,16 @@ class AdminContentController extends AbstractController
     }
 
     #[Route('/editors/{id}/delete', name: 'editor_delete', methods: ['POST'])]
-    public function editorDelete(User $editor, Request $r, EntityManagerInterface $em): Response
+    #[IsGranted('ROLE_NEPE_ADMIN')]
+    public function editorDelete(User $editor, Request $r, EntityManagerInterface $em, TenantContext $tc): Response
     {
         /** @var User $me */
         $me = $this->getUser();
-        if ($editor->getTenant() === $me->getTenant()) {
-            if ($this->isCsrfTokenValid('del_editor_' . $editor->getId(), (string) $r->request->get('_token'))) {
-                $em->remove($editor);
-                $em->flush();
-            }
+        // Só editor ou revisor do tenant do domínio; outro NEPE, administrador ou o próprio usuário: volta para a lista
+        if (PanelUserPolicy::canDelete($me, $editor, $tc->requireTenant())
+            && $this->isCsrfTokenValid('del_editor_' . $editor->getId(), (string) $r->request->get('_token'))) {
+            $em->remove($editor);
+            $em->flush();
         }
         return $this->redirectToRoute('admin_editor_index');
     }
@@ -942,6 +956,7 @@ class AdminContentController extends AbstractController
     // ── Tenant Settings ───────────────────────────────────────────────────────
 
     #[Route('/settings', name: 'settings', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_NEPE_ADMIN')]
     public function settings(Request $r, EntityManagerInterface $em, TenantContext $tc): Response
     {
         $tenant = $tc->requireTenant();
@@ -969,6 +984,49 @@ class AdminContentController extends AbstractController
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    /**
+     * Seção do NEPE do domínio. Seção não tem tenant: a busca junta a página ou a categoria dona
+     * com o tenant_filter, e a regra pura confere de novo. Dono de outro tenant dá 404.
+     */
+    private function sectionOr404(int $id, PageSectionRepository $sections, TenantContext $tc): PageSection
+    {
+        $section = $sections->findOneWithOwner($id);
+        if ($section === null || !TenantOwnership::belongsTo($section, $tc->requireTenant())) {
+            throw $this->createNotFoundException();
+        }
+        return $section;
+    }
+
+    /** Bloco do NEPE do domínio, pelo dono da seção (como em sectionOr404) */
+    private function blockOr404(int $id, PageBlockRepository $blocks, TenantContext $tc): PageBlock
+    {
+        $block = $blocks->findOneWithOwner($id);
+        if ($block === null || !TenantOwnership::belongsTo($block, $tc->requireTenant())) {
+            throw $this->createNotFoundException();
+        }
+        return $block;
+    }
+
+    /**
+     * Reordenação de seções e blocos, que não têm tenant: ids de outro dono são ignorados.
+     *
+     * @param callable(int): (PageSection|PageBlock|null) $find
+     */
+    private function reorderOwnedItems(Request $r, callable $find, EntityManagerInterface $em, TenantContext $tc): JsonResponse
+    {
+        $tenant = $tc->requireTenant();
+        $data = json_decode((string) $r->getContent(), true);
+        $ids = $data['ids'] ?? [];
+        foreach ($ids as $position => $id) {
+            $item = $find((int) $id);
+            if ($item !== null && TenantOwnership::belongsTo($item, $tenant)) {
+                $item->setPosition($position);
+            }
+        }
+        $em->flush();
+        return new JsonResponse(['ok' => true]);
+    }
+
     private function reorderEntities(Request $r, $repo, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode((string) $r->getContent(), true);
@@ -981,6 +1039,19 @@ class AdminContentController extends AbstractController
         }
         $em->flush();
         return new JsonResponse(['ok' => true]);
+    }
+
+    /**
+     * Categoria enviada no formulário. A busca passa pelo tenant_filter (o getReference não consulta
+     * o banco e escaparia dele): id de outro NEPE ou inexistente dá 404, sem gravar.
+     */
+    private function submittedCategory(Request $r, CategoryRepository $cats, string $field = 'category'): ?Category
+    {
+        $catId = (int) $r->request->get($field);
+        if ($catId === 0) {
+            return null;
+        }
+        return $cats->find($catId) ?? throw $this->createNotFoundException(sprintf('Categoria %d não encontrada.', $catId));
     }
 
     private function populateCategory(Category $cat, Request $r, SluggerInterface $slugger): void
@@ -1004,8 +1075,11 @@ class AdminContentController extends AbstractController
         $this->applyBibliaReference($page, $r, $em);
     }
 
-    private function populateVideo(VideoSupport $video, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void
+    private function populateVideo(VideoSupport $video, Request $r, SluggerInterface $slugger, EntityManagerInterface $em, CategoryRepository $cats): void
     {
+        // Antes de tudo: categoria de outro NEPE ou inexistente dá 404 sem mexer no vídeo
+        $category = $this->submittedCategory($r, $cats);
+
         $video->setTitle((string) $r->request->get('title'));
         $video->setSlug($r->request->get('slug') ?: strtolower((string) $slugger->slug($video->getTitle())));
         $video->setYoutubeId((string) $r->request->get('youtubeId'));
@@ -1022,8 +1096,6 @@ class AdminContentController extends AbstractController
         }
 
         // ── Category ──────────────────────────────────────────────────────────
-        $catId = (int) $r->request->get('category');
-        $category = $catId ? $em->getReference(\App\Entity\Category::class, $catId) : null;
         $video->setCategory($category);
 
         // ── Referência Bíblica / Perícope ──────────────────────────────────
@@ -1075,8 +1147,11 @@ class AdminContentController extends AbstractController
         throw $this->createAccessDeniedException('Só o autor pode editar ou excluir este material. Use a tela de revisão para aprová-lo.');
     }
 
-    private function populateStudy(Study $study, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void
+    private function populateStudy(Study $study, Request $r, SluggerInterface $slugger, EntityManagerInterface $em, CategoryRepository $cats): void
     {
+        // Antes de tudo: categoria de outro NEPE ou inexistente dá 404 sem mexer no material
+        $category = $this->submittedCategory($r, $cats);
+
         $study->setTitle((string) $r->request->get('title'));
         $study->setSlug($r->request->get('slug') ?: strtolower((string) $slugger->slug($study->getTitle())));
         $study->setDescription($r->request->get('description') ?: null);
@@ -1089,8 +1164,6 @@ class AdminContentController extends AbstractController
         }
 
         // ── Category ──────────────────────────────────────────────────────────
-        $catId = (int) $r->request->get('category');
-        $category = $catId ? $em->getReference(\App\Entity\Category::class, $catId) : null;
         $study->setCategory($category);
 
         // ── Referência Bíblica / Perícope ──────────────────────────────────

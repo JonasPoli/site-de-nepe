@@ -6,7 +6,9 @@ use App\Entity\Message;
 use App\Entity\User;
 use App\Repository\MessageRepository;
 use App\Repository\UserRepository;
+use App\Security\MessageAccess;
 use App\Service\MessageService;
+use App\Service\TenantContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,32 +35,28 @@ class MessageController extends AbstractController
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(MessageRepository $repo): Response
+    public function index(MessageRepository $repo, TenantContext $tc): Response
     {
         /** @var User $user */
         $user = $this->getUser();
-        $isAdmin = $user->getWorkGroup() === 0;
+        $isAdmin = $this->isGranted('ROLE_NEPE_ADMIN');
 
         return $this->render('admin/message/index.html.twig', [
             'receivedMessages' => $repo->findInboxThreads($user),
             'sentMessages'     => $repo->findSentThreads($user),
-            'allMessages'      => $isAdmin ? $repo->findAllConversations() : [],
+            // Visão geral do administrador: só as conversas do NEPE do domínio
+            'allMessages'      => $isAdmin ? $repo->findAllConversations($tc->requireTenant()) : [],
             'isAdmin'          => $isAdmin,
         ]);
     }
 
     /** Loads a conversation thread via AJAX — returns partial HTML */
     #[Route('/{id}', name: 'read', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function read(Message $message, MessageService $service): Response
+    public function read(Message $message, MessageService $service, TenantContext $tc): Response
     {
         /** @var User $user */
         $user = $this->getUser();
-
-        if ($message->getRecipient() !== $user
-            && $message->getSender() !== $user
-            && $user->getWorkGroup() !== 0) {
-            throw $this->createAccessDeniedException();
-        }
+        $this->denyUnlessCanAccess($message, $tc);
 
         $root = $message->getRoot();
         $conversation = [$root];
@@ -79,7 +77,7 @@ class MessageController extends AbstractController
 
     /** Send a new message or reply (JSON API) */
     #[Route('/send', name: 'send', methods: ['POST'])]
-    public function send(Request $request, MessageService $service, UserRepository $users): JsonResponse
+    public function send(Request $request, MessageService $service, UserRepository $users, TenantContext $tc): JsonResponse
     {
         try {
             $data        = json_decode((string) $request->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -90,8 +88,9 @@ class MessageController extends AbstractController
                 return new JsonResponse(['error' => 'Missing recipient or content'], 400);
             }
 
+            // Destinatário só do NEPE do domínio; de outro NEPE, a resposta é a mesma do id inexistente
             $recipient = $users->find((int) $recipientId);
-            if ($recipient === null) {
+            if ($recipient === null || $recipient->getTenant()?->getId() !== $tc->requireTenant()->getId()) {
                 return new JsonResponse(['error' => 'Recipient not found'], 404);
             }
 
@@ -121,10 +120,11 @@ class MessageController extends AbstractController
     }
 
     #[Route('/{id}/reply', name: 'reply', methods: ['POST'])]
-    public function reply(Message $message, Request $request, MessageService $service): Response
+    public function reply(Message $message, Request $request, MessageService $service, TenantContext $tc): Response
     {
         /** @var User $user */
         $user = $this->getUser();
+        $this->denyUnlessCanAccess($message, $tc);
         $content = trim((string) $request->request->get('content'));
 
         if ($content !== '') {
@@ -143,8 +143,10 @@ class MessageController extends AbstractController
     }
 
     #[Route('/{id}/status/{status}', name: 'status', methods: ['POST'])]
-    public function setStatus(Message $message, string $status, MessageService $service): JsonResponse
+    public function setStatus(Message $message, string $status, MessageService $service, TenantContext $tc): JsonResponse
     {
+        $this->denyUnlessCanAccess($message, $tc);
+
         match ($status) {
             'ignored'  => $service->markAsIgnored($message),
             'resolved' => $service->markAsResolved($message),
@@ -152,6 +154,22 @@ class MessageController extends AbstractController
         };
 
         return new JsonResponse(['ok' => true]);
+    }
+
+    /**
+     * Message não tem tenant e o filtro não a alcança: conversa de outro NEPE dá 404; do NEPE,
+     * só quem participa dela ou o administrador do NEPE (senão 403).
+     */
+    private function denyUnlessCanAccess(Message $message, TenantContext $tc): void
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        match (MessageAccess::decide($message, $user, $tc->requireTenant(), $this->isGranted('ROLE_NEPE_ADMIN'))) {
+            MessageAccess::NotFound  => throw $this->createNotFoundException(),
+            MessageAccess::Forbidden => throw $this->createAccessDeniedException(),
+            MessageAccess::Allowed   => null,
+        };
     }
 
     private function collectReplies(Message $message, array &$collection): void

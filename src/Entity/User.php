@@ -83,10 +83,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $roles = $this->roles;
         $roles[] = 'ROLE_USER';
 
+        // ROLE_NEPE_ADMIN separa o administrador do NEPE (grupo 0) de editores e revisores:
+        // é o papel exigido para gerir usuários e configurações do site. Calculado, não gravado.
         if ($this->tenant === null && $this->workGroup === 0) {
             $roles[] = 'ROLE_SUPER_ADMIN';
+            $roles[] = 'ROLE_NEPE_ADMIN';
             $roles[] = 'ROLE_ADMIN'; // SuperAdmin can also access /admin
         } elseif ($this->workGroup === 0) {
+            $roles[] = 'ROLE_NEPE_ADMIN';
             $roles[] = 'ROLE_ADMIN';
         } elseif ($this->workGroup === 1 || $this->workGroup === 2) {
             $roles[] = 'ROLE_EDITOR';

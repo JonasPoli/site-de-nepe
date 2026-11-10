@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\PasswordResetMailer;
+use App\Service\TenantUrl;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,7 +48,7 @@ class ResetPasswordController extends AbstractController
 
                 if ($user instanceof User) {
                     try {
-                        $this->passwordResetMailer->send($user, $request->getSchemeAndHttpHost());
+                        $this->passwordResetMailer->send($user, self::resetLinkBaseUrl($user, $request->getSchemeAndHttpHost()));
                     } catch (TooManyPasswordRequestsException) {
                         // Um link acabou de ser enviado para este usuário: não envia outro
                     } catch (TransportExceptionInterface $e) {
@@ -61,6 +62,17 @@ class ResetPasswordController extends AbstractController
         }
 
         return $this->render('security/forgot_password.html.twig', ['error' => $error]);
+    }
+
+    /**
+     * O link vai para o domínio do NEPE do usuário, onde o login o aceita, mesmo que o pedido tenha
+     * sido feito em outro domínio. Super admin (sem tenant): o domínio onde o pedido foi feito.
+     */
+    public static function resetLinkBaseUrl(User $user, string $requestBaseUrl): string
+    {
+        $tenant = $user->getTenant();
+
+        return $tenant !== null ? TenantUrl::base($tenant) : $requestBaseUrl;
     }
 
     #[Route('/check-email', name: 'app_check_email', methods: ['GET'])]

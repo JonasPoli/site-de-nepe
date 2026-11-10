@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Message;
+use App\Entity\Tenant;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -44,14 +45,21 @@ class MessageRepository extends ServiceEntityRepository
             ->getQuery()->getResult();
     }
 
-    /** All conversations — admin overview (no user filter) */
-    public function findAllConversations(): array
+    /**
+     * Conversas do NEPE — visão geral do administrador. Message não tem tenant: a conversa é do
+     * NEPE quando o remetente ou o destinatário da mensagem inicial é usuário dele.
+     */
+    public function findAllConversations(Tenant $tenant): array
     {
         return $this->createQueryBuilder('m')
             ->addSelect('r')
             ->leftJoin('m.replies', 'r')
+            ->innerJoin('m.sender', 'ms')
+            ->innerJoin('m.recipient', 'mr')
             ->where('m.parent IS NULL')
             ->andWhere("m.status != 'resolved'")
+            ->andWhere('ms.tenant = :tenant OR mr.tenant = :tenant')
+            ->setParameter('tenant', $tenant)
             ->groupBy('m.id')
             ->orderBy(
                 'CASE WHEN MAX(r.sentAt) IS NULL THEN m.sentAt ELSE MAX(r.sentAt) END',

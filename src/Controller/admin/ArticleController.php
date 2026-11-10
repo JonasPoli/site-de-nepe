@@ -39,7 +39,7 @@ class ArticleController extends AbstractController
     ): Response {
         $article = new Article();
         if ($request->isMethod('POST')) {
-            $this->populateArticle($article, $request, $slugger, $em);
+            $this->populateArticle($article, $request, $slugger, $em, $categories);
             $article->setTenant($tenantContext->requireTenant());
             $article->setAuthor($this->getUser());
             $em->persist($article);
@@ -68,7 +68,7 @@ class ArticleController extends AbstractController
             // as aprovações são invalidadas e o status volta para Draft.
             $contentChanged = $this->contentChanged($article, $request);
 
-            $this->populateArticle($article, $request, $slugger, $em);
+            $this->populateArticle($article, $request, $slugger, $em, $categories);
 
             if ($contentChanged && $article->getApprovals()->count() > 0) {
                 // Remover todas as aprovações existentes
@@ -180,8 +180,13 @@ class ArticleController extends AbstractController
         return false;
     }
 
-    private function populateArticle(Article $article, Request $r, SluggerInterface $slugger, EntityManagerInterface $em): void
+    private function populateArticle(Article $article, Request $r, SluggerInterface $slugger, EntityManagerInterface $em, CategoryRepository $categories): void
     {
+        // Antes de tudo: categoria de outro NEPE ou inexistente dá 404 sem mexer no artigo.
+        // A busca passa pelo tenant_filter (o getReference não consulta o banco e escaparia dele).
+        $catId = (int) $r->request->get('category');
+        $category = $catId ? ($categories->find($catId) ?? throw $this->createNotFoundException(sprintf('Categoria %d não encontrada.', $catId))) : null;
+
         $article->setTitle((string) $r->request->get('title'));
         $article->setShortDescription($r->request->get('shortDescription') ?: null);
         $article->setContent($r->request->get('content') ?: null);
@@ -191,8 +196,7 @@ class ArticleController extends AbstractController
         $article->setIsNoIndex((bool) $r->request->get('isNoIndex'));
         $article->setImageAlt($r->request->get('imageAlt') ?: null);
 
-        $catId = (int) $r->request->get('category');
-        $article->setCategory($catId ? $em->getReference(\App\Entity\Category::class, $catId) : null);
+        $article->setCategory($category);
 
         $slug = $r->request->get('slug');
         $article->setSlug($slug ?: strtolower((string) $slugger->slug($article->getTitle())));

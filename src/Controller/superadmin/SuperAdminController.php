@@ -6,6 +6,7 @@ use App\Entity\Tenant;
 use App\Entity\User;
 use App\Repository\TenantRepository;
 use App\Repository\UserRepository;
+use App\Service\TenantUrl;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -149,7 +150,20 @@ class SuperAdminController extends AbstractController
     #[Route('/impersonate/{id}', name: 'impersonate', methods: ['GET'])]
     public function impersonate(User $user): Response
     {
-        return $this->redirect('/admin?_switch_user=' . urlencode((string) $user->getUsername()));
+        return $this->redirect(self::impersonationUrl($user));
+    }
+
+    /**
+     * O "entrar como" acontece no domínio do NEPE do usuário: o login e o painel só o aceitam lá.
+     * Sem sessão naquele domínio, o firewall leva ao login e depois volta para este endereço.
+     * Usuário sem tenant: no domínio atual.
+     */
+    public static function impersonationUrl(User $user): string
+    {
+        $tenant = $user->getTenant();
+        $base = $tenant !== null ? TenantUrl::base($tenant) : '';
+
+        return $base . '/admin?_switch_user=' . urlencode((string) $user->getUsername());
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
