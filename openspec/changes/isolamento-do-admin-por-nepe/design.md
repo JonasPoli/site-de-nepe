@@ -103,8 +103,11 @@ Em `/superadmin`, o filtro já estava ligado (só `/admin` era pulado) e não af
 Com o filtro no painel, o nepealcione ficaria sem nenhuma categoria raiz visível, e as telas que mostram a categoria dos vídeos 15 e 16 tentariam carregar uma categoria filtrada, o que dá `EntityNotFoundException` (500). Por isso a correção vem antes do deploy, como escrita em produção com aprovação do Jonas. A proposta:
 
 - criar no tenant 6 uma categoria raiz "Shorts" (slug `shorts`, sem cabeçalho e sem rodapé, como a original);
-- mover as categorias 19, 20, 21, 23 e 24 para ela;
+- mover para ela as categorias 23 ("Maria") e 24 ("Evangelho e Plenitude", usada pelo vídeo 16);
+- excluir as categorias 19, 20 e 21, que não têm nome, slug, conteúdo nem filhas;
 - tirar a categoria do vídeo 15 (`category_id = NULL`), para o nepealcione escolher de novo.
+
+Decidido pelo Jonas em 09/11/2026 (tarefa 7.1).
 
 Os vídeos 15 e 16 estão pendentes, então nada disso aparece no site nem na API.
 
@@ -132,5 +135,4 @@ Os vídeos 15 e 16 estão pendentes, então nada disso aparece no site nem na AP
 
 ## Open Questions
 
-- As categorias 19, 20 e 21 do nepealcione não têm nome nem slug e não têm conteúdo. Elas devem ser excluídas na correção da decisão 7 ou só movidas? Proposta: só mover, e o Jonas decide na aprovação da escrita.
-- O vídeo 15 deve ficar sem categoria (proposta) ou receber uma categoria nova do nepealcione? O Jonas decide na aprovação da escrita.
+- Resolvidas em 09/11/2026 (tarefa 7.1): as categorias 19, 20 e 21 são excluídas e o vídeo 15 fica sem categoria.
