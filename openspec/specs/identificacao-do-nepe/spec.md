@@ -4,6 +4,7 @@
 Descobre qual NEPE (Tenant) atende cada requisição pelo domínio acessado e isola os dados dele no site público. Uma só instalação serve todos os subdomínios; o tenant identificado fica no `TenantContext` para controllers e templates. Implementado em `EventSubscriber/TenantSubscriber`, `Doctrine/TenantFilter`, `Service/TenantContext` e `TenantRepository::findByDomain()`.
 
 ## Requirements
+
 ### Requirement: Tenant pelo domínio exato
 O sistema SHALL identificar o tenant pelo host da requisição comparado de forma exata com o campo `domain` do Tenant, antes de qualquer controller, e SHALL guardá-lo no `TenantContext`.
 
@@ -36,17 +37,17 @@ O sistema MUST NOT exigir tenant nos caminhos que começam com `/api` ou `/_`: e
 - **WHEN** o nepe-search chama `/api/biblia/contents` por qualquer domínio que chegue ao servidor
 - **THEN** a API responde normalmente, com conteúdos de todos os tenants
 
-### Requirement: Isolamento no site público
-Fora de `/admin`, o sistema SHALL ligar o filtro `tenant_filter` do Doctrine com o id do tenant identificado, que acrescenta `tenant_id = <id>` às consultas das entidades que implementam `TenantAwareInterface`: Article, VideoSupport, Study, Category, Page, HeroBanner, ResearchLine, ContactMessage e NewsletterSubscriber.
+### Requirement: Isolamento pelo filtro de tenant
+Em toda requisição com tenant identificado, inclusive as que começam com `/admin`, o sistema SHALL ligar o filtro `tenant_filter` do Doctrine com o id do tenant do domínio. O filtro acrescenta `tenant_id = <id>` às consultas das entidades que implementam `TenantAwareInterface`: Article, VideoSupport, Study, Category, Page, HeroBanner, ResearchLine, ContactMessage e NewsletterSubscriber.
 
-#### Scenario: Vídeos de outro NEPE
+#### Scenario: Vídeos de outro NEPE no site público
 - **WHEN** um visitante abre a lista de vídeos de `nepealcione.nepebrasil.org`
 - **THEN** só aparecem vídeos do tenant nepealcione
 
-### Requirement: Painel sem o filtro de tenant
-Nos caminhos que começam com `/admin`, o sistema SHALL identificar o tenant pelo domínio e guardá-lo no `TenantContext`, mas MUST NOT ligar o filtro `tenant_filter`. Cada controller do painel é responsável por restringir ao tenant o que lê e grava.
+#### Scenario: Vídeos de outro NEPE no painel
+- **WHEN** existem vídeos dos tenants renovandoconsciencias e nepealcione e um usuário abre `nepealcione.nepebrasil.org/admin/video`
+- **THEN** a lista mostra só os vídeos do tenant nepealcione
 
-#### Scenario: Consulta no painel
+#### Scenario: Tenant do domínio continua disponível no painel
 - **WHEN** um usuário logado abre uma tela de `/admin`
-- **THEN** as consultas do Doctrine não recebem a condição `tenant_id` automaticamente
-- **AND** o tenant do domínio acessado continua disponível no `TenantContext`
+- **THEN** o tenant do domínio acessado está no `TenantContext` e é o mesmo usado no filtro
