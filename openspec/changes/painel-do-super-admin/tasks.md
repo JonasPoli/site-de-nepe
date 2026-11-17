@@ -45,10 +45,26 @@
 
 - [x] 6.1 Rodar `vendor/bin/phpunit` inteiro, `php bin/console lint:twig templates` e `lint:container`, com tudo verde
 - [x] 6.2 Conferir no ambiente local, logado como super admin: listas agrupadas e ordenadas, busca, foto e iniciais, papéis corretos, exportação baixada e reimportada sem duplicar, e uma importação com logo grande e com link interno recusados pelo motivo certo
-- [ ] 6.3 Conferir o `df -h` no servidor (leitura) antes de qualquer envio; sem espaço, parar e avisar o Jonas
-- [ ] 6.4 `git push origin main` (local) e, no servidor como `projetomaster`, `git pull`; verificar que o `git log -1` do servidor é o commit novo. Não há migration nesta change; `composer.phar install` só se o `composer.lock` mudou
-- [ ] 6.5 Rodar `sh build.sh` pelo ea-php83 e verificar que as três últimas linhas (tailwind, asset-map, liip) terminaram sem erro
+- [x] 6.3 Conferir o `df -h` no servidor (leitura) antes de qualquer envio; sem espaço, parar e avisar o Jonas
+- [x] 6.4 `git push origin main` (local) e, no servidor como `projetomaster`, `git pull`; verificar que o `git log -1` do servidor é o commit novo. Não há migration nesta change; `composer.phar install` só se o `composer.lock` mudou
+- [x] 6.5 Rodar `sh build.sh` pelo ea-php83 e verificar que as três últimas linhas (tailwind, asset-map, liip) terminaram sem erro
 - [ ] 6.6 Conferir no ar: os 6 domínios respondendo, `/superadmin` com as listas agrupadas, uma exportação baixada do servidor e reimportada em prévia (sem confirmar), e o `df -h` depois do deploy
+
+## Conferência no ar (17/11/2026)
+
+Deploy feito às 20:16 (BRT) com aprovação do Jonas: `git pull` para `4eeb023` (sem migration e sem
+`composer install`, porque o `composer.lock` não mudou), `sh build.sh` com tailwind, 11 assets e o
+cache do Liip limpo, e o `public/.htaccess` do cPanel preservado. Disco em 93% (13 GB livres) antes
+e depois.
+
+Conferido pelo próprio servidor, resolvendo o domínio para o IP público — pelo `127.0.0.1` a
+requisição cai na vhost padrão do Apache e responde 404 em qualquer caminho, o que não é erro do
+site. Os 6 domínios respondem 200, `/admin` e `/superadmin` redirecionam para o `/login` do
+respectivo domínio e a rota `superadmin_tenant_export` está registrada em `prod`. Nenhuma exceção
+no log do Apache depois do deploy.
+
+Falta a conferência logada como super admin (listas agrupadas no ar, exportação baixada do servidor
+e reimportada em prévia), que depende da senha do Jonas.
 
 ## Workflow follow-up
 

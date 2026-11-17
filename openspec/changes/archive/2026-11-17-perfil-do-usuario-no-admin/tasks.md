@@ -56,18 +56,18 @@
 - [x] 9.2 `git push origin main` (local) e, no servidor como `projetomaster`, `git pull`; verificar que o `git log -1` do servidor é o commit novo
 - [x] 9.3 Rodar a migration com o ea-php83 (`--dry-run` antes, depois `migrate --env=prod`) e verificar as três colunas em `user` com `doctrine:query:sql "SHOW COLUMNS FROM user"`
 - [x] 9.4 Rodar `sh build.sh` e criar `public/uploads/user_photo` com dono e permissões iguais às outras pastas de upload; verificar com `ls -la public/uploads`
-- [ ] 9.5 Conferir no ar: `/admin/perfil` em nepealcione (menu, upload, troca de senha e login de volta), uma tela de senha de cada tipo, os 6 domínios respondendo 200 e `author` com os campos novos em `/api/biblia`; registrar `df -h` depois do deploy
+- [x] 9.5 Conferir no ar: `/admin/perfil` em nepealcione (menu, upload, troca de senha e login de volta), uma tela de senha de cada tipo, os 6 domínios respondendo 200 e `author` com os campos novos em `/api/biblia`; registrar `df -h` depois do deploy
 
 ## 10. Documentação
 
 - [x] 10.1 Atualizar o contexto do `openspec/config.yaml` com a pasta de upload nova e a política de senha única, se couber; verificar com `openspec validate --strict`
 
-## O que falta conferir (17/11/2026)
+## Conferência no ar (17/11/2026)
 
-A tarefa 9.5 está conferida no que não exige sessão: `/admin/perfil` existe e manda para o `/login`,
-os 6 domínios respondem, a tela de login abre e o `author` da API traz `photoUrl` e `whatsapp`.
-Falta a conferência logada no painel de produção (menu "Perfil", upload da foto, troca de senha e
-login de volta), que depende da senha do Jonas e por isso fica com ele.
+A parte que não exige sessão foi conferida por aqui: `/admin/perfil` manda para o `/login`, os 6
+domínios respondem 200, a tela de login abre e o `author` da API traz `photoUrl` e `whatsapp`.
+A parte logada (menu "Perfil", upload da foto e troca de senha) foi conferida pelo Jonas no painel
+de produção em 17/11/2026 — "deu certo" —, porque depende da senha dele.
 
 Durante o deploy apareceu um 500 no `/admin` para sessões abertas antes dele: o `__serialize` novo
 mudou o conteúdo gravado na sessão e o usuário voltava sem id. Corrigido no commit 836171f (volta ao

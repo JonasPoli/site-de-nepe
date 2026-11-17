@@ -4,6 +4,7 @@
 API pública e sem autenticação que devolve os conteúdos de todos os NEPEs ligados a um trecho da Bíblia (ARC) e o próprio texto do trecho. É consumida pelo nepe-search e por outros sites. Implementada em `api/BibliaApiController` (`/api/biblia/contents` e `/api/biblia/passage`), `Service/BibliaService` e `BibliaBookRepository::findBySlugOrAbbrevOrId()`; o formato completo do JSON está no README.
 
 ## Requirements
+
 ### Requirement: Livro e capítulo obrigatórios
 Em `/api/biblia/contents`, o sistema SHALL exigir o livro (`book` ou `livro`) e um capítulo maior que zero (`chapter`), respondendo 400 com `status: error` quando faltam, e 404 quando o livro não é encontrado.
 
@@ -77,3 +78,18 @@ Em `/api/biblia/passage`, o sistema SHALL exigir `book` e `chapter`, aceitar o i
 #### Scenario: João 3:16-17
 - **WHEN** a API recebe `book=jo&chapter=3&start=16&end=17`
 - **THEN** a resposta traz os versículos 16 e 17 em `data`
+
+### Requirement: Foto e WhatsApp do autor na API
+O `author` de artigo, vídeo e material SHALL trazer, além do `name`, o campo `photoUrl` com a URL completa da foto do autor no domínio do tenant que publicou o conteúdo e o campo `whatsapp` com o WhatsApp público do autor. Sem foto ou sem WhatsApp gravados, cada campo SHALL vir nulo. Conteúdo sem autor SHALL continuar com `author` nulo, e nenhum campo existente da resposta SHALL ser renomeado ou removido.
+
+#### Scenario: Autor com foto e WhatsApp
+- **WHEN** um artigo publicado do tenant nepealcione.nepebrasil.org, cujo autor tem foto e WhatsApp, é devolvido
+- **THEN** o `author` traz `name`, `photoUrl` começando com `https://nepealcione.nepebrasil.org/uploads/` e `whatsapp` preenchido
+
+#### Scenario: Autor sem foto
+- **WHEN** o autor do conteúdo devolvido não tem foto nem WhatsApp gravados
+- **THEN** `author.photoUrl` e `author.whatsapp` vêm nulos e `author.name` continua preenchido
+
+#### Scenario: Conteúdo sem autor
+- **WHEN** um conteúdo sem autor é devolvido
+- **THEN** `author` vem nulo, como antes
