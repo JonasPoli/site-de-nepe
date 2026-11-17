@@ -48,7 +48,7 @@
 - [x] 6.3 Conferir o `df -h` no servidor (leitura) antes de qualquer envio; sem espaço, parar e avisar o Jonas
 - [x] 6.4 `git push origin main` (local) e, no servidor como `projetomaster`, `git pull`; verificar que o `git log -1` do servidor é o commit novo. Não há migration nesta change; `composer.phar install` só se o `composer.lock` mudou
 - [x] 6.5 Rodar `sh build.sh` pelo ea-php83 e verificar que as três últimas linhas (tailwind, asset-map, liip) terminaram sem erro
-- [ ] 6.6 Conferir no ar: os 6 domínios respondendo, `/superadmin` com as listas agrupadas, uma exportação baixada do servidor e reimportada em prévia (sem confirmar), e o `df -h` depois do deploy
+- [x] 6.6 Conferir no ar: os 6 domínios respondendo, `/superadmin` com as listas agrupadas, uma exportação baixada do servidor e reimportada em prévia (sem confirmar), e o `df -h` depois do deploy
 
 ## Conferência no ar (17/11/2026)
 
@@ -63,8 +63,22 @@ site. Os 6 domínios respondem 200, `/admin` e `/superadmin` redirecionam para o
 respectivo domínio e a rota `superadmin_tenant_export` está registrada em `prod`. Nenhuma exceção
 no log do Apache depois do deploy.
 
-Falta a conferência logada como super admin (listas agrupadas no ar, exportação baixada do servidor
-e reimportada em prévia), que depende da senha do Jonas.
+A conferência logada foi feita com o Jonas já autenticado como super admin, no navegador dele:
+NEPEs em ordem com a contagem de usuários e os dois tenants de desenvolvimento marcados como "sem
+administrador"; usuários agrupados por NEPE, com foto quando existe (a do perfil já aparece),
+iniciais quando não, e-mail visível e o papel certo em cada linha; o grupo "Sem NEPE (acesso
+global)" por último, com o cadastro sem nome mostrado como "sem nome / sem e-mail"; a busca por
+"alcione" trazendo 1 NEPE e 2 usuários, com a opção de limpar.
+
+A exportação foi baixada do servidor (`nepes-2026-11-17.csv`, 8 NEPEs, títulos legíveis, WhatsApp e
+a logo no endereço do próprio NEPE só para os dois que têm logo) e reimportada em prévia no mesmo
+painel: 0 para criar, 6 "Já importado" e 2 ignoradas — as linhas dos tenants `127.0.0.1` e
+`localhost`, cujos domínios o parser nunca aceitou, como a spec descreve. A tela terminou em "Nada
+para importar" e nada foi confirmado nem gravado.
+
+Os dois cadastros errados que esta change faz aparecer (o usuário sem nome e o "NEPE ALCÍONE"
+cadastrado como pessoa) ficam como estão, por decisão do Jonas em 17/11/2026. Nenhum dos dois tem
+artigo, estudo ou vídeo: a correção pode ser feita a qualquer momento sem perder conteúdo.
 
 ## Workflow follow-up
 

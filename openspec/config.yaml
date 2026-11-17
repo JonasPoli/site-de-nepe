@@ -65,6 +65,11 @@ context: |
     minúscula e caractere especial), no perfil, na criação de usuário pelo NEPE e pelo super admin e na
     redefinição por e-mail; senhas antigas continuam válidas no login. A lista de requisitos da tela e a
     conferência em JavaScript saem dessa mesma classe (templates/_password_fields.html.twig).
+  - A importação de NEPEs grava o lote em transação (uma linha com erro não deixa NEPE criado nem
+    envia convite) e só baixa logo de endereço público, conferido a cada redirecionamento
+    (app.tenant_import.check_public_host, desligado em dev e test). O /superadmin exporta os NEPEs e
+    seus administradores em CSV no mesmo formato que a importação lê; os tenants localhost e
+    127.0.0.1 voltam como linha ignorada, porque o parser nunca aceitou esses domínios.
   - Os testes nunca enviam e-mail real (MAILER_DSN=null://null); não há .env.test e o ambiente de teste não tem banco.
 
 rules:
