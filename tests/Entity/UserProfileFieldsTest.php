@@ -95,8 +95,55 @@ class UserProfileFieldsTest extends TestCase
             'password'  => '$2y$hash',
         ]);
 
+        $this->assertSame(7, $user->getId());
         $this->assertSame('antigo', $user->getUsername());
         $this->assertNull($user->getWhatsapp());
         $this->assertNull($user->getPhoto());
+    }
+
+    /**
+     * Sessão aberta antes do deploy: o PHP gravou o objeto no formato clássico, com o nome
+     * da classe embutido na chave de cada propriedade privada. Sem ler esse formato, o usuário
+     * volta sem id e o provider derruba o painel com 500.
+     */
+    public function testSessionWrittenBeforeTheDeployIsStillValid(): void
+    {
+        $antes = (new User())
+            ->setUsername('editora')
+            ->setName('Editora do NEPE')
+            ->setEmail('editora@nepebrasil.org')
+            ->setWorkGroup(1)
+            ->setPassword('$2y$hash');
+        (new \ReflectionProperty($antes, 'id'))->setValue($antes, 42);
+
+        // Como o PHP serializava antes de existirem __sleep/__unserialize nesta classe
+        $classico = (array) $antes;
+        unset($classico["\0" . User::class . "\0whatsapp"], $classico["\0" . User::class . "\0photo"], $classico["\0" . User::class . "\0photoUpdatedAt"], $classico["\0" . User::class . "\0photoFile"]);
+
+        $restored = new User();
+        $restored->__unserialize($classico);
+
+        $this->assertSame(42, $restored->getId(), 'sem id o EntityUserProvider recusa o usuário');
+        $this->assertSame('editora', $restored->getUsername());
+        $this->assertSame(1, $restored->getWorkGroup());
+        $this->assertSame('$2y$hash', $restored->getPassword());
+    }
+
+    public function testSerializationKeepsTheClassicFormatSoOldSessionsSurvive(): void
+    {
+        $user = (new User())->setUsername('editora')->setName('Editora');
+        $user->setPhotoFile(new File(__FILE__));
+
+        $payload = serialize($user);
+
+        // Formato clássico (O:...), não o de __serialize, e sem o File dentro
+        $this->assertStringStartsWith('O:', $payload);
+        $this->assertStringNotContainsString('photoFile', $payload);
+        $this->assertNotContains('photoFile', $user->__sleep());
+
+        /** @var User $restored */
+        $restored = unserialize($payload);
+        $this->assertSame('editora', $restored->getUsername());
+        $this->assertNull($restored->getPhotoFile());
     }
 }

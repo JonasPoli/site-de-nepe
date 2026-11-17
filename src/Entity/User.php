@@ -153,39 +153,47 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * O usuário logado é serializado na sessão a cada requisição. $photoFile é um
-     * SplFileInfo e não pode ser serializado: fica de fora, como no Tenant.
+     * SplFileInfo e não pode ser serializado: fica de fora.
+     *
+     * Usa __sleep (formato clássico do PHP) de propósito, e não __serialize: assim o
+     * conteúdo gravado continua igual ao de antes desta mudança, e as sessões abertas
+     * antes do deploy seguem válidas. Sem isso, o provider recebe um usuário sem id
+     * ("You cannot refresh a user from the EntityUserProvider...") e o painel dá 500.
+     *
+     * @return list<string>
      */
-    public function __serialize(): array
+    public function __sleep(): array
     {
-        return [
-            'id'             => $this->id,
-            'username'       => $this->username,
-            'name'           => $this->name,
-            'email'          => $this->email,
-            'whatsapp'       => $this->whatsapp,
-            'photo'          => $this->photo,
-            'photoUpdatedAt' => $this->photoUpdatedAt,
-            'workGroup'      => $this->workGroup,
-            'tenant'         => $this->tenant,
-            'roles'          => $this->roles,
-            'password'       => $this->password,
-            // photoFile intentionally excluded — it is not serializable
-        ];
+        return ['id', 'username', 'name', 'email', 'whatsapp', 'photo', 'photoUpdatedAt', 'workGroup', 'tenant', 'roles', 'password'];
     }
 
+    /**
+     * Só para as sessões gravadas no formato de __serialize (array com chaves simples).
+     * Aceita também o formato clássico, cujas chaves vêm com o nome da classe embutido.
+     */
     public function __unserialize(array $data): void
     {
-        $this->id             = $data['id'] ?? null;
-        $this->username       = $data['username'] ?? null;
-        $this->name           = $data['name'] ?? '';
-        $this->email          = $data['email'] ?? null;
-        $this->whatsapp       = $data['whatsapp'] ?? null;
-        $this->photo          = $data['photo'] ?? null;
-        $this->photoUpdatedAt = $data['photoUpdatedAt'] ?? null;
-        $this->workGroup      = $data['workGroup'] ?? 0;
-        $this->tenant         = $data['tenant'] ?? null;
-        $this->roles          = $data['roles'] ?? [];
-        $this->password       = $data['password'] ?? null;
+        $valor = function (string $propriedade) use ($data) {
+            foreach ([$propriedade, "\0" . self::class . "\0" . $propriedade, "\0*\0" . $propriedade] as $chave) {
+                if (array_key_exists($chave, $data)) {
+                    return $data[$chave];
+                }
+            }
+
+            return null;
+        };
+
+        $this->id             = $valor('id');
+        $this->username       = $valor('username');
+        $this->name           = $valor('name') ?? '';
+        $this->email          = $valor('email');
+        $this->whatsapp       = $valor('whatsapp');
+        $this->photo          = $valor('photo');
+        $this->photoUpdatedAt = $valor('photoUpdatedAt');
+        $this->workGroup      = (int) $valor('workGroup');
+        $this->tenant         = $valor('tenant');
+        $this->roles          = $valor('roles') ?? [];
+        $this->password       = $valor('password');
         $this->photoFile      = null;
     }
 
