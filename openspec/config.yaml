@@ -43,6 +43,9 @@ context: |
   - Servidor compartilhado com o nepe-search, o speaker, o sombraluz, o venda-ticket-pix e três WordPress. O disco
     encheu em 25/10 e 02/11 e estava em 100% em 09/11/2026 (cache do nepe-search): nada pesado e nada que grave
     arquivo grande sem conferir o df antes.
+  - Conferir o site pelo próprio servidor exige resolver o domínio para o IP público
+    (curl --resolve dominio:443:162.240.232.248). Pelo 127.0.0.1 a requisição cai na vhost padrão do
+    Apache, que responde 404 em qualquer caminho menos a raiz — não é erro do site.
   - Leitura em produção é livre; qualquer escrita (deploy, banco, arquivos, cPanel, Cloudflare) exige aprovação
     explícita do Jonas. O .env.local nunca tem os valores exibidos.
 
