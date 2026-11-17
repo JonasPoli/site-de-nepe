@@ -11,7 +11,7 @@ final class TenantImportResult
     public int $emailed = 0;
     public int $emailFailures = 0;
 
-    /** A database error stopped the import: the rows after it weren't processed */
+    /** A database error rolled the batch back: no tenant of this file was created */
     public bool $aborted = false;
 
     /** @var list<array{line: int, message: string}> Things the user must check, e.g. logos that couldn't be downloaded */

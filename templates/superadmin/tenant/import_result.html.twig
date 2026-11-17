@@ -9,7 +9,11 @@
 
 <div class="al {{ result.aborted ? 'al-err' : (result.successful ? 'al-ok' : 'al-warn') }}">
     <sl-icon name="{{ result.aborted ? 'x-circle-fill' : 'check-circle-fill' }}"></sl-icon>
-    {{ result.created }} NEPE(s) criado(s), {{ result.emailed }} e-mail(s) enviado(s).
+    {% if result.aborted %}
+        Nenhum NEPE foi criado: a gravação falhou e o arquivo inteiro foi desfeito. Corrija o ponto indicado abaixo e importe o mesmo arquivo de novo.
+    {% else %}
+        {{ result.created }} NEPE(s) criado(s), {{ result.emailed }} e-mail(s) enviado(s).
+    {% endif %}
 </div>
 
 {% if result.problems is not empty %}

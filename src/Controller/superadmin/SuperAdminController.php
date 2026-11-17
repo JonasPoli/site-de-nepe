@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\TenantRepository;
 use App\Repository\UserRepository;
 use App\Security\PasswordPolicy;
+use App\Security\ProfilePolicy;
 use App\Service\TenantUrl;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,18 +17,62 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Vich\UploaderBundle\Storage\StorageInterface;
 
 #[IsGranted('ROLE_SUPER_ADMIN')]
 #[Route('/superadmin', name: 'superadmin_')]
 class SuperAdminController extends AbstractController
 {
     #[Route('', name: 'dash')]
-    public function dashboard(TenantRepository $tenants, UserRepository $users): Response
+    public function dashboard(Request $request, TenantRepository $tenants, UserRepository $users): Response
     {
+        $busca = trim((string) $request->query->get('q', ''));
+
+        $linhas = $tenants->findAllWithUserCount($busca !== '' ? $busca : null);
+        $encontrados = $users->findAllForSuperAdmin($busca !== '' ? $busca : null);
+
         return $this->render('superadmin/dashboard.html.twig', [
-            'tenants' => $tenants->findAll(),
-            'users'   => $users->findAll(),
+            'busca'       => $busca,
+            'tenantRows'  => $linhas,
+            'userGroups'  => $this->groupByTenant($linhas, $encontrados),
+            'totalTenants' => $busca === '' ? count($linhas) : $tenants->count([]),
+            'totalUsers'  => $busca === '' ? count($encontrados) : $users->count([]),
         ]);
+    }
+
+    /**
+     * Agrupa a lista já ordenada pelo banco: os usuários de um NEPE vêm seguidos,
+     * então basta percorrer uma vez, sem nova consulta.
+     *
+     * Os grupos partem da lista de NEPEs, para que um NEPE sem nenhum usuário
+     * também apareça — é assim que se percebe um NEPE que ficou sem administrador.
+     * O grupo dos usuários sem NEPE fica por último, como vem da consulta.
+     *
+     * @param list<array{tenant: Tenant, users: int}> $tenantRows
+     * @param list<User>                              $users
+     *
+     * @return list<array{tenant: ?Tenant, users: list<User>}>
+     */
+    private function groupByTenant(array $tenantRows, array $users): array
+    {
+        $grupos = [];
+
+        foreach ($tenantRows as $linha) {
+            $grupos[$linha['tenant']->getId()] = ['tenant' => $linha['tenant'], 'users' => []];
+        }
+
+        foreach ($users as $user) {
+            $chave = $user->getTenant()?->getId() ?? 'sem-nepe';
+
+            // Com busca, um usuário pode ser de um NEPE que o filtro de nome não trouxe
+            if (!isset($grupos[$chave])) {
+                $grupos[$chave] = ['tenant' => $user->getTenant(), 'users' => []];
+            }
+
+            $grupos[$chave]['users'][] = $user;
+        }
+
+        return array_values($grupos);
     }
 
     // ── Tenant CRUD ─────────────────────────────────────────────────────────
@@ -125,16 +170,21 @@ class SuperAdminController extends AbstractController
         EntityManagerInterface $em,
         UserPasswordHasherInterface $hasher,
         TenantRepository $tenants,
+        StorageInterface $storage,
     ): Response {
         if ($request->isMethod('POST')) {
             // Senha em branco na edição continua significando "manter a senha atual"
-            if ($senhaInvalida = $this->passwordError($request, required: false)) {
-                $this->addFlash('error', $senhaInvalida);
+            $erro = $this->passwordError($request, required: false) ?? $this->photoError($request);
+
+            if ($erro !== null) {
+                $this->addFlash('error', $erro);
                 return $this->render('superadmin/user/edit.html.twig', [
                     'user'    => $user,
                     'tenants' => $tenants->findAll(),
                 ]);
             }
+
+            $this->applyPhoto($request, $user, $storage);
             $this->populateUserFromRequest($user, $request, $em, $hasher, $tenants);
             $em->flush();
             $this->addFlash('success', 'Usuário atualizado.');
@@ -215,6 +265,49 @@ class SuperAdminController extends AbstractController
         }
 
         return PasswordPolicy::errorMessage($password);
+    }
+
+    /**
+     * Confere a foto enviada antes de gravar qualquer coisa, pela mesma regra do
+     * perfil do próprio usuário (JPEG, PNG ou WebP até 4 MB).
+     */
+    private function photoError(Request $r): ?string
+    {
+        $photo = $r->files->get('photoFile');
+
+        if (!$photo instanceof UploadedFile) {
+            return null;
+        }
+
+        if (!$photo->isValid()) {
+            return 'O envio da foto falhou. Tente de novo.';
+        }
+
+        return ProfilePolicy::photoError($photo->getMimeType(), $photo->getSize());
+    }
+
+    /** Grava a foto nova ou apaga a atual; só é chamado depois de photoError() passar */
+    private function applyPhoto(Request $r, User $user, StorageInterface $storage): void
+    {
+        $photo = $r->files->get('photoFile');
+
+        if ($photo instanceof UploadedFile) {
+            $user->setPhotoFile($photo);
+
+            return;
+        }
+
+        if ($r->request->get('remove_photo') === '1' && $user->getPhoto() !== null) {
+            // O Vich apaga ao trocar o arquivo, mas não quando o campo é zerado à mão
+            $caminho = $storage->resolvePath($user, 'photoFile');
+
+            if (is_string($caminho) && is_file($caminho)) {
+                unlink($caminho);
+            }
+
+            $user->setPhoto(null);
+            $user->setPhotoUpdatedAt(new \DateTimeImmutable());
+        }
     }
 
     private function populateUserFromRequest(

@@ -2,6 +2,7 @@
 
 namespace App\Controller\superadmin;
 
+use App\Service\TenantImport\TenantExporter;
 use App\Service\TenantImport\TenantImporter;
 use App\Service\TenantImport\TenantImportParser;
 use App\Service\TenantImport\TenantImportRow;
@@ -10,6 +11,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -33,6 +35,23 @@ class TenantImportController extends AbstractController
         #[Autowire('%kernel.project_dir%/var/tenant-import')]
         private readonly string $uploadDir,
     ) {}
+
+    /**
+     * Baixa os NEPEs no mesmo formato que a importação lê, para servir de cópia de
+     * segurança do cadastro e de base para edição em planilha.
+     */
+    #[Route('/export', name: 'export', methods: ['GET'])]
+    public function export(TenantExporter $exporter): Response
+    {
+        $response = new Response($exporter->toCsv());
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            $exporter->filename(),
+        ));
+
+        return $response;
+    }
 
     #[Route('/import', name: 'import', methods: ['GET', 'POST'])]
     public function upload(Request $request): Response

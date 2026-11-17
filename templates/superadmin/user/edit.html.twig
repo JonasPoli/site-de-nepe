@@ -3,13 +3,30 @@
 {% block body %}
 <div class="ph"><h1>{{ user.name }}</h1><a href="{{ path('superadmin_dash') }}" class="btn btn-g"><sl-icon name="arrow-left"></sl-icon> Voltar</a></div>
 <div class="card">
-    <form action="{{ path('superadmin_user_edit', {id: user.id}) }}" method="post" class="af">
+    <form action="{{ path('superadmin_user_edit', {id: user.id}) }}" method="post" class="af" enctype="multipart/form-data">
         <div class="af-row">
             <div class="af-field"><label>Nome</label><input type="text" name="name" class="ai" value="{{ user.name }}"></div>
             <div class="af-field"><label>Username</label><input type="text" name="username" class="ai" value="{{ user.username }}"></div>
         </div>
         <div class="af-row">
             <div class="af-field"><label>E-mail</label><input type="email" name="email" class="ai" value="{{ user.email }}"></div>
+
+            <div class="af-field">
+                <label>Foto</label>
+                {% if user.photo %}
+                    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+                        <img src="{{ vich_uploader_asset(user, 'photoFile') }}" alt="Foto de {{ user.name }}"
+                             style="width:56px;height:56px;border-radius:50%;object-fit:cover">
+                        <label style="display:flex;align-items:center;gap:.4rem;color:var(--text);font-weight:400">
+                            <input type="checkbox" name="remove_photo" value="1"> Remover a foto atual
+                        </label>
+                    </div>
+                {% else %}
+                    <p class="af-hint" style="margin-bottom:.4rem">Sem foto: a listagem mostra as iniciais.</p>
+                {% endif %}
+                <input type="file" name="photoFile" class="ai" accept="image/jpeg,image/png,image/webp">
+                <p class="af-hint">JPEG, PNG ou WebP, até 4 MB.</p>
+            </div>
             <div class="af-field">
                 <label>Tenant</label>
                 <select name="tenant" class="as">

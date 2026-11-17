@@ -20,6 +20,36 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * Usuários com o NEPE já carregado, prontos para a listagem agrupada do super admin:
+     * por NEPE em ordem alfabética, depois por nome, com os sem nome no fim do grupo e
+     * os sem NEPE no fim de tudo.
+     *
+     * O join evita uma consulta por linha só para mostrar o nome do NEPE.
+     *
+     * @return list<User>
+     */
+    public function findAllForSuperAdmin(?string $busca = null): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->addSelect('t')
+            ->leftJoin('u.tenant', 't')
+            // HIDDEN: entra só na ordenação, não no resultado
+            ->addSelect('CASE WHEN u.tenant IS NULL THEN 1 ELSE 0 END AS HIDDEN semNepe')
+            ->addSelect("CASE WHEN u.name = '' THEN 1 ELSE 0 END AS HIDDEN semNome")
+            ->addOrderBy('semNepe', 'ASC')
+            ->addOrderBy('t.name', 'ASC')
+            ->addOrderBy('semNome', 'ASC')
+            ->addOrderBy('u.name', 'ASC');
+
+        if ($busca !== null && $busca !== '') {
+            $qb->andWhere('u.name LIKE :busca OR u.username LIKE :busca OR u.email LIKE :busca')
+                ->setParameter('busca', '%' . $busca . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
      * Used to upgrade (rehash) the user's password automatically over time.
      */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void

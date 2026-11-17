@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\PanelRole;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
@@ -108,6 +109,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTenant(?Tenant $tenant): static { $this->tenant = $tenant; return $this; }
 
     public function isSuperAdmin(): bool { return $this->tenant === null && $this->workGroup === 0; }
+
+    /**
+     * O papel mostrado no painel, pela mesma regra de getRoles(): "Super Admin" exige
+     * estar sem NEPE E no grupo 0. Sem NEPE fora do grupo 0 é cadastro inconsistente.
+     */
+    public function panelRole(): PanelRole
+    {
+        if ($this->tenant === null) {
+            return $this->workGroup === 0 ? PanelRole::SuperAdmin : PanelRole::Inconsistent;
+        }
+
+        return match ($this->workGroup) {
+            0 => PanelRole::Admin,
+            1 => PanelRole::Editor,
+            2 => PanelRole::Reviewer,
+            default => PanelRole::Inconsistent,
+        };
+    }
+
+    /** Iniciais para a lista quando o usuário não tem foto */
+    public function initials(): string
+    {
+        $partes = preg_split('~\s+~', trim($this->name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        if ($partes === []) {
+            return '';
+        }
+
+        $primeira = mb_substr($partes[0], 0, 1);
+        $ultima = count($partes) > 1 ? mb_substr($partes[count($partes) - 1], 0, 1) : '';
+
+        return mb_strtoupper($primeira . $ultima);
+    }
     public function isAdmin(): bool { return $this->workGroup === 0; }
     public function isEditor(): bool { return $this->workGroup === 1; }
     public function isReviewer(): bool { return $this->workGroup === 2; }

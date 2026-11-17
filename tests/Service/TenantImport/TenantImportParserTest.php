@@ -251,6 +251,22 @@ class TenantImportParserTest extends TestCase
         yield 'other host' => ['https://example.com/logo.png', null];
     }
 
+    /** CSV salvo pelo Excel: UTF-8 com BOM antes do primeiro título */
+    public function testIgnoraOBomNoInicioDoArquivo(): void
+    {
+        $caminho = $this->csv(
+            self::GOOGLE_FORMS_HEADER,
+            '13/09/2026 10:00:00,NEPE Campinas,nepe-campinas.org.br,Nepe,,,,,Maria Souza,maria@example.com,,Autorizo',
+        );
+        file_put_contents($caminho, "\xEF\xBB\xBF" . file_get_contents($caminho));
+
+        $rows = (new TenantImportParser())->parseFile($caminho);
+
+        $this->assertCount(1, $rows);
+        $this->assertSame([], $rows[0]->errors);
+        $this->assertSame('NEPE Campinas', $rows[0]->tenantName, 'a primeira coluna precisa ser reconhecida com BOM');
+    }
+
     private function csv(string ...$lines): string
     {
         $file = tempnam(sys_get_temp_dir(), 'tenant-import-test-');

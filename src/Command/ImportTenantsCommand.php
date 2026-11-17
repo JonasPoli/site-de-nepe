@@ -145,7 +145,9 @@ class ImportTenantsCommand extends Command
             $sendEmail ? $scheme . '://%s' . ($port !== null ? ':' . $port : '') : null,
         );
 
-        $summary = sprintf('%d tenant(s) criado(s), %d e-mail(s) enviado(s).', $result->created, $result->emailed);
+        $summary = $result->aborted
+            ? 'Nenhum tenant foi criado: a gravação falhou e o arquivo inteiro foi desfeito.'
+            : sprintf('%d tenant(s) criado(s), %d e-mail(s) enviado(s).', $result->created, $result->emailed);
         $result->aborted ? $io->error($summary) : $io->success($summary);
 
         if ($result->problems !== []) {

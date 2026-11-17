@@ -6,6 +6,9 @@
 parameters:
     emailFrom: '%env(resolve:MAIL_SENDER)%'
     emailContactTo: '%env(resolve:CONTACT_TO)%'
+    # A importação só baixa logo de endereço público. Desligado em dev e test (fim do arquivo),
+    # onde o próprio localhost é o alvo legítimo.
+    app.tenant_import.check_public_host: true
 
 services:
     # default configuration for services in *this* file
@@ -25,4 +28,10 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
+when@dev:
+    parameters:
+        app.tenant_import.check_public_host: false
 
+when@test:
+    parameters:
+        app.tenant_import.check_public_host: false

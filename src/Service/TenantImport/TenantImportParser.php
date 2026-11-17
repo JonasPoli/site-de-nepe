@@ -54,6 +54,10 @@ class TenantImportParser
         try {
             $csv = Reader::from($path, 'r');
 
+            // Editores de planilha gravam UTF-8 com BOM, que ficaria colado no primeiro
+            // título e impediria o casamento da primeira coluna
+            $csv->skipInputBOM();
+
             // Google Sheets exports with ",", Excel in pt-BR saves with ";"
             $stats = Info::getDelimiterStats($csv, [',', ';', "\t"], 1);
             arsort($stats);
