@@ -414,10 +414,25 @@ class BibliaService
         return trim($value, '-') === '' ? null : $value;
     }
 
-    private function formatAuthor(?User $author): ?array
+    /**
+     * Nome, foto e WhatsApp do autor. O usuário de login e o e-mail nunca saem na API:
+     * servem ao acesso ao sistema, e o usuário pode ser o e-mail da pessoa.
+     *
+     * @return array{name: string, photoUrl: string|null, whatsapp: string|null}|null
+     */
+    private function formatAuthor(?User $author, string $baseUrl = ''): ?array
     {
-        // Só o nome: o usuário pode ser o e-mail da pessoa
-        return $author && $author->getName() !== '' ? ['name' => $author->getName()] : null;
+        if (!$author || $author->getName() === '') {
+            return null;
+        }
+
+        $photo = $author->getPhoto();
+
+        return [
+            'name'     => $author->getName(),
+            'photoUrl' => $photo ? $baseUrl . '/uploads/user_photo/' . $photo : null,
+            'whatsapp' => $author->getWhatsapp(),
+        ];
     }
 
     /**
@@ -486,7 +501,7 @@ class BibliaService
             'image_url' => $imageUrl,
             'files' => [],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
-            'author' => $this->formatAuthor($article->getAuthor()),
+            'author' => $this->formatAuthor($article->getAuthor(), $baseUrl),
             'approved_by' => $this->formatApprovals($article->getApprovals()),
             'category' => $this->formatCategory($article->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($article->getBibliaBook(), $article->getBibliaChapter(), $article->getBibliaVerseStart(), $article->getBibliaVerseEnd()),
@@ -526,7 +541,7 @@ class BibliaService
                 'has_custom_thumbnail' => $video->hasCustomThumbnail(),
             ],
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
-            'author' => $this->formatAuthor($video->getAuthor()),
+            'author' => $this->formatAuthor($video->getAuthor(), $baseUrl),
             'approved_by' => $this->formatApprovals($video->getApprovals()),
             'category' => $this->formatCategory($video->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($video->getBibliaBook(), $video->getBibliaChapter(), $video->getBibliaVerseStart(), $video->getBibliaVerseEnd()),
@@ -560,7 +575,7 @@ class BibliaService
             'image_url' => $imageUrl,
             'files' => $this->formatFiles($study->getMaterials(), $baseUrl, 'study_material'),
             'tenant' => $tenant ? $this->formatTenantData($tenant, $baseUrl) : null,
-            'author' => $this->formatAuthor($study->getAuthor()),
+            'author' => $this->formatAuthor($study->getAuthor(), $baseUrl),
             'approved_by' => $this->formatApprovals($study->getApprovals()),
             'category' => $this->formatCategory($study->getCategory()),
             'biblical_reference' => $this->formatBibliaRef($study->getBibliaBook(), $study->getBibliaChapter(), $study->getBibliaVerseStart(), $study->getBibliaVerseEnd()),

@@ -29,8 +29,8 @@
                     <option value="2">Revisor (aprova artigos)</option>
                 </select>
             </div>
-            <div class="af-field"><label>Senha <span class="req">*</span></label><input type="password" name="password" class="ai" required minlength="8"></div>
         </div>
+        {{ include('_password_fields.html.twig', { required: true, label: 'Senha', confirm_label: 'Repita a senha' }) }}
         <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Criar Usuário</button><a href="{{ path('superadmin_dash') }}" class="btn btn-g">Cancelar</a></div>
     </form>
 </div>

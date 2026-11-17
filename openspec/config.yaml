@@ -39,6 +39,7 @@ context: |
   - Sem cron para esta conta. O Monolog de produção grava em php://stderr (log do Apache, ilegível para o dono);
     var/log fica vazio. O error_log da raiz do projeto guarda só erros do PHP de linha de comando.
   - public/uploads (57 MB) e public/media ficam fora do git. var/tenant-import guarda o CSV da importação por até 1 dia.
+    public/uploads/user_photo (fotos do perfil, uma por usuário, até 4 MB) é criada no deploy do perfil do usuário.
   - Servidor compartilhado com o nepe-search, o speaker, o sombraluz, o venda-ticket-pix e três WordPress. O disco
     encheu em 25/10 e 02/11 e estava em 100% em 09/11/2026 (cache do nepe-search): nada pesado e nada que grave
     arquivo grande sem conferir o df antes.
@@ -60,6 +61,10 @@ context: |
     Páginas institucionais não passam pelo fluxo.
   - O texto bíblico é a ARC (versão 2), com os mesmos IDs de livros e versículos do nepe-search.
   - Um e-mail pertence a um único usuário no sistema todo.
+  - Toda senha definida no sistema passa pela App\Security\PasswordPolicy (mais de 8 caracteres, maiúscula,
+    minúscula e caractere especial), no perfil, na criação de usuário pelo NEPE e pelo super admin e na
+    redefinição por e-mail; senhas antigas continuam válidas no login. A lista de requisitos da tela e a
+    conferência em JavaScript saem dessa mesma classe (templates/_password_fields.html.twig).
   - Os testes nunca enviam e-mail real (MAILER_DSN=null://null); não há .env.test e o ambiente de teste não tem banco.
 
 rules:

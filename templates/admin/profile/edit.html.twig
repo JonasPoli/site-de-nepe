@@ -1,0 +1,103 @@
+{% extends 'admin/nepe_base.html.twig' %}
+{% block title %}Perfil{% endblock %}{% block page_title %}Meu Perfil{% endblock %}
+{% set valores = digitado|default({}) %}
+{% block body %}
+<div class="ph"><h1>Meu Perfil</h1></div>
+
+{% if is_granted('IS_IMPERSONATOR') %}
+    <div class="al al-warn" style="margin-bottom:1rem">
+        <sl-icon name="exclamation-triangle-fill"></sl-icon>
+        Você está impersonando <strong>{{ usuario.username }}</strong>: o que for salvo aqui altera o perfil dele, e trocar o usuário de login ou a senha encerra esta sessão.
+    </div>
+{% endif %}
+
+<div class="card">
+    <form action="{{ path('admin_profile') }}" method="post" class="af" enctype="multipart/form-data">
+        <input type="hidden" name="_token" value="{{ csrf_token('profile') }}">
+
+        {# ── Foto ── #}
+        <div class="af-field">
+            <label>Foto</label>
+            <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+                {% if usuario.photo %}
+                    <img id="foto-prev" src="{{ asset('uploads/user_photo/' ~ usuario.photo) }}" alt="Foto atual"
+                         style="width:96px;height:96px;object-fit:cover;border-radius:50%;border:1px solid var(--border)">
+                {% else %}
+                    <div id="foto-prev" style="width:96px;height:96px;border-radius:50%;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:2rem;font-weight:700">
+                        {{ usuario.name|default(usuario.username)|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <label for="foto-upload" style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:8px;border:1px dashed var(--primary);color:var(--primary);font-size:.85rem;font-weight:600;cursor:pointer">
+                        <sl-icon name="upload"></sl-icon> Selecionar foto
+                    </label>
+                    <input type="file" id="foto-upload" name="photoFile" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="prevFoto(this)">
+                    <p class="af-hint" style="margin-top:.4rem">JPG, PNG ou WebP · até 4 MB · recomendado 400×400 px</p>
+                    {% if usuario.photo %}
+                        <label style="display:inline-flex;align-items:center;gap:.4rem;margin-top:.5rem;font-size:.8rem;color:var(--muted);cursor:pointer">
+                            <input type="checkbox" name="remove_photo" value="1"> Remover a foto atual
+                        </label>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── Dados ── #}
+        <div style="margin:1.5rem 0 .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Meus dados</div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>Nome <span class="req">*</span></label>
+                <input type="text" name="name" class="ai" required value="{{ valores.name|default(usuario.name) }}">
+            </div>
+            <div class="af-field">
+                <label>Usuário <span class="req">*</span> <span class="af-hint" style="display:inline;margin-left:.5rem">(para entrar no sistema)</span></label>
+                <input type="text" name="username" class="ai" required autocomplete="username" value="{{ valores.username|default(usuario.username) }}">
+            </div>
+        </div>
+        <div class="af-row">
+            <div class="af-field">
+                <label>E-mail <span class="af-hint" style="display:inline;margin-left:.5rem">(acesso e redefinição de senha)</span></label>
+                <input type="email" name="email" class="ai" autocomplete="email" value="{{ valores.email|default(usuario.email) }}" placeholder="voce@exemplo.com.br">
+            </div>
+            <div class="af-field">
+                <label>WhatsApp</label>
+                <input type="text" name="whatsapp" class="ai" maxlength="30" value="{{ valores.whatsapp|default(usuario.whatsapp) }}" placeholder="(16) 99999-0000">
+                <p class="af-hint">Este número pode aparecer publicamente no site e na API, como contato seu.</p>
+            </div>
+        </div>
+        <p class="af-hint" style="margin-top:.2rem">
+            Seu papel no NEPE ({{ usuario.workGroup == 0 ? 'Administrador' : (usuario.workGroup == 1 ? 'Editor' : 'Revisor') }})
+            só é alterado por quem administra o site.
+        </p>
+
+        {# ── Senha ── #}
+        <div style="margin:1.5rem 0 .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Trocar a senha</div>
+        {{ include('_password_fields.html.twig', {
+            required: false,
+            hint: 'Deixe os dois campos em branco para manter a senha atual. Ao trocar a senha ou o usuário, você entra de novo no sistema.',
+        }) }}
+
+        <div class="af-actions">
+            <button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar perfil</button>
+            <a href="{{ path('admin_dash') }}" class="btn btn-g">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function prevFoto(input) {
+    var arquivo = input.files && input.files[0];
+    if (!arquivo) { return; }
+    var url = URL.createObjectURL(arquivo);
+    var atual = document.getElementById('foto-prev');
+    var img = document.createElement('img');
+    img.id = 'foto-prev';
+    img.src = url;
+    img.alt = 'Foto escolhida';
+    img.style.cssText = 'width:96px;height:96px;object-fit:cover;border-radius:50%;border:1px solid var(--border)';
+    atual.replaceWith(img);
+    var remover = document.querySelector('input[name="remove_photo"]');
+    if (remover) { remover.checked = false; }
+}
+</script>
+{% endblock %}

@@ -29,8 +29,8 @@
                     <option value="2" {{ user.workGroup == 2 ? 'selected' }}>Revisor</option>
                 </select>
             </div>
-            <div class="af-field"><label>Nova senha <span class="af-hint">(deixe em branco para manter)</span></label><input type="password" name="password" class="ai" minlength="8"></div>
         </div>
+        {{ include('_password_fields.html.twig', { required: false, hint: 'Deixe os dois campos em branco para manter a senha atual.' }) }}
         <div class="af-actions"><button type="submit" class="btn btn-p"><sl-icon name="check-lg"></sl-icon> Salvar</button><a href="{{ path('superadmin_dash') }}" class="btn btn-g">Cancelar</a></div>
     </form>
 </div>

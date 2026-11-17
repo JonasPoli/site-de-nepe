@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Security\PasswordPolicy;
 use App\Service\PasswordResetMailer;
 use App\Service\TenantUrl;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,9 +25,6 @@ use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 class ResetPasswordController extends AbstractController
 {
     use ResetPasswordControllerTrait;
-
-    private const MIN_PASSWORD_LENGTH = 8;
-    private const MAX_PASSWORD_LENGTH = 4096;
 
     public function __construct(
         private readonly ResetPasswordHelperInterface $resetPasswordHelper,
@@ -115,12 +113,10 @@ class ResetPasswordController extends AbstractController
 
             if (!$this->isCsrfTokenValid('reset_password', (string) $request->request->get('_token'))) {
                 $error = 'A sessão expirou. Tente novamente.';
-            } elseif (mb_strlen($password) < self::MIN_PASSWORD_LENGTH) {
-                $error = sprintf('A senha precisa ter pelo menos %d caracteres.', self::MIN_PASSWORD_LENGTH);
-            } elseif (strlen($password) > self::MAX_PASSWORD_LENGTH) {
-                $error = 'A senha é longa demais.';
             } elseif ($password !== (string) $request->request->get('password_confirmation')) {
                 $error = 'As senhas não conferem.';
+            } elseif ($senhaFraca = PasswordPolicy::errorMessage($password)) {
+                $error = $senhaFraca;
             } else {
                 // O link só pode ser usado uma vez
                 $this->resetPasswordHelper->removeResetRequest($token);
@@ -136,9 +132,8 @@ class ResetPasswordController extends AbstractController
         }
 
         return $this->render('security/reset_password.html.twig', [
-            'user'       => $user,
-            'error'      => $error,
-            'min_length' => self::MIN_PASSWORD_LENGTH,
+            'user'  => $user,
+            'error' => $error,
         ]);
     }
 }

@@ -6,6 +6,7 @@ use App\Entity\Tenant;
 use App\Entity\User;
 use App\Repository\TenantRepository;
 use App\Repository\UserRepository;
+use App\Security\PasswordPolicy;
 use App\Service\TenantUrl;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -98,6 +99,13 @@ class SuperAdminController extends AbstractController
     ): Response {
         $user = new User();
         if ($request->isMethod('POST')) {
+            if ($senhaInvalida = $this->passwordError($request, required: true)) {
+                $this->addFlash('error', $senhaInvalida);
+                return $this->render('superadmin/user/new.html.twig', [
+                    'user'    => $user,
+                    'tenants' => $tenants->findAll(),
+                ]);
+            }
             $this->populateUserFromRequest($user, $request, $em, $hasher, $tenants);
             $em->persist($user);
             $em->flush();
@@ -119,6 +127,14 @@ class SuperAdminController extends AbstractController
         TenantRepository $tenants,
     ): Response {
         if ($request->isMethod('POST')) {
+            // Senha em branco na edição continua significando "manter a senha atual"
+            if ($senhaInvalida = $this->passwordError($request, required: false)) {
+                $this->addFlash('error', $senhaInvalida);
+                return $this->render('superadmin/user/edit.html.twig', [
+                    'user'    => $user,
+                    'tenants' => $tenants->findAll(),
+                ]);
+            }
             $this->populateUserFromRequest($user, $request, $em, $hasher, $tenants);
             $em->flush();
             $this->addFlash('success', 'Usuário atualizado.');
@@ -179,6 +195,26 @@ class SuperAdminController extends AbstractController
         $tenant->setInstagramLink($r->request->get('instagramLink') ?: null);
         $tenant->setRequiredApprovals((int) $r->request->get('requiredApprovals', 1));
         $tenant->setTheme((string) $r->request->get('theme', 'nepe'));
+    }
+
+    /**
+     * Confere a senha enviada contra a PasswordPolicy, a mesma regra do perfil, da criação
+     * de usuário pelo NEPE e da redefinição por e-mail. Devolve o aviso ou null.
+     */
+    private function passwordError(Request $r, bool $required): ?string
+    {
+        $password = (string) $r->request->get('password');
+        $confirmation = (string) $r->request->get('password_confirmation');
+
+        if (!$required && $password === '' && $confirmation === '') {
+            return null;
+        }
+
+        if ($password !== $confirmation) {
+            return 'As duas senhas não são iguais.';
+        }
+
+        return PasswordPolicy::errorMessage($password);
     }
 
     private function populateUserFromRequest(

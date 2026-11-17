@@ -27,6 +27,7 @@ use App\Repository\StudyRepository;
 use App\Repository\UserRepository;
 use App\Repository\VideoSupportRepository;
 use App\Security\PanelUserPolicy;
+use App\Security\PasswordPolicy;
 use App\Security\TenantOwnership;
 use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
@@ -923,13 +924,23 @@ class AdminContentController extends AbstractController
                 return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
             }
 
+            $password = (string) $r->request->get('password');
+            if ($password !== (string) $r->request->get('password_confirmation')) {
+                $this->addFlash('error', 'As duas senhas não são iguais.');
+                return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
+            }
+            if ($senhaFraca = PasswordPolicy::errorMessage($password)) {
+                $this->addFlash('error', $senhaFraca);
+                return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
+            }
+
             $editor->setUsername((string) $r->request->get('username'));
             $editor->setName((string) $r->request->get('name'));
             $editor->setEmail($r->request->get('email') ?: null);
             $editor->setWorkGroup($workGroup);
             // Tenant do domínio, não o de quem cria: o super admin não cria mais usuários sem tenant
             $editor->setTenant($tc->requireTenant());
-            $editor->setPassword($hasher->hashPassword($editor, (string) $r->request->get('password')));
+            $editor->setPassword($hasher->hashPassword($editor, $password));
             $em->persist($editor);
             $em->flush();
             $this->addFlash('success', 'Usuário criado.');

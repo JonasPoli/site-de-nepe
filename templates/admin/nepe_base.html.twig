@@ -198,6 +198,10 @@
         <a href="{{ path('admin_newsletter_index') }}" class="nl {% if '/admin/newsletter' in app.request.pathInfo %}on{% endif %}">
             <sl-icon name="send-fill"></sl-icon> Newsletter
         </a>
+        <div class="nav-sec">Minha conta</div>
+        <a href="{{ path('admin_profile') }}" class="nl {% if '/admin/perfil' in app.request.pathInfo %}on{% endif %}">
+            <sl-icon name="person-circle"></sl-icon> Perfil
+        </a>
         {% if is_granted('ROLE_NEPE_ADMIN') %}
         <div class="nav-sec">Gestão</div>
         <a href="{{ path('admin_editor_index') }}" class="nl {% if '/admin/editors' in app.request.pathInfo %}on{% endif %}">
@@ -221,9 +225,13 @@
         {% endif %}
     </nav>
     <div class="sb-user">
-        <div class="av">{{ app.user ? app.user.name|first|upper : '?' }}</div>
+        {% if app.user and app.user.photo %}
+            <img class="av" src="{{ asset('uploads/user_photo/' ~ app.user.photo) }}" alt="" style="object-fit:cover;padding:0">
+        {% else %}
+            <div class="av">{{ app.user ? app.user.name|first|upper : '?' }}</div>
+        {% endif %}
         <div>
-            <div class="av-name">{{ app.user ? app.user.name : '' }}</div>
+            <div class="av-name"><a href="{{ path('admin_profile') }}" title="Editar meu perfil">{{ app.user ? app.user.name : '' }}</a></div>
             <div class="av-role">{% if app.user %}{{ app.user.workGroup == 0 ? 'Admin' : 'Editor' }}{% endif %}</div>
         </div>
         <a href="{{ path('app_logout') }}" class="av-logout" title="Sair"><sl-icon name="box-arrow-right" style="font-size:1.1rem"></sl-icon></a>

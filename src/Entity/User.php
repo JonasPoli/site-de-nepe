@@ -4,11 +4,14 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
+#[Vich\Uploadable]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -24,6 +27,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255, unique: true, nullable: true)]
     private ?string $email = null;
+
+    /** WhatsApp de contato do usuário: dado público, pode sair no site e na API. */
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $whatsapp = null;
+
+    /**
+     * Foto do usuário. O arquivo em si é tratado pelo Vich (mapping user_photo);
+     * photoUpdatedAt existe para o Doctrine ver uma mudança quando só o arquivo troca.
+     */
+    #[Vich\UploadableField(mapping: 'user_photo', fileNameProperty: 'photo')]
+    private ?File $photoFile = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photo = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $photoUpdatedAt = null;
 
     /**
      * WorkGroup defines the user's role within a tenant:
@@ -59,6 +79,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(?string $email): static { $this->email = $email; return $this; }
+
+    public function getWhatsapp(): ?string { return $this->whatsapp; }
+    public function setWhatsapp(?string $whatsapp): static { $this->whatsapp = $whatsapp; return $this; }
+
+    public function getPhotoFile(): ?File { return $this->photoFile; }
+    public function setPhotoFile(?File $photoFile): static
+    {
+        $this->photoFile = $photoFile;
+        if ($photoFile !== null) {
+            // Sem um campo alterado o Doctrine não vê mudança e o Vich não grava o arquivo novo
+            $this->photoUpdatedAt = new \DateTimeImmutable();
+        }
+
+        return $this;
+    }
+
+    public function getPhoto(): ?string { return $this->photo; }
+    public function setPhoto(?string $photo): static { $this->photo = $photo; return $this; }
+
+    public function getPhotoUpdatedAt(): ?\DateTimeImmutable { return $this->photoUpdatedAt; }
+    public function setPhotoUpdatedAt(?\DateTimeImmutable $photoUpdatedAt): static { $this->photoUpdatedAt = $photoUpdatedAt; return $this; }
 
     public function getWorkGroup(): int { return $this->workGroup; }
     public function setWorkGroup(int $workGroup): static { $this->workGroup = $workGroup; return $this; }
@@ -109,6 +150,44 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /** @see UserInterface */
     public function eraseCredentials(): void {}
+
+    /**
+     * O usuário logado é serializado na sessão a cada requisição. $photoFile é um
+     * SplFileInfo e não pode ser serializado: fica de fora, como no Tenant.
+     */
+    public function __serialize(): array
+    {
+        return [
+            'id'             => $this->id,
+            'username'       => $this->username,
+            'name'           => $this->name,
+            'email'          => $this->email,
+            'whatsapp'       => $this->whatsapp,
+            'photo'          => $this->photo,
+            'photoUpdatedAt' => $this->photoUpdatedAt,
+            'workGroup'      => $this->workGroup,
+            'tenant'         => $this->tenant,
+            'roles'          => $this->roles,
+            'password'       => $this->password,
+            // photoFile intentionally excluded — it is not serializable
+        ];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->id             = $data['id'] ?? null;
+        $this->username       = $data['username'] ?? null;
+        $this->name           = $data['name'] ?? '';
+        $this->email          = $data['email'] ?? null;
+        $this->whatsapp       = $data['whatsapp'] ?? null;
+        $this->photo          = $data['photo'] ?? null;
+        $this->photoUpdatedAt = $data['photoUpdatedAt'] ?? null;
+        $this->workGroup      = $data['workGroup'] ?? 0;
+        $this->tenant         = $data['tenant'] ?? null;
+        $this->roles          = $data['roles'] ?? [];
+        $this->password       = $data['password'] ?? null;
+        $this->photoFile      = null;
+    }
 
     public function __toString(): string { return $this->name ?: (string) $this->username; }
 }
