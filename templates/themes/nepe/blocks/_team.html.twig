@@ -15,7 +15,7 @@
                 {% if m.image %}
                     <img src="{{ asset('uploads/team_member_image/' ~ m.image) }}" alt="{{ m.name }}" class="nb-team-img" loading="lazy">
                 {% else %}
-                    <div class="nb-team-img-ph"><i class="fa-solid fa-user"></i></div>
+                    <div class="nb-team-img-ph">{{ ux_icon('fa6-solid:user', {'aria-hidden': 'true'}) }}</div>
                 {% endif %}
             </div>
             <div class="nb-team-body">
@@ -24,9 +24,9 @@
                 {% if m.bio %}<p class="nb-team-bio">{{ m.bio }}</p>{% endif %}
                 {% if m.linkedinUrl or m.instagramUrl or m.email %}
                 <div class="nb-team-socials">
-                    {% if m.linkedinUrl %}<a href="{{ m.linkedinUrl }}" target="_blank" class="nb-social-link"><i class="fa-brands fa-linkedin-in"></i></a>{% endif %}
-                    {% if m.instagramUrl %}<a href="{{ m.instagramUrl }}" target="_blank" class="nb-social-link"><i class="fa-brands fa-instagram"></i></a>{% endif %}
-                    {% if m.email %}<a href="mailto:{{ m.email }}" class="nb-social-link"><i class="fa-solid fa-envelope"></i></a>{% endif %}
+                    {% if m.linkedinUrl %}<a href="{{ m.linkedinUrl }}" target="_blank" class="nb-social-link">{{ ux_icon('fa6-brands:linkedin-in', {'aria-hidden': 'true'}) }}</a>{% endif %}
+                    {% if m.instagramUrl %}<a href="{{ m.instagramUrl }}" target="_blank" class="nb-social-link">{{ ux_icon('fa6-brands:instagram', {'aria-hidden': 'true'}) }}</a>{% endif %}
+                    {% if m.email %}<a href="mailto:{{ m.email }}" class="nb-social-link">{{ ux_icon('fa6-solid:envelope', {'aria-hidden': 'true'}) }}</a>{% endif %}
                 </div>
                 {% endif %}
             </div>

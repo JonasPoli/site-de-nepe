@@ -2,6 +2,9 @@
 liip_imagine:
     # valid drivers options include "gd" or "gmagick" or "imagick"
     driver: "gd"
+    # FormatExtensionResolver: injeta a URL estática com a extensão final direto no HTML,
+    # em vez do /media/cache/resolve/..., que responde 302 antes de servir a imagem.
+    cache: format_extension
     twig:
         mode: lazy
     webp:
@@ -55,3 +58,53 @@ liip_imagine:
             filters:
                 thumbnail: { size: [1280, 720], mode: outbound }
                 background: { size: [1280, 720], color: '#ffffff' }
+
+        # ── Imagens das páginas públicas (ajuste de PageSpeed, 17/11/2026) ──────────
+        # Largura = o dobro da maior largura de exibição, para telas de densidade 2x.
+        # O banner do topo é o maior elemento visível da página (LCP): duas larguras,
+        # escolhidas pelo srcset, e o celular não baixa a de computador.
+        hero_desktop:
+            quality: 72
+            format: webp
+            filters:
+                thumbnail: { size: [1600, 900], mode: outbound }
+        hero_mobile:
+            quality: 68
+            format: webp
+            filters:
+                thumbnail: { size: [768, 560], mode: outbound }
+
+        # Imagem dentro de bloco de conteúdo
+        bloco_imagem:
+            quality: 78
+            format: webp
+            filters:
+                thumbnail: { size: [1000, 800], mode: inset }
+
+        # Galeria do artigo: miniatura na grade (o clique abre o arquivo original)
+        galeria:
+            quality: 76
+            format: webp
+            filters:
+                thumbnail: { size: [800, 450], mode: outbound }
+
+        # "Quem somos" e outras imagens largas de conteúdo
+        conteudo_largo:
+            quality: 78
+            format: webp
+            filters:
+                thumbnail: { size: [1200, 960], mode: inset }
+
+        # Capa de página nos cartões de listagem
+        capa_pagina:
+            quality: 78
+            format: webp
+            filters:
+                thumbnail: { size: [720, 480], mode: outbound }
+
+        # Avatar de depoimento
+        avatar:
+            quality: 80
+            format: webp
+            filters:
+                thumbnail: { size: [96, 96], mode: outbound }

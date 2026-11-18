@@ -11,7 +11,7 @@
     </div>
     {% if block.image %}
     <div class="nti-img-wrap">
-        <img src="/uploads/page_block/{{ block.image }}" alt="{{ block.title ?? '' }}" loading="lazy" class="nti-img">
+        <img {{ ('uploads/page_block/' ~ block.image)|thumb_attrs('bloco_imagem') }} alt="{{ block.title ?? '' }}" loading="lazy" decoding="async" class="nti-img">
     </div>
     {% endif %}
 </div>

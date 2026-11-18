@@ -4,6 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Formatos que o GD do servidor não converte (ex.: avif). Vazio = tudo o que o GD abre.
+    app.image_formats.disabled: '%env(default::IMAGE_FORMATS_DISABLED)%'
     emailFrom: '%env(resolve:MAIL_SENDER)%'
     emailContactTo: '%env(resolve:CONTACT_TO)%'
     # A importação só baixa logo de endereço público. Desligado em dev e test (fim do arquivo),
@@ -11,6 +13,13 @@ parameters:
     app.tenant_import.check_public_host: true
 
 services:
+    # LiipImagine: evita o redirecionamento 302 ao servir as miniaturas.
+    Liip\ImagineBundle\Imagine\Cache\Resolver\FormatExtensionResolver:
+        arguments:
+            - '@liip_imagine.cache.resolver.default'
+            - '@liip_imagine.filter.configuration'
+        tags:
+            - { name: "liip_imagine.cache.resolver", resolver: "format_extension" }
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.

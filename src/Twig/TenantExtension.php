@@ -68,6 +68,20 @@ class TenantExtension extends AbstractExtension implements GlobalsInterface
         $primary = htmlspecialchars($tenant->getPrimaryColor() ?? '#0044cc');
         $secondary = htmlspecialchars($tenant->getSecondaryColor() ?? '#ffaa00');
 
+        // A cor que o NEPE escolhe é pensada para preenchimento, não para letra.
+        // `--color-*-text` é a mesma cor escurecida (ou clareada) só o quanto baste para
+        // chegar a 4,6:1 sobre o fundo da página, mantendo matiz e saturação; e
+        // `--color-on-*` é a tinta que fica legível POR CIMA do preenchimento — preto ou
+        // branco, pelo contraste. O botão do banner usava #1a1c2e fixo e dava 4,07:1.
+        $fundoDaPagina = '#f8f9fc';
+        $primaryText = ColorContrast::legivelSobre($primary, $fundoDaPagina, 4.6) ?? $primary;
+        $secondaryText = ColorContrast::legivelSobre($secondary, $fundoDaPagina, 4.6) ?? $secondary;
+        // Preenchimento sólido: há cor em que nem preto nem branco chegam a 4,5:1
+        // (o rosa #cb4e9a dá 4,22 com preto e 4,12 com branco). Nesses casos o próprio
+        // fundo cede um pouco, mantendo matiz e saturação.
+        [$primarySolid, $onPrimary] = ColorContrast::parFundoTinta($primary);
+        [$secondarySolid, $onSecondary] = ColorContrast::parFundoTinta($secondary);
+
         return <<<HTML
             <style>
             :root {
@@ -75,6 +89,12 @@ class TenantExtension extends AbstractExtension implements GlobalsInterface
               --color-secondary: {$secondary};
               --color-primary-rgb: {$this->hexToRgb($primary)};
               --color-secondary-rgb: {$this->hexToRgb($secondary)};
+              --color-primary-text: {$primaryText};
+              --color-secondary-text: {$secondaryText};
+              --color-primary-solid: {$primarySolid};
+              --color-secondary-solid: {$secondarySolid};
+              --color-on-primary: {$onPrimary};
+              --color-on-secondary: {$onSecondary};
             }
             </style>
             HTML;

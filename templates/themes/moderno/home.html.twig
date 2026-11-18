@@ -196,7 +196,7 @@
                 <div class="m-research-glow"></div>
                 {% if line.icon %}
                     <div class="m-research-icon">
-                        <sl-icon name="{{ line.icon }}"></sl-icon>
+                        {{ line.icon|icone_do_painel }}
                     </div>
                 {% endif %}
                 <h3>{{ line.title }}</h3>
@@ -216,7 +216,7 @@
             <p style="color:rgba(255,255,255,.5);margin:0 0 2.5rem">Entre em contato — respondemos em breve.</p>
             {% if currentTenant and currentTenant.phone %}
             <div class="m-contact-item">
-                <div class="m-ci-icon"><sl-icon name="telephone-fill"></sl-icon></div>
+                <div class="m-ci-icon">{{ ux_icon('bi:telephone-fill', {'aria-hidden': 'true'}) }}</div>
                 <div><div class="m-ci-lbl">Telefone</div><div class="m-ci-val">{{ currentTenant.phone }}</div></div>
             </div>{% endif %}
             {% if currentTenant and currentTenant.whatsappLink %}
@@ -226,12 +226,12 @@
             </div>{% endif %}
             {% if currentTenant and currentTenant.contactEmail %}
             <div class="m-contact-item">
-                <div class="m-ci-icon m-ci-mail"><sl-icon name="envelope-fill"></sl-icon></div>
+                <div class="m-ci-icon m-ci-mail">{{ ux_icon('bi:envelope-fill', {'aria-hidden': 'true'}) }}</div>
                 <div><div class="m-ci-lbl">E-mail</div><a href="mailto:{{ currentTenant.contactEmail }}" class="m-ci-val m-ci-link">{{ currentTenant.contactEmail }}</a></div>
             </div>{% endif %}
             {% if currentTenant and currentTenant.address %}
             <div class="m-contact-item">
-                <div class="m-ci-icon m-ci-addr"><sl-icon name="geo-alt-fill"></sl-icon></div>
+                <div class="m-ci-icon m-ci-addr">{{ ux_icon('bi:geo-alt-fill', {'aria-hidden': 'true'}) }}</div>
                 <div><div class="m-ci-lbl">Endereço</div><div class="m-ci-val">{{ currentTenant.address }}</div></div>
             </div>{% endif %}
         </div>

@@ -12,15 +12,15 @@
         {% for t in testimonials %}
         <div class="nb-testi-card reveal-up delay-{{ loop.index0 * 100 }}">
             <div class="nb-testi-stars">
-                {% for s in 1..t.rating %}<i class="fa-solid fa-star"></i>{% endfor %}
-                {% if t.rating < 5 %}{% for s in (t.rating+1)..5 %}<i class="fa-regular fa-star"></i>{% endfor %}{% endif %}
+                {% for s in 1..t.rating %}{{ ux_icon('fa6-solid:star', {'aria-hidden': 'true'}) }}{% endfor %}
+                {% if t.rating < 5 %}{% for s in (t.rating+1)..5 %}{{ ux_icon('fa6-regular:star', {'aria-hidden': 'true'}) }}{% endfor %}{% endif %}
             </div>
             <p class="nb-testi-text">"{{ t.text }}"</p>
             <div class="nb-testi-author">
                 {% if t.avatar %}
-                    <img src="{{ asset('uploads/testimonial_avatar/' ~ t.avatar) }}" alt="{{ t.name }}" class="nb-testi-avatar" loading="lazy">
+                    <img {{ ('uploads/testimonial_avatar/' ~ t.avatar)|thumb_attrs('avatar') }} alt="{{ t.name }}" class="nb-testi-avatar" loading="lazy" decoding="async">
                 {% else %}
-                    <div class="nb-testi-avatar nb-testi-avatar-ph"><i class="fa-solid fa-user"></i></div>
+                    <div class="nb-testi-avatar nb-testi-avatar-ph">{{ ux_icon('fa6-solid:user', {'aria-hidden': 'true'}) }}</div>
                 {% endif %}
                 <div>
                     <div class="nb-testi-name">{{ t.name }}</div>

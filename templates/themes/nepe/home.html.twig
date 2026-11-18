@@ -29,7 +29,17 @@
 <div class="hero-slider-wrap" id="heroSlider">
     {% for b in banners %}
     <div class="hero-slide {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}">
-        <div class="hero-slide-bg" {% if b.backgroundImage %}style="background-image: url('{{ asset('uploads/hero/' ~ b.backgroundImage) }}')"{% endif %}></div>
+        {# Imagem em CSS não é descoberta cedo pelo navegador, não aceita srcset e não conta
+           como elemento com tamanho declarado. Virou <img> atrás do conteúdo. #}
+        {% if b.backgroundImage %}
+            {% set heroArquivo = 'uploads/hero/' ~ b.backgroundImage %}
+            <img {{ heroArquivo|thumb_attrs('hero_desktop') }} alt="" aria-hidden="true"
+                 class="hero-slide-bg"
+                 srcset="{{ heroArquivo|thumb_srcset({'hero_mobile': 768, 'hero_desktop': 1600}) }}" sizes="100vw"
+                 {% if loop.first %}fetchpriority="high"{% else %}loading="lazy" fetchpriority="low"{% endif %}>
+        {% else %}
+            <div class="hero-slide-bg"></div>
+        {% endif %}
         <div class="hero-slide-overlay"></div>
         <div class="container hero-content">
             <h1 class="hero-title">{{ b.title }}</h1>
@@ -83,7 +93,7 @@
         </div>
         <div class="about-image-wrap scale-in delay-200">
             {% if currentTenant.aboutImage %}
-                <img src="{{ asset('uploads/tenant/about/' ~ currentTenant.aboutImage) }}"
+                <img {{ ('uploads/tenant/about/' ~ currentTenant.aboutImage)|thumb_attrs('conteudo_largo') }}
                      alt="Quem Somos — {{ currentTenant.name }}"
                      class="about-img" loading="lazy">
             {% else %}
@@ -107,7 +117,7 @@
             {% for article in latestNews %}
             <article class="news-card reveal-up delay-{{ loop.index0 * 100 }}">
                 {% if article.image %}
-                    <div class="news-card-img" style="background-image: url('{{ ('uploads/article/' ~ article.image) | imagine_filter('news_thumb') }}')"></div>
+                    <div class="news-card-img" style="background-image: url('{{ ('uploads/article/' ~ article.image)|thumb('news_thumb') }}')"></div>
                 {% endif %}
                 <div class="news-card-body">
                     {% if article.category %}
@@ -179,7 +189,7 @@
             <a href="{{ path('pub_study_show', {slug: study.slug}) }}" class="study-card-home reveal-up delay-{{ loop.index0 * 100 }}">
                 <div class="study-cover-home">
                     {% if study.coverImage %}
-                    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}" loading="lazy">
+                    <img {{ ('uploads/study_cover/' ~ study.coverImage)|thumb_attrs('study_thumb') }} alt="{{ study.title }}" loading="lazy" decoding="async">
                     {% else %}
                     <div class="study-cover-placeholder-home">📚</div>
                     {% endif %}
@@ -220,7 +230,7 @@
 
             {% if currentTenant and currentTenant.phone %}
             <div class="contact-item">
-                <div class="contact-icon"><sl-icon name="telephone-fill"></sl-icon></div>
+                <div class="contact-icon">{{ ux_icon('bi:telephone-fill', {'aria-hidden': 'true'}) }}</div>
                 <div>
                     <div class="contact-item-label">Telefone</div>
                     <div class="contact-item-value">{{ currentTenant.phone }}</div>
@@ -242,7 +252,7 @@
 
             {% if currentTenant and currentTenant.contactEmail %}
             <div class="contact-item">
-                <div class="contact-icon contact-icon-mail"><sl-icon name="envelope-fill"></sl-icon></div>
+                <div class="contact-icon contact-icon-mail">{{ ux_icon('bi:envelope-fill', {'aria-hidden': 'true'}) }}</div>
                 <div>
                     <div class="contact-item-label">E-mail</div>
                     <a href="mailto:{{ currentTenant.contactEmail }}" class="contact-item-value contact-link">{{ currentTenant.contactEmail }}</a>
@@ -252,7 +262,7 @@
 
             {% if currentTenant and currentTenant.address %}
             <div class="contact-item">
-                <div class="contact-icon contact-icon-addr"><sl-icon name="geo-alt-fill"></sl-icon></div>
+                <div class="contact-icon contact-icon-addr">{{ ux_icon('bi:geo-alt-fill', {'aria-hidden': 'true'}) }}</div>
                 <div>
                     <div class="contact-item-label">Endereço</div>
                     <div class="contact-item-value">{{ currentTenant.address }}</div>
@@ -266,12 +276,12 @@
             <div id="contact-alerts">
                 {% for msg in app.flashes('contact_s') %}
                 <div class="local-alert local-alert-success">
-                    <sl-icon name="check-circle-fill"></sl-icon> {{ msg }}
+                    {{ ux_icon('bi:check-circle-fill', {'aria-hidden': 'true'}) }} {{ msg }}
                 </div>
                 {% endfor %}
                 {% for msg in app.flashes('contact_f') %}
                 <div class="local-alert local-alert-error">
-                    <sl-icon name="exclamation-triangle-fill"></sl-icon> {{ msg }}
+                    {{ ux_icon('bi:exclamation-triangle-fill', {'aria-hidden': 'true'}) }} {{ msg }}
                 </div>
                 {% endfor %}
             </div>
@@ -314,8 +324,9 @@
 {% endblock %}
 {% block stylesheets %}
 {{ parent() }}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/themes/light.css">
-<script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/shoelace-autoloader.js"></script>
+{# O Shoelace saiu daqui: ele era carregado inteiro (tema + autoloader de web
+   components, do jsdelivr) só para desenhar cinco <sl-icon>, que agora são SVG
+   embutido. O painel continua usando o Shoelace; a página pública, não. #}
 <style>
 /* ── CONTACT LOCAL ALERTS ── */
 .local-alert {
@@ -357,12 +368,16 @@
     z-index: 2;
 }
 
+/* Agora é uma <img> atrás do conteúdo, e não mais um fundo em CSS: o navegador
+   descobre a imagem cedo e pode escolher a versão de celular pelo srcset. */
 .hero-slide-bg {
     position: absolute;
     inset: 0;
-    background-size: cover;
-    background-position: center;
-    background-color: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 50%, var(--color-secondary)));
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 50%, var(--color-secondary)));
 }
 
 .hero-slide-overlay {
@@ -423,16 +438,22 @@
     gap: 0.6rem;
 }
 .hero-dot {
-    width: 10px; height: 10px;
+    /* Alvo de toque de 24x24 px (WCAG 2.2), com o ponto visível ainda em 10 px:
+       o background-clip faz a cor pintar só a caixa de conteúdo. */
+    width: 24px; height: 24px;
+    padding: 5px;
+    box-sizing: border-box;
+    background-clip: content-box;
     border-radius: 50%;
     border: 2px solid rgba(255,255,255,.6);
-    background: rgba(255,255,255,.3);
+    background-color: rgba(255,255,255,.3);
     cursor: pointer;
     transition: background 0.3s, transform 0.3s;
     padding: 0;
 }
 .hero-dot.active {
-    background: var(--color-primary);
+    /* background-color, e não background, para não apagar o background-clip acima */
+    background-color: var(--color-primary);
     border-color: var(--color-primary);
     transform: scale(1.3);
 }
@@ -440,7 +461,9 @@
 .hero-title { font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 900; line-height: 1.1; margin: 0 0 1.5rem; }
 .hero-subtitle { font-size: 1.2rem; opacity: .85; margin: 0 0 2.5rem; max-width: 600px; margin-inline: auto; }
 .btn-hero {
-    background: var(--color-secondary); color: #1a1c2e;
+    /* A tinta vem do contraste com a cor do NEPE; #1a1c2e fixo dava 4,07:1 sobre
+       alguns secundários, abaixo dos 4,5:1 do WCAG AA. */
+    background: var(--color-secondary-solid, var(--color-secondary)); color: var(--color-on-secondary, #1a1c2e);
     padding: 1rem 2.5rem; border-radius: 50px; font-size: 1rem; font-weight: 700;
     display: inline-block; transition: all 0.25s; box-shadow: 0 8px 32px rgba(0,0,0,.2);
 }

@@ -27,13 +27,15 @@
 
     {# ── Favicon ── #}
     {% if currentTenant and currentTenant.logo %}
-        <link rel="icon" href="{{ vich_uploader_asset(currentTenant, 'logoFile')|imagine_filter('logo_favicon') }}">
+        <link rel="icon" href="{{ ('uploads/tenant/logo/' ~ currentTenant.logo)|thumb('logo_favicon') }}">
     {% endif %}
 
-    {# ── Google Fonts ── #}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    {# ── Fonte servida pelo próprio domínio ──
+       Antes vinha do Google Fonts: duas conexões a mais e uma folha de estilo
+       bloqueando a renderização, só para a Inter. #}
+    {% include 'pub/_fontes.html.twig' %}
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="{{ asset('fonts/inter-latin-100-900-normal.woff2') }}">
 
     {# ── Tenant CSS custom properties ── #}
     {{ tenant_css_vars()|raw }}
@@ -104,10 +106,25 @@
 
     {% block stylesheets %}{% endblock %}
 
-    {# ── Font Awesome 6 Free — icons used in block partials (blurbs, team, gallery, etc.) ── #}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    {% set usaCarrossel = usa_carrossel(_context) %}
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    {# Pré-carga da imagem do maior elemento visível (LCP): o leitor de pré-carga do
+       navegador lê o <head> em ordem, então ela precisa vir cedo. #}
+    {% set arquivoDoLcp = imagem_do_lcp(_context) %}
+    {% if arquivoDoLcp %}
+        <link rel="preload" as="image" fetchpriority="high"
+              imagesrcset="{{ arquivoDoLcp|thumb_srcset({'hero_mobile': 768, 'hero_desktop': 1600}) }}"
+              imagesizes="100vw">
+    {% endif %}
+
+    {# ── Nada de terceiro no caminho de renderização ──
+       Saíram o FontAwesome (cdnjs) e o CSS do Swiper (jsdelivr): os ícones agora são
+       SVG embutido (ux-icons) e o carrossel só carrega na página que tem carrossel. #}
+    {% if usaCarrossel|default(false) %}
+        <link rel="stylesheet" href="{{ asset('bibliotecas/swiper/swiper-bundle.min.css') }}"
+              media="print" onload="this.media='all';this.onload=null">
+        <noscript><link rel="stylesheet" href="{{ asset('bibliotecas/swiper/swiper-bundle.min.css') }}"></noscript>
+    {% endif %}
 </head>
 <body>
 
@@ -129,7 +146,13 @@
 {% include 'themes/nepe/_footer.html.twig' %}
 
 {% block javascripts %}{% endblock %}
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+{% if usaCarrossel|default(false) %}
+    {# O Swiper entra depois do load (assets/carrossel.js) e avisa pelo evento
+       'swiper:pronto'. Antes era um <script> bloqueante de 40 KB vindo do jsdelivr. #}
+    <script src="{{ asset('carrossel.js') }}" defer
+            data-swiper="{{ asset('bibliotecas/swiper/swiper-bundle.min.js') }}"></script>
+{% endif %}
+<script src="{{ asset('imagens-adiadas.js') }}" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const observer = new IntersectionObserver((entries) => {

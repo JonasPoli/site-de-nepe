@@ -12,14 +12,14 @@
         <div class="nb-gallery-track">
             {% for img in images %}
             <div class="nb-gallery-slide" onclick="nbOpenLightbox('{{ block.id }}',{{ loop.index0 }})">
-                <img src="{{ asset('uploads/page_block_gallery/' ~ img.filename) }}" alt="{{ img.caption ?? '' }}" loading="lazy">
+                <img {{ ('uploads/page_block_gallery/' ~ img.filename)|thumb_attrs('galeria') }} alt="{{ img.caption ?? '' }}" loading="lazy" decoding="async">
                 {% if img.caption %}<p class="nb-gallery-caption">{{ img.caption }}</p>{% endif %}
             </div>
             {% endfor %}
         </div>
         {% if images|length > 1 %}
-        <button class="nb-gal-btn nb-gal-prev" onclick="nbSlide('{{ block.id }}',-1)" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
-        <button class="nb-gal-btn nb-gal-next" onclick="nbSlide('{{ block.id }}',1)" aria-label="Próximo"><i class="fa-solid fa-chevron-right"></i></button>
+        <button class="nb-gal-btn nb-gal-prev" onclick="nbSlide('{{ block.id }}',-1)" aria-label="Anterior">{{ ux_icon('fa6-solid:chevron-left', {'aria-hidden': 'true'}) }}</button>
+        <button class="nb-gal-btn nb-gal-next" onclick="nbSlide('{{ block.id }}',1)" aria-label="Próximo">{{ ux_icon('fa6-solid:chevron-right', {'aria-hidden': 'true'}) }}</button>
         <div class="nb-gal-dots">{% for img in images %}<span class="nb-gal-dot{{ loop.first ? ' active' : '' }}" onclick="nbGoSlide('{{ block.id }}',{{ loop.index0 }})"></span>{% endfor %}</div>
         {% endif %}
     </div>

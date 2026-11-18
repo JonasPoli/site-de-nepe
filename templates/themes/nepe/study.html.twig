@@ -28,7 +28,7 @@
     {# ── Cover Image ── #}
     {% if study.coverImage %}
     <div class="study-cover">
-        <img src="{{ ('uploads/study_cover/' ~ study.coverImage)|imagine_filter('study_cover') }}"
+        <img src="{{ ('uploads/study_cover/' ~ study.coverImage)|thumb('study_cover') }}"
              alt="{{ study.title }}"
              width="1280" height="720" loading="lazy" decoding="async">
     </div>

@@ -79,7 +79,7 @@
 
                 {% if subImage %}
                 <div class="cat-sub-card-img">
-                    <img src="/uploads/page_block/{{ subImage }}" alt="{{ sub.name }}" loading="lazy">
+                    <img {{ ('uploads/page_block/' ~ subImage)|thumb_attrs('capa_pagina') }} alt="{{ sub.name }}" loading="lazy" decoding="async">
                 </div>
                 {% else %}
                 <div class="cat-sub-card-accent"></div>
@@ -124,7 +124,7 @@
             {% if block.image %}
             <div class="zigzag-img">
                 <div class="zigzag-img-wrapper">
-                    <img src="/uploads/page_block/{{ block.image }}" alt="{{ block.title ?? '' }}" loading="lazy">
+                    <img {{ ('uploads/page_block/' ~ block.image)|thumb_attrs('bloco_imagem') }} alt="{{ block.title ?? '' }}" loading="lazy" decoding="async">
                 </div>
             </div>
             {% endif %}
@@ -183,7 +183,7 @@
             <a href="{{ path('pub_study_show', {slug: study.slug}) }}" class="cat-mat-card reveal-up delay-{{ (loop.index0 % 4) * 100 }}">
                 <div class="cat-mat-card-img">
                     {% if study.coverImage %}
-                    <img src="{{ asset('uploads/study_cover/' ~ study.coverImage) }}" alt="{{ study.title }}" loading="lazy">
+                    <img {{ ('uploads/study_cover/' ~ study.coverImage)|thumb_attrs('study_thumb') }} alt="{{ study.title }}" loading="lazy" decoding="async">
                     {% elseif fallbackImage %}
                     <img src="{{ asset(fallbackImage) }}" alt="{{ study.title }}" loading="lazy">
                     {% else %}
@@ -262,7 +262,7 @@
             <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="cat-mat-card reveal-up delay-{{ (loop.index0 % 4) * 100 }}">
                 <div class="cat-mat-card-img">
                     {% if article.image %}
-                    <img src="{{ ('uploads/article/' ~ article.image)|imagine_filter('news_thumb') }}" alt="{{ article.title }}" loading="lazy">
+                    <img src="{{ ('uploads/article/' ~ article.image)|thumb('news_thumb') }}" alt="{{ article.title }}" loading="lazy">
                     {% else %}
                     <div class="cat-mat-card-placeholder cat-mat-card-placeholder--news">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v2"/><path d="M2 10h10M2 14h10M2 18h10"/></svg>

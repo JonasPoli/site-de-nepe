@@ -13,14 +13,14 @@
         {% for page in pages|slice(0, block.itemCount ?? 99) %}
         <a href="{{ path('pub_page_show', {slug: page.slug}) }}" class="nb-pl-card reveal-up delay-{{ loop.index0 * 100 }}">
             {% if page.coverImage %}
-            <div class="nb-pl-img" style="background-image:url('{{ asset('uploads/page_cover/' ~ page.coverImage) }}')"></div>
+            <div class="nb-pl-img" style="background-image:url('{{ ('uploads/page_cover/' ~ page.coverImage)|thumb('capa_pagina') }}')"></div>
             {% else %}
-            <div class="nb-pl-img nb-pl-img-ph"><i class="fa-solid fa-file-lines"></i></div>
+            <div class="nb-pl-img nb-pl-img-ph">{{ ux_icon('fa6-solid:file-lines', {'aria-hidden': 'true'}) }}</div>
             {% endif %}
             <div class="nb-pl-body">
                 <h3 class="nb-pl-title">{{ page.title }}</h3>
                 {% if page.seoDescription %}<p class="nb-pl-desc">{{ page.seoDescription|slice(0,110) }}…</p>{% endif %}
-                <span class="nb-pl-cta">Ler mais <i class="fa-solid fa-arrow-right"></i></span>
+                <span class="nb-pl-cta">Ler mais {{ ux_icon('fa6-solid:arrow-right', {'aria-hidden': 'true'}) }}</span>
             </div>
         </a>
         {% endfor %}

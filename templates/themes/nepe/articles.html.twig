@@ -25,7 +25,7 @@
         <article class="article-card">
             {% if article.image %}
                 <a href="{{ path('pub_article_show', {slug: article.slug}) }}" class="card-img-link">
-                    <div class="card-img" style="background-image:url('{{ ('uploads/article/' ~ article.image) | imagine_filter('news_thumb') }}')"></div>
+                    <div class="card-img" style="background-image:url('{{ ('uploads/article/' ~ article.image)|thumb('news_thumb') }}')"></div>
                 </a>
             {% endif %}
             <div class="card-body">

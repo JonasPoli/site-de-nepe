@@ -40,7 +40,9 @@
 <article class="article-page">
     {# Hero image #}
     {% if article.image %}
-    <div class="article-hero-img" style="background-image: url('/uploads/article/{{ article.image }}')"></div>
+    {% set capaArquivo = 'uploads/article/' ~ article.image %}
+    <img {{ capaArquivo|thumb_attrs('study_featured') }} alt="{{ article.title }}"
+         class="article-hero-img" fetchpriority="high">
     {% endif %}
 
     <div class="container article-layout">
@@ -102,7 +104,7 @@
             <div class="gallery-grid">
                 {% for img in article.gallery %}
                 <a href="{{ asset('uploads/article_gallery/' ~ img.filename) }}" class="glightbox" data-gallery="article-gallery">
-                    <img src="{{ asset('uploads/article_gallery/' ~ img.filename) }}" alt="Imagem da galeria" loading="lazy">
+                    <img {{ ('uploads/article_gallery/' ~ img.filename)|thumb_attrs('galeria') }} alt="Imagem da galeria" loading="lazy" decoding="async">
                 </a>
                 {% endfor %}
             </div>
@@ -118,9 +120,14 @@
 
 {% block stylesheets %}
 {{ parent() }}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+{# A lightbox só entra em cena quando alguém clica numa foto da galeria: o CSS vem do
+   próprio domínio e sem bloquear a renderização. #}
+<link rel="stylesheet" href="{{ asset('bibliotecas/glightbox/glightbox.min.css') }}"
+      media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="{{ asset('bibliotecas/glightbox/glightbox.min.css') }}"></noscript>
 <style>
-.article-hero-img { height: 50vh; background-size: cover; background-position: center; }
+/* Virou <img>: o fundo em CSS não é descoberto cedo pelo navegador. */
+.article-hero-img { display: block; width: 100%; height: 50vh; object-fit: cover; object-position: center; }
 .article-layout { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem; }
 .article-category {
     display: inline-block; padding: 0.3rem 0.9rem; border-radius: 50px;
@@ -206,14 +213,32 @@
 
 {% block javascripts %}
 {{ parent() }}
-<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const lightbox = GLightbox({
-            selector: '.glightbox',
-            touchNavigation: true,
-            loop: true
-        });
-    });
+    // A lightbox é 56 KB que só fazem falta no clique: carrega depois que a página abre.
+    (function () {
+        function iniciar() {
+            if (window.GLightbox) { return; }
+            var s = document.createElement('script');
+            s.src = '{{ asset('bibliotecas/glightbox/glightbox.min.js') }}';
+            s.addEventListener('load', montar);
+            document.head.appendChild(s);
+        }
+        function montar() {
+            if (!window.GLightbox) { return; }
+            GLightbox({
+                selector: '.glightbox',
+                touchNavigation: true,
+                loop: true,
+            });
+        }
+
+        if (!document.querySelector('.glightbox')) { return; }
+
+        if (document.readyState === 'complete') {
+            iniciar();
+        } else {
+            window.addEventListener('load', iniciar, { once: true });
+        }
+    })();
 </script>
 {% endblock %}

@@ -14,7 +14,7 @@
             {% if sub.icon %}<div class="nb-subcat-icon"><i class="{{ sub.icon }}"></i></div>{% endif %}
             <h3 class="nb-subcat-name">{{ sub.name }}</h3>
             {% if sub.description %}<p class="nb-subcat-desc">{{ sub.description|slice(0,100) }}</p>{% endif %}
-            <span class="nb-subcat-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+            <span class="nb-subcat-arrow">{{ ux_icon('fa6-solid:arrow-right', {'aria-hidden': 'true'}) }}</span>
         </a>
         {% endfor %}
     </div>

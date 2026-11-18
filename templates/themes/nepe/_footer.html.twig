@@ -4,11 +4,11 @@
     {# Col 1 — Logo + Quem Somos + Redes Sociais #}
     <div class="footer-col footer-brand">
         {% if currentTenant and currentTenant.darkLogo %}
-            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.darkLogo)|imagine_filter('logo_header') }}"
+            <img {{ ('uploads/tenant/logo/' ~ currentTenant.darkLogo)|thumb_attrs('logo_header') }}
                  alt="{{ currentTenant.name }}"
                  style="height:48px;width:auto;object-fit:contain;margin-bottom:1rem">
         {% elseif currentTenant and currentTenant.logo %}
-            <img src="{{ asset('uploads/tenant/logo/' ~ currentTenant.logo)|imagine_filter('logo_header') }}"
+            <img {{ ('uploads/tenant/logo/' ~ currentTenant.logo)|thumb_attrs('logo_header') }}
                  alt="{{ currentTenant.name }}"
                  style="height:48px;width:auto;object-fit:contain;margin-bottom:1rem;filter:brightness(0) invert(1)">
         {% else %}
@@ -31,7 +31,7 @@
 
     {# Col 2 — Institucional #}
     <div class="footer-col">
-        <h4 class="footer-col-title">Institucional</h4>
+        <h3 class="footer-col-title">Institucional</h3>
         <nav class="footer-nav">
             {% for page in footerPages %}<a href="{{ path('pub_page_show', {slug: page.slug}) }}">{{ page.title }}</a>{% else %}<span class="footer-empty">—</span>{% endfor %}
         </nav>
@@ -39,7 +39,7 @@
 
     {# Col 3 — Notícias por categoria #}
     <div class="footer-col">
-        <h4 class="footer-col-title">Artigos</h4>
+        <h3 class="footer-col-title">Artigos</h3>
         <nav class="footer-nav">
             <a href="{{ path('pub_articles') }}">Todos os artigos</a>
             {% for cat in footerCategories %}<a href="{{ path('pub_category_show', {slug: cat.slug}) }}">{{ cat.name }}</a>{% endfor %}
@@ -48,7 +48,7 @@
 
     {# Col 4 — Vídeos #}
     <div class="footer-col">
-        <h4 class="footer-col-title">Vídeos</h4>
+        <h3 class="footer-col-title">Vídeos</h3>
         <nav class="footer-nav">
             <a href="{{ path('pub_videos') }}">Todos os vídeos</a>
             {% for video in footerVideos %}<a href="{{ path('pub_video_show', {slug: video.slug}) }}">{{ video.title|slice(0,38) }}{% if video.title|length > 38 %}…{% endif %}</a>{% endfor %}
@@ -58,7 +58,7 @@
     {# Col 5 — Materiais #}
     {% if hasStudies %}
     <div class="footer-col">
-        <h4 class="footer-col-title">Materiais</h4>
+        <h3 class="footer-col-title">Materiais</h3>
         <nav class="footer-nav">
             <a href="{{ path('pub_studies') }}">Todos os materiais</a>
             {% for study in footerStudies %}<a href="{{ path('pub_study_show', {slug: study.slug}) }}">{{ study.title|slice(0,38) }}{% if study.title|length > 38 %}…{% endif %}</a>{% endfor %}

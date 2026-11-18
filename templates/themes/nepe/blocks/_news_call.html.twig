@@ -14,12 +14,12 @@
             {% if article.coverImage %}
             <div class="nb-nc-img" style="background-image:url('{{ asset('uploads/article/' ~ article.coverImage) }}')"></div>
             {% else %}
-            <div class="nb-nc-img nb-nc-img-ph"><i class="fa-solid fa-newspaper"></i></div>
+            <div class="nb-nc-img nb-nc-img-ph">{{ ux_icon('fa6-solid:newspaper', {'aria-hidden': 'true'}) }}</div>
             {% endif %}
             <div class="nb-nc-body">
                 {% if article.category %}<span class="nb-nc-cat">{{ article.category.name }}</span>{% endif %}
                 <h3 class="nb-nc-title">{{ article.title }}</h3>
-                {% if article.publishedAt %}<p class="nb-nc-date"><i class="fa-regular fa-calendar"></i> {{ article.publishedAt|date('d/m/Y') }}</p>{% endif %}
+                {% if article.publishedAt %}<p class="nb-nc-date">{{ ux_icon('fa6-regular:calendar', {'aria-hidden': 'true'}) }} {{ article.publishedAt|date('d/m/Y') }}</p>{% endif %}
             </div>
         </a>
         {% endfor %}
