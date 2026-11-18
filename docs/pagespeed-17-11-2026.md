@@ -9,10 +9,11 @@ Ordem: desempenho / acessibilidade / práticas recomendadas / SEO.
 
 | | Antes | Depois |
 |---|---|---|
-| Celular | 73 / 94 / 100 / 100 | **99 / 100 / 100 / 100** |
-| Computador | 85 / 94 / 100 / 100 | **96 / 100 / 100 / 100** |
+| Celular | 73 / 94 / 100 / 100 | **100 / 100 / 100 / 100** |
+| Computador | 85 / 94 / 100 / 100 | **100 / 100 / 100 / 100** |
 
-Peso de imagem da home: **9,7 MB → 316 KB** (um PNG de 7,8 MB virou 83 KB).
+Métricas no fim: FCP 1,1 s, LCP 1,8 s, TBT 0 ms, CLS 0,001, Speed Index 1,8 s. A página
+inteira transfere 216 KB, contra os 9,7 MB só de imagem de antes (um PNG de 7,8 MB).
 
 Como é uma instalação só servindo todos os NEPEs, as correções valem para os seis sites.
 
@@ -91,10 +92,24 @@ sudo -u projetomaster $P bin/console app:miniaturas:aquecer --env=prod
 > O `public/.htaccess` tem alterações do cPanel que **não** estão no git. Nunca rodar
 > `git checkout`, `stash` ou `reset` nesse arquivo. O `git pull` o preserva.
 
+### Segunda rodada (o que fechou o 100)
+
+- **Mapa do Google**: 416 KB de JavaScript baixados mesmo sem ninguém rolar até o mapa.
+  Os três iframes do tema (mapa do contato, bloco de mapa e player do vídeo) passam a
+  entrar quando chegam a 400 px da tela.
+- **Capas de vídeo**: sem imagem própria, o tema apontava para
+  `img.youtube.com/vi/<id>/maxresdefault.jpg` — 1280×720, ~150 KB cada, num cartão de
+  menos de 400 px. Eram 267 KB só nisso. O comando `app:videos:capas` traz a capa para
+  `uploads/video_thumb` e a função `capa_do_video` a serve pelo nosso filtro: 10 a 13 KB
+  em WebP, do nosso domínio.
+- **Logo em WebP**: `logo_header` e `logo_favicon` não declaravam formato e saíam em PNG
+  de 18,4 KB. Agora 3 KB, com a transparência preservada. As capas de estudo passaram de
+  JPEG para WebP pelo mesmo motivo.
+- **Cache dos estáticos**: `.htaccess` por pasta — 1 ano imutável em `/assets` e `/media`,
+  30 dias em `/uploads`. Ficam nas pastas, e não no `public/.htaccess` da raiz, porque
+  aquele arquivo tem alterações do cPanel fora do git.
+
 ## O que ficou de fora
 
-- O cache de longa duração dos estáticos: a auditoria `uses-long-cache-ttl` tem **peso 0**
-  na nota, e mexer no `public/.htaccess` conflitaria com a alteração do cPanel que está no
-  servidor fora do git. Melhora quem volta ao site, não a nota.
-- Os outros 5 domínios só poderão ser medidos (e indexados) depois que o Cloudflare sair
-  da frente.
+Os outros 5 domínios só poderão ser medidos (e indexados) depois que o Cloudflare sair da
+frente. Como é uma instalação só, o código deles já está corrigido — falta o robô chegar.
