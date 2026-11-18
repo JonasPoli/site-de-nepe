@@ -43,8 +43,10 @@
     {% endif %}
 
     <div class="video-embed">
+        {# O player do YouTube só é montado quando chega perto da tela. #}
         <iframe
-            src="{{ video.embedUrl }}"
+            data-adiada="{{ video.embedUrl }}"
+            loading="lazy"
             title="{{ video.title }}"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

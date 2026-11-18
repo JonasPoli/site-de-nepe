@@ -43,7 +43,7 @@ final class AquecerMiniaturasCommand extends Command
         'uploads/study_cover' => ['study_thumb', 'study_featured', 'study_cover'],
         'uploads/article' => ['news_thumb', 'study_featured'],
         'uploads/article_gallery' => ['galeria'],
-        'uploads/video_thumb' => ['news_thumb'],
+        'uploads/video_thumb' => ['news_thumb', 'study_featured'],
         'uploads/tenant/logo' => ['logo_header', 'logo_favicon'],
         'uploads/tenant/about' => ['conteudo_largo'],
         'uploads/page_cover' => ['capa_pagina'],

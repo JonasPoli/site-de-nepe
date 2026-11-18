@@ -1,0 +1,22 @@
+# Cache das imagens enviadas pelo painel.
+#
+# 30 dias, e não um ano: aqui o nome do arquivo NÃO muda quando o cliente troca a imagem
+# pelo painel, então um cache longo demais deixaria o visitante vendo a imagem antiga.
+#
+# Este arquivo fica NESTA pasta de propósito: o public/.htaccess da raiz tem alterações
+# do cPanel que não estão no git (o handler do ea-php83), e mexer nele faria o git pull
+# falhar no servidor. Regra de pasta não conflita com nada.
+#
+# Sem isto, o PageSpeed mostrava "Cache TTL: None" em tudo o que é nosso e pedia
+# 418 KiB em "use ciclos de vida eficientes de cache": quem volta ao site rebaixa tudo.
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 30 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=2592000"
+    # Estes arquivos não precisam de cookie nenhum
+    Header unset Set-Cookie
+</IfModule>

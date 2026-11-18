@@ -81,7 +81,7 @@
         {% set featured = videos|first %}
         <div class="vl-featured reveal-up" data-cat="{{ featured.category ? featured.category.id : 'none' }}">
             <a href="{{ path('pub_video_show', {slug: featured.slug}) }}" class="vl-feat-thumb">
-                <img src="{{ featured.thumbnailUrl }}" alt="{{ featured.title }}" loading="lazy">
+                <img src="{{ capa_do_video(featured, 'study_featured') }}" alt="{{ featured.title }}" loading="lazy" decoding="async">
                 <div class="vl-feat-overlay">
                     <div class="vl-play-big">
                         <svg viewBox="0 0 80 80" width="80" height="80" xmlns="http://www.w3.org/2000/svg">
@@ -122,7 +122,7 @@
             {% if not loop.first %}
             <article class="vl-card reveal-up delay-{{ (loop.index0 % 3) * 100 }}" data-cat="{{ video.category ? video.category.id : 'none' }}">
                 <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="vl-card-thumb">
-                    <img src="{{ video.thumbnailUrl }}" alt="{{ video.title }}" loading="lazy">
+                    <img src="{{ capa_do_video(video, 'news_thumb') }}" alt="{{ video.title }}" loading="lazy" decoding="async">
                     <div class="vl-card-overlay">
                         <div class="vl-play-sm">
                             <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">

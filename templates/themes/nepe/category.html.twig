@@ -224,7 +224,7 @@
             {% for video in catVideos %}
             <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="cat-mat-card reveal-up delay-{{ (loop.index0 % 4) * 100 }}">
                 <div class="cat-mat-card-img cat-mat-card-img--video">
-                    <img src="{{ video.thumbnailUrl }}" alt="{{ video.title }}" loading="lazy">
+                    <img src="{{ capa_do_video(video, 'news_thumb') }}" alt="{{ video.title }}" loading="lazy" decoding="async">
                     <div class="cat-mat-play-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                     </div>

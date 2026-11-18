@@ -10,8 +10,11 @@
     </div>
     {% endif %}
     <div class="nb-map-frame">
+        {# Entra quando chega perto da tela (assets/imagens-adiadas.js): são ~416 KB
+           de JavaScript do Google que não fazem falta antes disso. #}
         <iframe
-            src="https://maps.google.com/maps?q={{ lat }},{{ lng }}&z={{ zoom }}&output=embed"
+            data-adiada="https://maps.google.com/maps?q={{ lat }},{{ lng }}&z={{ zoom }}&output=embed"
+            title="Mapa da localização"
             width="100%" height="420" style="border:0;display:block"
             allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
         </iframe>

@@ -156,7 +156,7 @@
         <div class="videos-grid">
             {% for video in footerVideos|slice(0, 3) %}
             <a href="{{ path('pub_video_show', {slug: video.slug}) }}" class="video-card reveal-up delay-{{ loop.index0 * 100 }}">
-                <div class="video-thumb" style="background-image: url('{{ video.thumbnailUrl }}')">
+                <div class="video-thumb" style="background-image: url('{{ capa_do_video(video, 'news_thumb') }}')">
                     <div class="video-play">▶</div>
                 </div>
                 <div class="video-card-body">
@@ -312,7 +312,11 @@
     {# Mapa #}
     {% if currentTenant and currentTenant.mapsEmbedUrl %}
     <div class="contact-map fade-in delay-300">
-        <iframe src="{{ currentTenant.mapsEmbedUrl }}"
+        {# O mapa puxa cerca de 416 KB de JavaScript do Google. O loading="lazy" do
+           navegador o solta cedo demais numa tela alta, então o endereço fica em
+           data-adiada e o assets/imagens-adiadas.js o liga quando ele chega a 400 px
+           da tela: quem rola até o mapa continua vendo o mapa, sem clicar em nada. #}
+        <iframe data-adiada="{{ currentTenant.mapsEmbedUrl }}"
                 width="100%" height="380" style="border:0;display:block"
                 allowfullscreen loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"

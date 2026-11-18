@@ -84,6 +84,7 @@ sudo -u projetomaster /opt/cpanel/ea-php83/root/usr/bin/php composer.phar instal
 P=/opt/cpanel/ea-php83/root/usr/bin/php
 sudo -u projetomaster $P bin/console cache:clear --env=prod
 sudo -u projetomaster $P bin/console asset-map:compile --env=prod
+sudo -u projetomaster $P bin/console app:videos:capas --env=prod
 sudo -u projetomaster $P bin/console app:miniaturas:aquecer --env=prod
 ```
 

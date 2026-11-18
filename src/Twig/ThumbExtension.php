@@ -60,7 +60,33 @@ final class ThumbExtension extends AbstractExtension
     {
         return [
             new TwigFunction('thumb_size', $this->tamanho(...)),
+            new TwigFunction('capa_do_video', $this->capaDoVideo(...)),
         ];
+    }
+
+    /**
+     * A capa do vídeo, pelo nosso domínio sempre que possível.
+     *
+     * Ordem: a imagem que o cadastro subiu; a capa que o `app:videos:capas` trouxe do
+     * YouTube (`yt-<id>.jpg`); e, só se não houver nenhuma, o endereço do YouTube.
+     * Apontar direto para lá custava 150 KB por cartão, de um domínio de terceiro com
+     * cache de 2 horas e sem passar pelo nosso filtro.
+     */
+    public function capaDoVideo(object $video, string $filtro = 'news_thumb'): string
+    {
+        if (method_exists($video, 'hasCustomThumbnail') && $video->hasCustomThumbnail()) {
+            return $this->url('uploads/video_thumb/' . $video->getCustomThumbnail(), $filtro);
+        }
+
+        $id = method_exists($video, 'getYoutubeId') ? (string) $video->getYoutubeId() : '';
+        if ($id !== '') {
+            $local = 'uploads/video_thumb/yt-' . $id . '.jpg';
+            if (is_file($this->absoluto($local))) {
+                return $this->url($local, $filtro);
+            }
+        }
+
+        return method_exists($video, 'getYoutubeThumbnailUrl') ? $video->getYoutubeThumbnailUrl() : '';
     }
 
     /** URL da miniatura, ou do arquivo original quando o servidor não converte o formato. */

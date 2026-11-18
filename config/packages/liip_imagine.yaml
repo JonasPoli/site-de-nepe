@@ -7,14 +7,16 @@ liip_imagine:
     cache: format_extension
     twig:
         mode: lazy
+    # `webp.generate` ficou desligado porque virou redundante: ele criava uma segunda
+    # cópia .webp ao lado de cada miniatura, e todos os conjuntos de filtro abaixo já
+    # declaram `format: webp`. Eram dois arquivos no disco para servir um.
     webp:
-        generate: true
-        # Sem isto o .webp sai em qualidade 100 — maior que o JPEG que ele deveria substituir
-        quality: 80
+        generate: false
     filter_sets:
         cache: ~
         news_thumb:
             quality: 75
+            format: webp
             filters:
                 thumbnail: { size: [400, 220], mode: outbound }
         product_list:
@@ -28,33 +30,38 @@ liip_imagine:
                     size: [200, 200]
                     mode: inset
         # Capas de materiais/estudos: os originais são fotos em tamanho cheio (chegam a 8 MB).
-        # format jpeg porque PNG de foto pesa dezenas de vezes mais; o fundo branco cobre
-        # os PNGs com transparência, que ficariam pretos na conversão. O .webp sai junto.
+        # format webp porque PNG de foto pesa dezenas de vezes mais e o JPEG não é mais
+        # o formato mais leve; o fundo branco continua cobrindo os PNGs com transparência,
+        # que ficariam pretos na conversão.
         study_thumb:
             quality: 78
-            format: jpeg
+            format: webp
             filters:
                 thumbnail: { size: [480, 270], mode: outbound }
                 background: { size: [480, 270], color: '#ffffff' }
         study_featured:
             quality: 82
-            format: jpeg
+            format: webp
             filters:
                 thumbnail: { size: [960, 540], mode: outbound }
                 background: { size: [960, 540], color: '#ffffff' }
-        # Logos do tenant: sem format jpeg — são PNGs com transparência, que ficariam
-        # com caixa branca sobre o header escuro e no footer invertido
+        # Logos do tenant: WebP, não JPEG — o JPEG não tem canal alfa e deixaria caixa
+        # branca sobre o cabeçalho escuro e no rodapé invertido. O WebP guarda o alfa
+        # (conferido: o logo cuja origem é RGBA sai RGBA), e era aqui que o PageSpeed
+        # pedia "usar um formato de imagem moderno": 18,4 KB de PNG viram 3 KB.
         logo_header:
-            quality: 90
+            quality: 88
+            format: webp
             filters:
-                thumbnail: { size: [240, 120], mode: inset }   # header 52px / footer 48px de altura, com folga para telas retina
+                thumbnail: { size: [208, 104], mode: inset }   # header 52px / footer 48px, em dobro para telas retina
         logo_favicon:
-            quality: 90
+            quality: 88
+            format: webp
             filters:
                 thumbnail: { size: [64, 64], mode: inset }
         study_cover:
             quality: 82
-            format: jpeg
+            format: webp
             filters:
                 thumbnail: { size: [1280, 720], mode: outbound }
                 background: { size: [1280, 720], color: '#ffffff' }
