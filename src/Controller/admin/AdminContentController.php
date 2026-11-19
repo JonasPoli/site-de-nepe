@@ -934,15 +934,35 @@ class AdminContentController extends AbstractController
                 return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
             }
 
-            $editor->setUsername((string) $r->request->get('username'));
+            $username = trim((string) $r->request->get('username'));
+            $email = trim((string) $r->request->get('email')) ?: null;
+            if ($username === '') {
+                $this->addFlash('error', 'Informe o username.');
+                return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
+            }
+            if ($em->getRepository(User::class)->findOneBy(['username' => $username])) {
+                $this->addFlash('error', 'Este username já está em uso. Escolha outro.');
+                return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
+            }
+            if ($email !== null && $em->getRepository(User::class)->findOneBy(['email' => $email])) {
+                $this->addFlash('error', 'Este e-mail já está cadastrado em outro usuário.');
+                return $this->render('admin/editor/new.html.twig', ['editor' => $editor]);
+            }
+
+            $editor->setUsername($username);
             $editor->setName((string) $r->request->get('name'));
-            $editor->setEmail($r->request->get('email') ?: null);
+            $editor->setEmail($email);
             $editor->setWorkGroup($workGroup);
             // Tenant do domínio, não o de quem cria: o super admin não cria mais usuários sem tenant
             $editor->setTenant($tc->requireTenant());
             $editor->setPassword($hasher->hashPassword($editor, $password));
-            $em->persist($editor);
-            $em->flush();
+            try {
+                $em->persist($editor);
+                $em->flush();
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
+                $this->addFlash('error', 'Já existe um usuário com este username ou e-mail.');
+                return $this->render('admin/editor/new.html.twig', ['editor' => new User()]);
+            }
             $this->addFlash('success', 'Usuário criado.');
             return $this->redirectToRoute('admin_editor_index');
         }
